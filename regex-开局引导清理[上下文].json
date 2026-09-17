@@ -1,0 +1,17 @@
+{
+  "id": "8d2f3b45-6e7f-4a01-9b2c-3d4e5f6a7b8c",
+  "scriptName": "开局引导清理[上下文]",
+  "findRegex": "【开局引导】",
+  "replaceString": "",
+  "trimStrings": [],
+  "placement": [
+    2
+  ],
+  "disabled": false,
+  "markdownOnly": false,
+  "promptOnly": true,
+  "runOnEdit": true,
+  "substituteRegex": 0,
+  "minDepth": null,
+  "maxDepth": null
+}

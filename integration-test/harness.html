@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OpeningSetup 开场初始化 · Harness</title>
+<style>
+  body { font-family: Consolas, monospace; font-size: 13px; max-width: 900px; margin: 24px auto; padding: 0 12px; }
+  h2 { border-bottom: 2px solid #333; padding-bottom: 4px; }
+  .grp { margin: 10px 0; }
+  .row { padding: 2px 6px; border-left: 3px solid #999; margin: 2px 0; background: #f6f6f6; }
+  .row.ok { border-color: #2e8b57; }
+  .row.bad { border-color: #d93025; background: #fdeceb; }
+  .total { font-weight: bold; font-size: 15px; margin-top: 14px; padding: 6px; background: #eee; }
+  #run { font-size: 14px; padding: 6px 16px; }
+  iframe { width: 900px; height: 700px; border: 1px solid #999; margin: 6px 0; }
+</style>
+</head>
+<body>
+<h1>OpeningSetup 开场初始化 · Harness</h1>
+<p>srcdoc 内嵌 OpeningSetup.html（mock 酒馆助手 API），覆盖：端到端主流程（四步写入顺序与 shape）/ 幂等（re-boot 摘要、重试防重复落楼）/ 边界（预算、空技能禁令）/ 失败路径（接口故障 → 错误面板 → 重试）/ 开关回退（done 标记 → 摘要模式 → 强制重配）。</p>
+<button id="run" type="button">▶ 运行全部断言</button>
+<div id="out"></div>
+
+<script>
+(function () {
+  const out = document.getElementById('out');
+  let passCount = 0, total = 0;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  function group(name) {
+    const g = document.createElement('div');
+    g.className = 'grp';
+    const h = document.createElement('h2');
+    h.textContent = name;
+    g.appendChild(h);
+    out.appendChild(g);
+  }
+  function row(desc, ok, extra) {
+    total++;
+    const d = document.createElement('div');
+    d.className = 'row ' + (ok ? 'ok' : 'bad');
+    d.textContent = (ok ? '✓ ' : '✗ ') + desc + (ok ? '' : ' — ' + (extra || ''));
+    out.appendChild(d);
+    if (ok) passCount++;
+  }
+  function assert(desc, fn) {
+    try {
+      const ok = fn();
+      row(desc, ok === true, ok === true ? '' : String(JSON.stringify(ok)).slice(0, 160));
+    } catch (e) {
+      row(desc, false, '异常: ' + e.message);
+    }
+  }
+  const totalRow = document.createElement('div');
+  totalRow.className = 'total';
+  totalRow.textContent = '0 项通过';
+  out.appendChild(totalRow);
+  function finish() {
+    totalRow.textContent = passCount + ' / ' + total + ' 项通过' + (passCount === total ? '（全部通过）' : '（存在失败项）');
+  }
+
+  // ---- mock 注入脚本：插到产物 <head> 最前，先于产品脚本执行 ----
+  // 注意：API 必须暴露为 window 全局（产品裸调 getVariables 等），__MOCK__ 只承载测试观测状态
+  function mockScript(seedChat) {
+    const seed = JSON.stringify({ chat: seedChat || {} });
+    return '<script>(function(){\n'
+      + 'var seed = ' + seed + ';\n'
+      + 'var store = { chat: seed.chat || {} };\n'
+      + 'var log = [];\n'
+      + 'var inner = { failCreate: false, created: [] };\n'
+      + 'window.__MOCK__ = {\n'
+      + '  get failCreate(){ return inner.failCreate; }, set failCreate(v){ inner.failCreate = !!v; },\n'
+      + '  get created(){ return inner.created; },\n'
+      + '  store: store, log: log\n'
+      + '};\n'
+      + 'window.getVariables = function(o){ return Object.assign({}, store[(o && o.type) || "chat"] || {}); };\n'
+      + 'window.insertOrAssignVariables = function(payload, o){\n'
+      + '  var t = (o && o.type) || "chat";\n'
+      + '  log.push("assign:" + Object.keys(payload).join(","));\n'
+      + '  store[t] = store[t] || {};\n'
+      + '  Object.keys(payload).forEach(function(k){ store[t][k] = payload[k]; });\n'
+      + '  return Promise.resolve();\n'
+      + '};\n'
+      + 'window.createChatMessages = function(msgs, o){\n'
+      + '  if (inner.failCreate) { inner.failCreate = false; log.push("create:FAIL"); return Promise.reject(new Error("mock: 消息接口故障")); }\n'
+      + '  log.push("create");\n'
+      + '  inner.created = inner.created.concat(msgs);\n'
+      + '  return Promise.resolve();\n'
+      + '};\n'
+      + 'window.triggerSlash = function(s){ log.push("slash"); return Promise.resolve(); };\n'
+      + '})();<\/script>';
+  }
+
+  let productHtml = null;
+  async function loadProduct() {
+    if (!productHtml) {
+      const res = await fetch('../OpeningSetup.html');
+      productHtml = await res.text();
+    }
+    return productHtml;
+  }
+
+  // 造一个带 mock 的产物 iframe；返回 { win, doc, mock }
+  async function makeStage(seedChat) {
+    const html = await loadProduct();
+    const stage = document.createElement('iframe');
+    out.appendChild(stage);
+    stage.srcdoc = html.replace('<head>', '<head>' + mockScript(seedChat));
+    await new Promise((r) => { stage.addEventListener('load', r); });
+    await sleep(80); // 等 boot() 的异步 render
+    const win = stage.contentWindow;
+    win.__OPENING_DEBUG__.instant = true; // 打字机瞬时完成
+    return { stage: stage, win: win, doc: win.document, mock: win.__MOCK__ };
+  }
+
+  function click(ctx, sel) {
+    const el = ctx.doc.querySelector(sel);
+    if (!el) throw new Error('找不到元素 ' + sel);
+    el.dispatchEvent(new ctx.win.MouseEvent('click', { bubbles: true }));
+  }
+  function clickAction(ctx, action) { click(ctx, '[data-action="' + action + '"]'); }
+  function setName(ctx, name) {
+    const inp = ctx.doc.getElementById('name-input');
+    if (!inp) throw new Error('找不到姓名输入框（当前阶段异常）');
+    inp.value = name;
+    inp.dispatchEvent(new ctx.win.Event('input', { bubbles: true }));
+  }
+
+  document.getElementById('run').addEventListener('click', runAll);
+
+  async function runAll() {
+    document.getElementById('run').disabled = true;
+    out.innerHTML = '';
+    out.appendChild(totalRow);
+    passCount = 0; total = 0;
+
+    // ============ 场景1：端到端主流程 ============
+    group('端到端主流程');
+    let ctx;
+    try {
+      ctx = await makeStage(null);
+      assert('boot 后显示标题页（进入引导按钮存在）', () => !!ctx.doc.querySelector('[data-action="start"]'));
+
+      clickAction(ctx, 'start');
+      clickAction(ctx, 'story-next');
+      clickAction(ctx, 'story-next');
+      clickAction(ctx, 'story-done');
+      setName(ctx, '雷诺兹');
+      clickAction(ctx, 'identity-done');
+      click(ctx, '[data-skill-id="investigate"]');
+      click(ctx, '[data-skill-id="rapidshot"]');
+      clickAction(ctx, 'skills-done');
+      click(ctx, '[data-item-id="revolver"]');
+      click(ctx, '[data-item-id="bullets"]');
+      clickAction(ctx, 'items-done');
+      click(ctx, '[data-portrait-key="亚瑟·格雷·夜行"]');
+      clickAction(ctx, 'portrait-done');
+
+      assert('确认页显示自定义姓名', () => ctx.doc.getElementById('submit-btn') && ctx.doc.body.textContent.indexOf('雷诺兹') >= 0);
+      clickAction(ctx, 'confirm-submit');
+      await sleep(80);
+
+      assert('完成后进入归档完成页', () => ctx.win.__OPENING_DEBUG__.state.stage === 'done' && ctx.doc.body.textContent.indexOf('档案已归档') >= 0);
+      assert('写入顺序：立绘 → roster → 开场白 → 归档标记', () => {
+        const want = ['assign:$mms_portrait_choice', 'assign:rpg_combat_roster', 'create', 'assign:$opening_setup_done'];
+        return JSON.stringify(ctx.mock.log) === JSON.stringify(want) ? true : ctx.mock.log;
+      });
+      assert('开场白以 assistant 角色创建且仅 1 条', () => ctx.mock.created.length === 1 && ctx.mock.created[0].role === 'assistant' ? true : ctx.mock.created);
+      assert('开场白含立绘标签与 Status_block', () => {
+        const m = ctx.mock.created[0].message;
+        return (m.indexOf('【立绘 亚瑟·格雷·夜行】') >= 0 && m.indexOf('<Status_block>') >= 0 && m.indexOf('状态栏:') >= 0) ? true : m;
+      });
+      assert('开场白含姓名、属性与所选技能/物品名', () => {
+        const m = ctx.mock.created[0].message;
+        return (m.indexOf('雷诺兹') >= 0 && m.indexOf('[❤️HP:10/10]') >= 0 && m.indexOf('「左轮速射」') >= 0 && m.indexOf('「柯尔特M1911手枪」') >= 0) ? true : m;
+      });
+      assert('开场白行动选项来自 status 配置', () => ctx.mock.created[0].message.indexOf('拆开委托信') >= 0);
+
+      const roster = ctx.mock.store.chat.rpg_combat_roster;
+      assert('roster 为 version 1 单英雄结构', () => roster && roster.version === 1 && Array.isArray(roster.heroes) && roster.heroes.length === 1 ? true : roster);
+      assert('英雄档含名字/config/技能/物品', () => {
+        const h = roster.heroes[0];
+        return h.name === '雷诺兹' && h.config.classType === '侦探' && h.config.maxHp === 10
+          && h.skills.length === 2 && h.items.length === 2
+          && h.skills[0].name === '现场勘查' && h.skills[1].name === '左轮速射'
+          && h.items[0].category === '武器' && h.items[1].name === '.45 ACP子弹'
+          ? true : h;
+      });
+      assert('技能档带 RpgCombat 序列化字段（type/hit/cost 等）', () => {
+        const s = roster.heroes[0].skills[1];
+        return s.type === '[单体]' && s.hit === 75 && s.cost === 3 && s.critRate === 10 && 'isReaction' in s ? true : s;
+      });
+      assert('立绘选择写入 $mms_portrait_choice', () => ctx.mock.store.chat.$mms_portrait_choice === '亚瑟·格雷·夜行' ? true : ctx.mock.store.chat.$mms_portrait_choice);
+      assert('归档标记含名称与技能/物品清单', () => {
+        const d = ctx.mock.store.chat.$opening_setup_done;
+        return d && Array.isArray(d.skills) && d.skills.join() === '现场勘查,左轮速射' && d.items.join() === '柯尔特M1911手枪,.45 ACP子弹' ? true : d;
+      });
+    } catch (e) {
+      row('场景1执行中断', false, e.message);
+    }
+
+    // ============ 场景2：幂等 —— 完成后 re-boot 只显示摘要，零写入 ============
+    group('幂等');
+    try {
+      const seedChat = JSON.parse(JSON.stringify(ctx.mock.store.chat));
+      const createCountBefore = ctx.mock.created.length;
+      const ctx2 = await makeStage(seedChat);
+      assert('已建档聊天 boot 直接进入归档摘要', () => ctx2.win.__OPENING_DEBUG__.state.stage === 'archived' && ctx2.doc.body.textContent.indexOf('归档摘要') >= 0 ? true : ctx2.win.__OPENING_DEBUG__.state.stage);
+      assert('摘要显示原档案内容', () => ctx2.doc.body.textContent.indexOf('雷诺兹') >= 0);
+      assert('摘要模式零写入（无 assign / create / slash）', () => ctx2.mock.log.length === 0 ? true : ctx2.mock.log);
+      assert('re-boot 不新增开场白（全局 create 计数不变）', () => ctx2.mock.created.length === 0 && ctx.mock.created.length === createCountBefore ? true : [ctx2.mock.created.length, ctx.mock.created.length]);
+    } catch (e) {
+      row('场景2执行中断', false, e.message);
+    }
+
+    // ============ 场景3：失败路径 → 错误面板 → 重试防重复落楼 ============
+    group('失败路径与重试');
+    try {
+      const ctx3 = await makeStage(null);
+      ctx3.mock.failCreate = true;
+      clickAction(ctx3, 'start');
+      clickAction(ctx3, 'story-next');
+      clickAction(ctx3, 'story-next');
+      clickAction(ctx3, 'story-done');
+      setName(ctx3, '里德');
+      clickAction(ctx3, 'identity-done');
+      click(ctx3, '[data-skill-id="firstaid"]');
+      clickAction(ctx3, 'skills-done');
+      clickAction(ctx3, 'items-done');
+      click(ctx3, '[data-portrait-key="亚瑟·格雷"]');
+      clickAction(ctx3, 'portrait-done');
+      clickAction(ctx3, 'confirm-submit');
+      await sleep(80);
+      assert('接口故障时显示错误面板与错误信息', () => ctx3.win.__OPENING_DEBUG__.state.stage === 'error' && ctx3.doc.body.textContent.indexOf('mock: 消息接口故障') >= 0 ? true : ctx3.win.__OPENING_DEBUG__.state.stage);
+
+      clickAction(ctx3, 'retry');
+      await sleep(80);
+      const okCreates = ctx3.mock.log.filter((l) => l === 'create').length;
+      const failCreates = ctx3.mock.log.filter((l) => l === 'create:FAIL').length;
+      assert('重试后完成归档', () => ctx3.win.__OPENING_DEBUG__.state.stage === 'done' ? true : ctx3.win.__OPENING_DEBUG__.state.stage);
+      assert('开场白恰好成功 1 次（1 失败 + 1 成功，无重复落楼）', () => okCreates === 1 && failCreates === 1 && ctx3.mock.created.length === 1 ? true : { ok: okCreates, fail: failCreates, created: ctx3.mock.created.length });
+      assert('重试复写前置步骤幂等（portrait/roster 各 2 次 assign）', () => {
+        const p = ctx3.mock.log.filter((l) => l === 'assign:$mms_portrait_choice').length;
+        const r = ctx3.mock.log.filter((l) => l === 'assign:rpg_combat_roster').length;
+        return p === 2 && r === 2 ? true : { portrait: p, roster: r };
+      });
+    } catch (e) {
+      row('场景3执行中断', false, e.message);
+    }
+
+    // ============ 场景4：边界 —— 预算拒绝 / 空技能禁令 ============
+    group('边界');
+    try {
+      const ctx4 = await makeStage(null);
+      clickAction(ctx4, 'start');
+      clickAction(ctx4, 'story-next');
+      clickAction(ctx4, 'story-next');
+      clickAction(ctx4, 'story-done');
+      clickAction(ctx4, 'identity-done');
+      const st4 = ctx4.win.__OPENING_DEBUG__.state;
+      clickAction(ctx4, 'skills-done'); // 一个都没选
+      assert('未选技能时无法进入下一步', () => st4.stage === 'skills' && ctx4.doc.body.textContent.indexOf('至少选定一项技能') >= 0 ? true : st4.stage);
+      // 依次选 15+30+20+25+10（预算 60）：第 3、4 个应被拒绝
+      click(ctx4, '[data-skill-id="investigate"]');
+      click(ctx4, '[data-skill-id="rapidshot"]');
+      click(ctx4, '[data-skill-id="stealth"]');
+      click(ctx4, '[data-skill-id="firstaid"]');
+      click(ctx4, '[data-skill-id="intimidate"]');
+      const picked = Array.from(st4.selectedSkills).sort().join(',');
+      assert('超预算技能被拒绝（15+30+10=55 可选，20/25 被拒）', () => picked === 'intimidate,investigate,rapidshot' ? true : picked);
+      // 物品预算 40：revolver(25)+bullets(10)+notebook(5)=40 恰满；medkit(15)/pocketwatch(5) 均被拒
+      clickAction(ctx4, 'skills-done');
+      ['revolver', 'bullets', 'medkit', 'notebook', 'pocketwatch'].forEach((id) => click(ctx4, '[data-item-id="' + id + '"]'));
+      const pickedItems = Array.from(st4.selectedItems).sort().join(',');
+      assert('物品预算边界生效（恰满 40，medkit/pocketwatch 被拒）', () => pickedItems === 'bullets,notebook,revolver' ? true : pickedItems);
+    } catch (e) {
+      row('场景4执行中断', false, e.message);
+    }
+
+    // ============ 场景5：开关回退 —— done 标记种子 → 摘要 → 强制重配 ============
+    group('开关回退');
+    try {
+      const seed5 = { $opening_setup_done: { ts: 1727800000000, name: '旧档', portrait: '旧立绘', skills: ['旧技能'], items: [] } };
+      const ctx5 = await makeStage(seed5);
+      assert('存在 done 标记时不进向导', () => ctx5.win.__OPENING_DEBUG__.state.stage === 'archived' && ctx5.doc.body.textContent.indexOf('旧档') >= 0 ? true : ctx5.win.__OPENING_DEBUG__.state.stage);
+      clickAction(ctx5, 'force-redo');
+      assert('强制重新配置后回到标题页可重跑', () => ctx5.win.__OPENING_DEBUG__.state.stage === 'title' && !!ctx5.doc.querySelector('[data-action="start"]') ? true : ctx5.win.__OPENING_DEBUG__.state.stage);
+      assert('强制重配本身不产生写入', () => ctx5.mock.log.length === 0 ? true : ctx5.mock.log);
+    } catch (e) {
+      row('场景5执行中断', false, e.message);
+    }
+
+    finish();
+  }
+})();
+</script>
+</body>
+</html>

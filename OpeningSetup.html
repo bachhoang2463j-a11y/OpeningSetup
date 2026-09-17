@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>开局引导 · 雾港谜案 1925</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  /* ================= 1920 年代悬疑推理主题 ================= */
+  :root {
+    --noir-bg: #05070c;
+    --amber: #d9b45c;
+    --amber-dim: rgba(198, 161, 84, 0.55);
+    --amber-glow: rgba(198, 161, 84, 0.25);
+    --paper-hi: #efe6cf;
+    --paper-lo: #e2d4b4;
+    --ink: #2c2416;
+  }
+  html, body { margin: 0; padding: 0; background: var(--noir-bg); }
+  body { font-family: 'Noto Serif SC', serif; color: #e8dcc0; overflow-x: hidden; }
+  .font-tw { font-family: 'Special Elite', 'Courier New', monospace; }
+
+  /* ---- 背景层：视频 / CSS 雾夜兜底 / 胶片颗粒 / 暗角 ---- */
+  #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: var(--vid-op, 0.6); }
+  #bg-fallback { position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 110%, #101623 0%, #070a12 55%, #05070c 100%); }
+  .fog { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: 0.5; will-change: transform; }
+  .fog-a { width: 60vw; height: 34vh; left: -10vw; bottom: -8vh;
+    background: radial-gradient(closest-side, rgba(46, 64, 92, 0.55), transparent 70%);
+    animation: fog-drift 26s ease-in-out infinite alternate; }
+  .fog-b { width: 46vw; height: 30vh; right: -8vw; top: 4vh;
+    background: radial-gradient(closest-side, rgba(198, 161, 84, 0.14), transparent 70%);
+    animation: fog-drift 34s ease-in-out infinite alternate-reverse; }
+  .fog-c { width: 36vw; height: 22vh; left: 30vw; top: 30vh;
+    background: radial-gradient(closest-side, rgba(38, 52, 74, 0.5), transparent 70%);
+    animation: fog-drift 40s ease-in-out infinite alternate; }
+  @keyframes fog-drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(6vw, -3vh, 0) scale(1.15); } }
+  #grain { position: fixed; inset: -40px; z-index: 2; pointer-events: none; opacity: 0.07;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+    animation: grain-shift 1.1s steps(3) infinite; }
+  @keyframes grain-shift { 0% { transform: translate(0, 0); } 33% { transform: translate(-14px, 9px); } 66% { transform: translate(11px, -13px); } 100% { transform: translate(0, 0); } }
+  #vignette { position: fixed; inset: 0; z-index: 3; pointer-events: none;
+    background: radial-gradient(115% 100% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.62) 100%); }
+
+  /* ---- 玻璃拟态面板（半透明浮在视频上） ---- */
+  .glass { background: rgba(13, 16, 22, 0.58); backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    border: 1px solid var(--amber-dim); border-radius: 6px;
+    box-shadow: 0 8px 34px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.35); }
+  .glass-soft { background: rgba(13, 16, 22, 0.42); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(198, 161, 84, 0.22); border-radius: 6px; }
+
+  /* ---- 按钮 ---- */
+  .btn-noir { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.62rem 1.7rem; border: 1px solid var(--amber-dim); color: #e6cf9a; cursor: pointer;
+    background: linear-gradient(rgba(198, 161, 84, 0.13), rgba(198, 161, 84, 0.04));
+    letter-spacing: 0.18em; font-size: 0.92rem; border-radius: 4px;
+    transition: all 0.35s ease; text-shadow: 0 0 8px rgba(198, 161, 84, 0.3); }
+  .btn-noir:hover:not(:disabled) { background: rgba(198, 161, 84, 0.24); box-shadow: 0 0 20px var(--amber-glow); border-color: var(--amber); }
+  .btn-noir:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 1.1rem;
+    border: 1px solid rgba(198, 161, 84, 0.3); color: rgba(232, 220, 192, 0.75); cursor: pointer;
+    background: transparent; font-size: 0.82rem; letter-spacing: 0.1em; border-radius: 4px; transition: all 0.3s ease; }
+  .btn-ghost:hover { border-color: var(--amber-dim); color: #e6cf9a; }
+
+  /* ---- 卡片（技能/物品/立绘可选卡） ---- */
+  .card { border: 1px solid rgba(198, 161, 84, 0.22); border-radius: 6px; cursor: pointer;
+    background: rgba(15, 19, 27, 0.5); transition: all 0.3s ease; }
+  .card:hover { border-color: var(--amber-dim); background: rgba(24, 29, 40, 0.62); }
+  .card.sel { border-color: var(--amber); box-shadow: 0 0 16px var(--amber-glow), inset 0 0 10px rgba(198, 161, 84, 0.08);
+    background: rgba(34, 30, 16, 0.55); }
+
+  /* ---- 标题旧放映机闪烁 ---- */
+  .flicker { animation: flicker 4.2s linear infinite; }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; } 3% { opacity: 0.72; } 5% { opacity: 1; } 42% { opacity: 1; }
+    44% { opacity: 0.82; } 46% { opacity: 1; } 78% { opacity: 0.9; } 80% { opacity: 1; } }
+
+  /* ---- 打字机光标 ---- */
+  .tw-caret::after { content: '▌'; color: var(--amber); animation: caret 0.9s steps(1) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  /* ---- 立绘投影（半透明浮动 + 底部渐隐） ---- */
+  .holo-wrap { position: relative; }
+  .holo { animation: holo-float 5.5s ease-in-out infinite;
+    -webkit-mask-image: linear-gradient(to bottom, black 78%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 78%, transparent 100%); }
+  @keyframes holo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  .holo-ph { display: flex; align-items: center; justify-content: center; }
+
+  /* ---- 档案纸（确认页） ---- */
+  .paper { background: linear-gradient(168deg, var(--paper-hi), var(--paper-lo));
+    color: var(--ink); border: 1px solid #b7a77f; border-radius: 3px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(120, 96, 48, 0.14);
+    transform: rotate(-0.4deg); }
+  .paper .tw-line { border-bottom: 1px dashed rgba(44, 36, 22, 0.35); }
+  .stamp { display: inline-block; padding: 0.2rem 0.8rem; border: 3px double #a03030; color: #a03030;
+    font-weight: 900; letter-spacing: 0.3em; transform: rotate(-8deg); opacity: 0.85; border-radius: 4px; }
+
+  /* ---- 过场 ---- */
+  .fade-in { animation: fade-in 0.55s ease both; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .flash-warn { color: #d98c8c; font-size: 0.82rem; letter-spacing: 0.08em; }
+
+  /* ---- 进度条 ---- */
+  .progress-track { height: 3px; background: rgba(198, 161, 84, 0.15); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, rgba(198, 161, 84, 0.5), var(--amber));
+    box-shadow: 0 0 10px var(--amber-glow); transition: width 0.45s ease; }
+
+  * { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(198, 161, 84, 0.3); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+  <div id="bg-fallback">
+    <div class="fog fog-a"></div>
+    <div class="fog fog-b"></div>
+    <div class="fog fog-c"></div>
+  </div>
+  <video id="bg-video" autoplay loop muted playsinline class="hidden"></video>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+  <audio id="bgm" loop></audio>
+  <div id="app" class="relative z-10"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ====================================================================
+   * OPENING_DATA 配置区 START —— 开场初始化的全部内容数据都在这里改
+   * --------------------------------------------------------------------
+   * · bgm.url / bgVideo.url：BGM 与动态背景视频的直链，留空则用 CSS 雾夜兜底
+   * · story.pages：故事背景分页文案
+   * · identity：初始人物（名字/职业/属性串/穿着/内心 + RpgCombat 英雄初始面板）
+   * · shop：技能/物品选购的点数预算
+   * · skills / items：可选清单。data 内为 RpgCombat 持久化字段
+   *   （与 rpg_combat_roster 存档同构），数值语义请按战斗前端编辑器调整
+   * · portraits：候选立绘。key 必须与 MiniMapStatus 图片表的立绘键一致，
+   *   url 仅用于本界面的预览展示
+   * · status：开场白中 <Status_block> 的日期/地点/行动选项等
+   * · openingTemplate：开场白叙事模板，{名字}{技能清单}{物品清单} 会被替换
+   * ==================================================================== */
+  const OPENING_DATA = {
+    bgm: {
+      url: '',
+      title: "I Don't Want to Set the World on Fire · The Ink Spots（BGM 直链待填）",
+    },
+    bgVideo: { url: '', opacity: 0.6 },
+
+    story: {
+      title: '雾港谜案',
+      subtitle: '一九二五 · 开场引导',
+      pages: [
+        {
+          title: '第一章 · 火漆委托',
+          text: '1925年10月2日，雾港市，深夜大雨。侦探事务所的门被敲响三下——没有人。门口只留下一封信：火漆封缄，徽记不属于任何在册的家族。信里只有一句话：「蓝鸮旅馆201室，带齐你的本事，午夜之前。」',
+        },
+        {
+          title: '第二章 · 雾下的城',
+          text: '这座港口城市从不缺少案子：码头边的走私、政客的账本、接连失踪的证人。警局的档案柜上了锁，报馆的头条换了又换。唯有雾里那双眼睛一直盯着——现在，它盯上了你。',
+        },
+        {
+          title: '第三章 · 你的档案',
+          text: '在踏进雨幕之前，你需要一份属于自己的调查档案：擅长什么，随身带什么，以怎样的面目示人。每一次选择都会写进档案，跟着你走完整个案子。签下名字，故事开始。',
+        },
+      ],
+    },
+
+    identity: {
+      defaultName: '亚瑟·格雷',
+      role: '私家侦探 · 独立执业',
+      emoji: '🕵️',
+      attrs: '[❤️HP:10/10][🧠SAN:55/65][🛡️Armor:1]',
+      wearing: '👔 米色风衣，深灰软呢帽，磨损的牛皮靴',
+      inner: '💭 又是一个不眠之夜。这封委托信的火漆印，不属于任何在册的家族。',
+      // RpgCombat 英雄初始面板（持久化到 rpg_combat_roster 的 config 字段）
+      baseConfig: {
+        img: null, classType: '侦探', isWise: false,
+        maxHp: 10, maxMp: 8, maxTp: 100,
+        atk: 6, def: 3, spd: 5, actCount: 1,
+      },
+    },
+
+    shop: { skillPoints: 60, itemPoints: 40 },
+
+    skills: [
+      {
+        id: 'investigate', shopCost: 15, desc: '俯身检视现场，标记旁人错过的细节。',
+        data: { name: '现场勘查', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: '侦查', fxTag: 'none', cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, type: '[单体]', power: 0, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null },
+      },
+      {
+        id: 'rapidshot', shopCost: 30, desc: '拔枪速射，雨夜中最不需要解释的语言。',
+        data: { name: '左轮速射', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 10, isHighTier: false, isLegendary: false, damageType: '物理', fxTag: 'gunfire', cost: 3, hpCost: 0, tpCost: 0, hit: 75, turns: 0, delay: 0, haste: 0, maxUses: 0, type: '[单体]', power: 12, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null },
+      },
+      {
+        id: 'stealth', shopCost: 20, desc: '猫步潜行，让影子替你保密。',
+        data: { name: '猫步潜行', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: '潜行', fxTag: 'none', cost: 2, hpCost: 0, tpCost: 0, hit: 100, turns: 1, delay: 0, haste: 0, maxUses: 0, type: '[单体]', power: 0, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null },
+      },
+      {
+        id: 'firstaid', shopCost: 25, desc: '压住伤口，缝好这条命，继续查案。',
+        data: { name: '战地急救', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: true, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: '治疗', fxTag: 'heal', cost: 4, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, type: '[治疗]', power: 6, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null },
+      },
+      {
+        id: 'intimidate', shopCost: 10, desc: '冷面威慑，一句沉默有时胜过一场枪战。',
+        data: { name: '冷面威慑', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: '精神', fxTag: 'none', cost: 2, hpCost: 0, tpCost: 0, hit: 90, turns: 0, delay: 0, haste: 0, maxUses: 0, type: '[单体]', power: 5, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null },
+      },
+    ],
+
+    items: [
+      {
+        id: 'revolver', shopCost: 25, desc: '可靠的制式手枪，编号已被锉平。',
+        data: { name: '柯尔特M1911手枪', category: '武器', count: 1, maxUses: 0, bindings: [], type: '[单体]', power: 10, type2: null, power2: 0, type3: null, power3: 0, hit: 80, turns: 0, isOthers: false, guaranteedHit: false, critRate: 5, isHighTier: false, isLegendary: false, fxTag: 'gunfire', damageType: '物理', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'bullets', shopCost: 10, desc: '点四五口径，一盒十二发。',
+        data: { name: '.45 ACP子弹', category: '弹药', count: 12, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 0, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'medkit', shopCost: 15, desc: '绷带、碘酒与一卷胶带。',
+        data: { name: '战地急救包', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[治疗]', power: 5, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: true, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'heal', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'notebook', shopCost: 5, desc: '皮面笔记本，夹着半张老照片。',
+        data: { name: '侦探笔记本', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 0, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'pocketwatch', shopCost: 5, desc: '黄铜怀表，比时钟快七分钟。',
+        data: { name: '黄铜怀表', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 0, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+    ],
+
+    portraits: [
+      { key: '亚瑟·格雷', name: '经典风衣', desc: '雾夜街头的经典剪影', url: '' },
+      { key: '亚瑟·格雷·夜行', name: '夜行装束', desc: '行动时的黑色装束', url: '' },
+      { key: '亚瑟·格雷·正装', name: '正装赴宴', desc: '上层晚宴的体面伪装', url: '' },
+    ],
+
+    status: {
+      date: '⏰ 1925年 · 10月2日 · 星期五 · 深夜大雨',
+      place: '📍 雾港市 · 旧码头区 · 蓝鸮旅馆 201 室',
+      options: [
+        '1. 拆开委托信，阅读正文',
+        '2. 借着台灯细看火漆徽记',
+        '3. 到楼下前台打听201室的原住客',
+      ],
+      allies: [],
+      npcs: [],
+    },
+
+    openingTemplate: [
+      '{名字}把委托信收进风衣内袋，推开旅馆房间的窗。雨声漫过旧码头，汽笛在雾的深处呜咽。',
+      '',
+      '档案摘要——',
+      '· 技能：{技能清单}',
+      '· 随身物品：{物品清单}',
+      '',
+      '今晚，蓝鸮旅馆201室的灯为你而亮。故事，从这里开始。',
+    ].join('\n'),
+  };
+  /* ============================== OPENING_DATA 配置区 END ============================== */
+
+  // ---- 状态 ----
+  const state = {
+    stage: 'boot',
+    storyPage: 0,
+    name: OPENING_DATA.identity.defaultName,
+    selectedSkills: new Set(),
+    selectedItems: new Set(),
+    portrait: OPENING_DATA.portraits.length ? OPENING_DATA.portraits[0].key : '',
+    submitting: false,
+    openingSent: false, // 重试防重：开场白一成功就置位
+    flash: '',
+    soundOn: false,
+    twTimer: null, twEl: null, twText: '', twDone: null,
+  };
+
+  const app = document.getElementById('app');
+  const bgVideo = document.getElementById('bg-video');
+  const bgFallback = document.getElementById('bg-fallback');
+  const bgm = document.getElementById('bgm');
+
+  // ---- 工具 ----
+  function esc(s) {
+    return String(s == null ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;');
+  }
+  function fill(tpl, map) {
+    let out = tpl;
+    Object.keys(map).forEach(function (k) { out = out.split('{' + k + '}').join(map[k]); });
+    return out;
+  }
+  function skillEntries() {
+    return OPENING_DATA.skills.filter(function (e) { return state.selectedSkills.has(e.id); });
+  }
+  function itemEntries() {
+    return OPENING_DATA.items.filter(function (e) { return state.selectedItems.has(e.id); });
+  }
+  function skillsUsed() {
+    return skillEntries().reduce(function (a, e) { return a + e.shopCost; }, 0);
+  }
+  function itemsUsed() {
+    return itemEntries().reduce(function (a, e) { return a + e.shopCost; }, 0);
+  }
+  function portraitEntry() {
+    return OPENING_DATA.portraits.find(function (p) { return p.key === state.portrait; }) || null;
+  }
+  function fmtTs(ts) {
+    const d = new Date(ts);
+    const p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function listNames(entries) {
+    return entries.length ? entries.map(function (e) { return '「' + e.data.name + '」'; }).join('、') : '（无）';
+  }
+
+  // ---- 打字机 ----
+  function typewrite(el, text, done) {
+    stopTw();
+    if (window.__OPENING_DEBUG__ && window.__OPENING_DEBUG__.instant) {
+      el.textContent = text;
+      el.classList.remove('tw-caret');
+      if (done) done();
+      return;
+    }
+    el.textContent = '';
+    el.classList.add('tw-caret');
+    state.twEl = el; state.twText = text; state.twDone = done;
+    let i = 0;
+    state.twTimer = setInterval(function () {
+      i++;
+      el.textContent = text.slice(0, i);
+      if (i >= text.length) finishTw();
+    }, 24);
+  }
+  function finishTw() {
+    stopTw();
+    if (state.twEl) state.twEl.textContent = state.twText;
+    elDropCaret();
+    if (state.twDone) { const d = state.twDone; state.twDone = null; d(); }
+  }
+  function stopTw() {
+    if (state.twTimer) { clearInterval(state.twTimer); state.twTimer = null; }
+  }
+  function elDropCaret() {
+    if (state.twEl) state.twEl.classList.remove('tw-caret');
+  }
+
+  // ---- 酒馆助手接口封装（特性检测 + 降级） ----
+  const TH = {
+    hasVars: function () { return typeof getVariables === 'function'; },
+    hasAssign: function () { return typeof insertOrAssignVariables === 'function'; },
+    hasCreateMsg: function () { return typeof createChatMessages === 'function'; },
+    hasSlash: function () { return typeof triggerSlash === 'function'; },
+    readChatVars: async function () {
+      if (!this.hasVars()) return null;
+      try { return (await getVariables({ type: 'chat' })) || null; } catch (e) { return null; }
+    },
+    writeChatVars: async function (payload) {
+      if (!this.hasAssign()) throw new Error('酒馆助手 insertOrAssignVariables 不可用');
+      await insertOrAssignVariables(payload, { type: 'chat' });
+    },
+    sendAssistantMessage: async function (message) {
+      if (this.hasCreateMsg()) {
+        await createChatMessages([{ role: 'assistant', message: message }], { insert_before: 'end' });
+        return 'createChatMessages';
+      }
+      if (this.hasSlash()) {
+        // 降级：/sendas 以角色名义发送（换行会被压平，属尽力而为的旧版兼容路径）
+        await triggerSlash('/sendas name=' + state.name + ' ' + message.split('\n').join(' '));
+        return 'triggerSlash';
+      }
+      throw new Error('酒馆助手消息接口不可用（createChatMessages / triggerSlash 均未检测到）');
+    },
+  };
+
+  /* ====================================================================
+   * 写入链路（一次性，确认时执行；每步幂等可安全重试）
+   *   1. $mms_portrait_choice     → MiniMapStatus 立绘选择
+   *   2. rpg_combat_roster        → RpgCombat 英雄档案（version 1 结构）
+   *   3. createChatMessages       → AI 角色开场白落楼（含立绘标签 + Status_block）
+   *   4. $opening_setup_done      → 本组件幂等标记
+   * ==================================================================== */
+
+  function buildHeroSave() {
+    const base = OPENING_DATA.identity.baseConfig;
+    const p = portraitEntry();
+    const cfg = Object.assign({}, base);
+    cfg.img = (p && p.url) ? p.url : null;
+    return {
+      name: state.name,
+      config: cfg,
+      skills: skillEntries().map(function (e) { return Object.assign({}, e.data); }),
+      items: itemEntries().map(function (e) { return Object.assign({}, e.data); }),
+    };
+  }
+
+  function buildItemsString(entries) {
+    if (!entries.length) return '无';
+    return '[💼] ' + entries.map(function (e) {
+      const c = e.data.count || 0;
+      return '[' + e.data.name + (c > 1 ? 'x' + c : '') + ']';
+    }).join('');
+  }
+  function buildWeaponsString(entries) {
+    const weapons = entries.filter(function (e) { return e.data.category === '武器'; });
+    if (!weapons.length) return '无';
+    return '[🔪] ' + weapons.map(function (e) { return '[' + e.data.name + ']'; }).join('');
+  }
+
+  function buildStatusBlock() {
+    const lines = [];
+    lines.push('状态栏:');
+    lines.push('  日期和时间: "' + OPENING_DATA.status.date + '"');
+    lines.push('  地点: "' + OPENING_DATA.status.place + '"');
+    lines.push('  角色列表:');
+    lines.push('    - 角色:');
+    lines.push('        名字: "' + OPENING_DATA.identity.emoji + state.name + '"');
+    lines.push('        属性: "' + OPENING_DATA.identity.attrs + '"');
+    lines.push('        穿着: "' + OPENING_DATA.identity.wearing + '"');
+    lines.push('        内心: "' + OPENING_DATA.identity.inner + '"');
+    lines.push('        武器: "' + buildWeaponsString(itemEntries()) + '"');
+    lines.push('        物品: "' + buildItemsString(itemEntries()) + '"');
+    if (OPENING_DATA.status.allies.length || OPENING_DATA.status.npcs.length) {
+      lines.push('  人物:');
+      lines.push('    盟友: ' + JSON.stringify(OPENING_DATA.status.allies));
+      lines.push('    NPC: ' + JSON.stringify(OPENING_DATA.status.npcs));
+    }
+    lines.push('  行动选项:');
+    lines.push('    名字: "🧑 ' + state.name + '"');
+    lines.push('    选项:');
+    OPENING_DATA.status.options.forEach(function (o) { lines.push('      - "' + o + '"'); });
+    return '<Status_block>\n' + lines.join('\n') + '\n</Status_block>';
+  }
+
+  function buildOpeningMessage() {
+    const narrative = fill(OPENING_DATA.openingTemplate, {
+      名字: state.name,
+      技能清单: listNames(skillEntries()),
+      物品清单: listNames(itemEntries()),
+    });
+    const portraitTag = state.portrait ? '【立绘 ' + state.portrait + '】' : '';
+    return narrative + '\n\n' + portraitTag + '\n\n' + buildStatusBlock();
+  }
+
+  function buildDoneFlag() {
+    return {
+      ts: Date.now(),
+      name: state.name,
+      portrait: state.portrait,
+      skills: skillEntries().map(function (e) { return e.data.name; }),
+      items: itemEntries().map(function (e) { return e.data.name; }),
+    };
+  }
+
+  async function submitAll() {
+    if (state.submitting) return;
+    state.submitting = true;
+    state.stage = 'loading';
+    state.progress = 0;
+    state.stepRows = [];
+    render();
+
+    const steps = [
+      ['立绘选择同步 · MiniMapStatus', async function () {
+        if (!state.portrait) return;
+        await TH.writeChatVars({ $mms_portrait_choice: state.portrait });
+      }],
+      ['战斗档案写入 · RpgCombat', async function () {
+        await TH.writeChatVars({ rpg_combat_roster: { version: 1, heroes: [buildHeroSave()] } });
+      }],
+      ['开场白以 AI 角色身份注入聊天流', async function () {
+        if (state.openingSent) return; // 重试时防重复落楼
+        await TH.sendAssistantMessage(buildOpeningMessage());
+        state.openingSent = true;
+      }],
+      ['归档标记写入', async function () {
+        await TH.writeChatVars({ $opening_setup_done: buildDoneFlag() });
+      }],
+    ];
+
+    try {
+      for (let i = 0; i < steps.length; i++) {
+        state.stepRows.push({ label: steps[i][0], status: 'run' });
+        renderLoading();
+        await steps[i][1]();
+        state.stepRows[i].status = 'ok';
+        state.progress = Math.round(((i + 1) / steps.length) * 100);
+        renderLoading();
+      }
+      state.stage = 'done';
+      render();
+    } catch (err) {
+      state.submitting = false;
+      state.errorMsg = (err && err.message) || String(err);
+      state.stage = 'error';
+      render();
+    }
+  }
+
+  /* ==================== 渲染 ==================== */
+
+  function bgLayers() { return ''; } // 背景层为静态 DOM，不随阶段重绘
+
+  function render() {
+    stopTw();
+    let html = '';
+    switch (state.stage) {
+      case 'title': html = viewTitle(); break;
+      case 'story': html = viewStory(); break;
+      case 'identity': html = viewIdentity(); break;
+      case 'skills': html = viewSkills(); break;
+      case 'items': html = viewItems(); break;
+      case 'portrait': html = viewPortrait(); break;
+      case 'confirm': html = viewConfirm(); break;
+      case 'loading': html = viewLoading(); break;
+      case 'done': html = viewDone(); break;
+      case 'archived': html = viewArchived(); break;
+      case 'error': html = viewError(); break;
+      default: html = viewTitle(); break;
+    }
+    app.innerHTML = html;
+    afterRender();
+  }
+
+  function renderLoading() {
+    // 只更新进度区，避免整屏重绘闪烁
+    const box = document.getElementById('loading-body');
+    if (box) { box.innerHTML = loadingBody(); return; }
+    render();
+  }
+
+  function afterRender() {
+    const twEl = document.querySelector('[data-tw]');
+    if (twEl) {
+      typewrite(twEl, twEl.getAttribute('data-tw'), function () {
+        const nxt = document.getElementById('tw-next');
+        if (nxt) nxt.classList.remove('hidden');
+      });
+    }
+    const nameInput = document.getElementById('name-input');
+    if (nameInput) {
+      nameInput.addEventListener('input', function () { state.name = nameInput.value.trim() || OPENING_DATA.identity.defaultName; });
+    }
+  }
+
+  function header(kicker, title) {
+    return '<div class="text-center mb-6 fade-in">'
+      + '<div class="font-tw text-[0.72rem] tracking-[0.5em] text-[rgba(198,161,84,0.75)] uppercase mb-2">' + esc(kicker) + '</div>'
+      + '<h2 class="text-2xl md:text-3xl font-black tracking-[0.25em] text-[#e8dcc0] flicker">' + esc(title) + '</h2>'
+      + '<div class="mx-auto mt-3 w-24 h-px" style="background:linear-gradient(90deg,transparent,var(--amber-dim),transparent)"></div>'
+      + '</div>';
+  }
+
+  function viewTitle() {
+    const d = OPENING_DATA;
+    const soundLabel = state.soundOn ? '🔊 声音已开启' : '🔇 开启声音';
+    const bgmHint = d.bgm.url ? esc(d.bgm.title) : 'BGM 未配置（OPENING_DATA.bgm.url）';
+    const videoReady = !!d.bgVideo.url;
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '  <div class="fade-in text-center mb-10">'
+      + '    <div class="font-tw text-[0.72rem] tracking-[0.6em] text-[rgba(198,161,84,0.75)] uppercase mb-4">' + esc(d.story.subtitle) + '</div>'
+      + '    <h1 class="text-5xl md:text-7xl font-black tracking-[0.35em] text-[#e8dcc0] flicker" style="text-shadow:0 0 30px rgba(198,161,84,0.35)">' + esc(d.story.title) + '</h1>'
+      + '    <div class="mx-auto mt-6 w-40 h-px" style="background:linear-gradient(90deg,transparent,var(--amber-dim),transparent)"></div>'
+      + '    <p class="mt-6 text-[rgba(232,220,192,0.66)] text-sm tracking-[0.2em] font-tw">A DETECTIVE STORY · 1925</p>'
+      + '  </div>'
+      + '  <div class="glass px-8 py-6 max-w-md w-full text-center fade-in">'
+      + '    <div class="text-sm text-[rgba(232,220,192,0.8)] leading-relaxed mb-6">这是一次性的开场初始化向导。<br>你将了解故事背景，决定初始技能、随身物品与立绘，<br>档案将写入 MiniMapStatus 与前端战斗两个插件。</div>'
+      + '    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">'
+      + '      <button class="btn-noir" data-action="sound">' + soundLabel + '</button>'
+      + '      <button class="btn-noir" data-action="start">进入引导</button>'
+      + '    </div>'
+      + '    <div class="mt-4 font-tw text-[0.68rem] text-[rgba(198,161,84,0.6)] tracking-wider">' + bgmHint + (videoReady ? '' : ' · 背景视频未配置（CSS 雾夜兜底）') + '</div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function viewStory() {
+    const page = OPENING_DATA.story.pages[state.storyPage];
+    const last = state.storyPage >= OPENING_DATA.story.pages.length - 1;
+    const dots = OPENING_DATA.story.pages.map(function (_, i) {
+      return '<span class="inline-block w-2 h-2 rounded-full mx-1 ' + (i === state.storyPage ? 'bg-[#d9b45c]' : 'bg-[rgba(198,161,84,0.25)]') + '"></span>';
+    }).join('');
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('STORY · ' + (state.storyPage + 1) + ' / ' + OPENING_DATA.story.pages.length, page.title)
+      + '  <div class="glass max-w-2xl w-full px-8 py-8 fade-in" data-action="tw-skip">'
+      + '    <p data-tw="' + esc(page.text) + '" class="leading-loose text-[1.02rem] text-[rgba(232,220,192,0.92)] min-h-[9rem]"></p>'
+      + '  </div>'
+      + '  <div class="mt-6 flex items-center gap-4">'
+      + '    <div>' + dots + '</div>'
+      + '    <button id="tw-next" class="btn-noir hidden" data-action="' + (last ? 'story-done' : 'story-next') + '">' + (last ? '前往档案登记' : '下一段') + '</button>'
+      + '  </div>'
+      + '  <div class="mt-3 font-tw text-[0.66rem] text-[rgba(198,161,84,0.5)] tracking-wider">点击正文可跳过打字机</div>'
+      + '</div>';
+  }
+
+  function viewIdentity() {
+    const d = OPENING_DATA.identity;
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('IDENTITY · 档案登记', '你的身份')
+      + '  <div class="glass max-w-2xl w-full px-8 py-8 fade-in">'
+      + '    <div class="flex items-center gap-5 mb-6">'
+      + '      <div class="w-16 h-16 glass-soft holo-ph text-3xl">' + esc(d.emoji) + '</div>'
+      + '      <div>'
+      + '        <div class="text-[rgba(232,220,192,0.6)] text-xs tracking-[0.25em] mb-1">' + esc(d.role) + '</div>'
+      + '        <div class="font-tw text-[0.78rem] text-[rgba(198,161,84,0.8)]">属性面板：' + esc(d.attrs) + '</div>'
+      + '      </div>'
+      + '    </div>'
+      + '    <label class="block text-xs tracking-[0.3em] text-[rgba(198,161,84,0.8)] mb-2">代号 / 姓名</label>'
+      + '    <input id="name-input" class="w-full bg-[rgba(0,0,0,0.35)] border border-[rgba(198,161,84,0.35)] rounded px-4 py-3 text-lg text-[#e8dcc0] tracking-[0.15em] outline-none focus:border-[#d9b45c]" value="' + esc(state.name) + '" maxlength="20">'
+      + '    <div class="mt-5 text-sm text-[rgba(232,220,192,0.72)] leading-relaxed">'
+      + '      <div>' + esc(d.wearing) + '</div>'
+      + '      <div class="mt-1">' + esc(d.inner) + '</div>'
+      + '    </div>'
+      + '    <div class="mt-8 text-right"><button class="btn-noir" data-action="identity-done">确认身份</button></div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function budgetBar(used, total, warn) {
+    const pct = Math.min(100, Math.round((used / total) * 100));
+    return '<div class="mb-1 flex items-baseline justify-between">'
+      + '<span class="font-tw text-[0.78rem] text-[rgba(198,161,84,0.85)]">剩余点数 ' + (total - used) + ' / ' + total + '</span>'
+      + (warn ? '<span class="flash-warn">点数不足</span>' : '')
+      + '</div>'
+      + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>';
+  }
+
+  function viewSkills() {
+    const cards = OPENING_DATA.skills.map(function (e) {
+      const sel = state.selectedSkills.has(e.id);
+      return '<div class="card p-4 ' + (sel ? 'sel' : '') + '" data-action="skill-toggle" data-skill-id="' + esc(e.id) + '">'
+        + '<div class="flex items-baseline justify-between mb-1">'
+        + '<span class="text-[#e8dcc0] tracking-[0.12em]">' + esc(e.data.name) + '</span>'
+        + '<span class="font-tw text-[0.78rem] text-[rgba(198,161,84,0.9)]">' + e.shopCost + ' 点</span>'
+        + '</div>'
+        + '<div class="text-xs text-[rgba(232,220,192,0.62)] leading-relaxed">' + esc(e.desc) + '</div>'
+        + '<div class="mt-2 font-tw text-[0.66rem] text-[rgba(198,161,84,0.55)]">' + esc(e.data.type || '') + ' ' + esc(e.data.damageType || '') + ' 命中' + (e.data.hit || 0) + '</div>'
+        + '</div>';
+    }).join('');
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('SKILLS · 专业训练', '技能选购')
+      + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
+      + '    <div id="skill-budget">' + budgetBar(skillsUsed(), OPENING_DATA.shop.skillPoints, false) + '</div>'
+      + '    <div class="grid sm:grid-cols-2 gap-3 mt-4">' + cards + '</div>'
+      + '    <div class="mt-8 flex items-center justify-between">'
+      + '      <button class="btn-ghost" data-action="back-identity">返回</button>'
+      + '      <button class="btn-noir" data-action="skills-done">选定技能</button>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function viewItems() {
+    const cards = OPENING_DATA.items.map(function (e) {
+      const sel = state.selectedItems.has(e.id);
+      return '<div class="card p-4 ' + (sel ? 'sel' : '') + '" data-action="item-toggle" data-item-id="' + esc(e.id) + '">'
+        + '<div class="flex items-baseline justify-between mb-1">'
+        + '<span class="text-[#e8dcc0] tracking-[0.12em]">' + esc(e.data.name) + '</span>'
+        + '<span class="font-tw text-[0.78rem] text-[rgba(198,161,84,0.9)]">' + e.shopCost + ' 点</span>'
+        + '</div>'
+        + '<div class="text-xs text-[rgba(232,220,192,0.62)] leading-relaxed">' + esc(e.desc) + '</div>'
+        + '<div class="mt-2 font-tw text-[0.66rem] text-[rgba(198,161,84,0.55)]">' + esc(e.data.category || '') + (e.data.count > 1 ? ' · x' + e.data.count : '') + '</div>'
+        + '</div>';
+    }).join('');
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('GEAR · 随身装备', '物品选购')
+      + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
+      + '    <div id="item-budget">' + budgetBar(itemsUsed(), OPENING_DATA.shop.itemPoints, false) + '</div>'
+      + '    <div class="grid sm:grid-cols-2 gap-3 mt-4">' + cards + '</div>'
+      + '    <div class="mt-8 flex items-center justify-between">'
+      + '      <button class="btn-ghost" data-action="back-skills">返回</button>'
+      + '      <button class="btn-noir" data-action="items-done">选定物品</button>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function portraitVisual(p, big) {
+    if (p && p.url) {
+      return '<img src="' + esc(p.url) + '" alt="' + esc(p.name) + '" class="holo ' + (big ? 'max-h-[46vh]' : 'h-24 w-24 object-cover rounded') + '">';
+    }
+    const sil = '<svg viewBox="0 0 24 24" fill="rgba(198,161,84,0.35)" ' + (big ? 'class="w-28 h-28 holo"' : 'class="w-10 h-10"') + '><path d="M12 2a5 5 0 110 10 5 5 0 010-10zm0 12c5 0 9 2.5 9 5.5V22H3v-2.5C3 16.5 7 14 12 14z"/></svg>';
+    return big
+      ? '<div class="holo-ph flex-col gap-3">' + sil + '<div class="font-tw text-[0.68rem] text-[rgba(198,161,84,0.55)]">立绘 URL 未配置 · 仅占位剪影</div></div>'
+      : sil;
+  }
+
+  function viewPortrait() {
+    const cards = OPENING_DATA.portraits.map(function (p) {
+      const sel = p.key === state.portrait;
+      return '<div class="card p-3 flex items-center gap-3 ' + (sel ? 'sel' : '') + '" data-action="portrait-pick" data-portrait-key="' + esc(p.key) + '">'
+        + '<div class="glass-soft w-16 h-16 holo-ph shrink-0 overflow-hidden">' + portraitVisual(p, false) + '</div>'
+        + '<div>'
+        + '<div class="text-[#e8dcc0] tracking-[0.12em] text-sm">' + esc(p.name) + (sel ? ' <span class="font-tw text-[0.68rem] text-[#d9b45c]">· 已选</span>' : '') + '</div>'
+        + '<div class="text-xs text-[rgba(232,220,192,0.6)] mt-1">' + esc(p.desc) + '</div>'
+        + '<div class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.5)] mt-1">立绘键：' + esc(p.key) + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    const cur = portraitEntry();
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('PORTRAIT · 面目', '立绘选择')
+      + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
+      + '    <div class="grid md:grid-cols-2 gap-6 items-start">'
+      + '      <div class="holo-wrap glass-soft min-h-[40vh] flex flex-col items-center justify-center p-6">' + portraitVisual(cur, true)
+      + '        <div class="mt-4 font-tw text-[0.72rem] tracking-[0.3em] text-[rgba(198,161,84,0.8)]">' + esc(cur ? cur.name : '未选择') + '</div>'
+      + '      </div>'
+      + '      <div class="flex flex-col gap-3">' + cards + '</div>'
+      + '    </div>'
+      + '    <div class="mt-8 flex items-center justify-between">'
+      + '      <button class="btn-ghost" data-action="back-items">返回</button>'
+      + '      <button class="btn-noir" data-action="portrait-done">以此面目示人</button>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function viewConfirm() {
+    const d = OPENING_DATA.identity;
+    const rows = function (label, val) {
+      return '<div class="flex gap-3 py-1.5 tw-line"><span class="text-[rgba(44,36,22,0.6)] text-xs tracking-[0.25em] w-24 shrink-0 pt-0.5">' + esc(label) + '</span><span class="text-sm leading-relaxed">' + esc(val) + '</span></div>';
+    };
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('DOSSIER · 最终确认', '委托书')
+      + '  <div class="paper max-w-xl w-full px-9 py-8 fade-in">'
+      + '    <div class="flex items-center justify-between mb-4">'
+      + '      <div class="font-black tracking-[0.4em] text-lg">调查档案</div>'
+      + '      <div class="stamp text-xs">绝密</div>'
+      + '    </div>'
+      + rows('姓名', state.name)
+      + rows('身份', d.role)
+      + rows('属性', d.attrs)
+      + rows('技能', listNames(skillEntries()))
+      + rows('物品', listNames(itemEntries()))
+      + rows('立绘', state.portrait || '（默认）')
+      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">签署后：立绘写入 MiniMapStatus，战斗档案写入前端战斗，开场白将以你的名义落入聊天流。此操作一次性执行，可安全重试。</div>'
+      + '  </div>'
+      + '  <div class="mt-8 flex items-center justify-between w-full max-w-xl">'
+      + '    <button class="btn-ghost" data-action="back-portrait">返回</button>'
+      + '    <button class="btn-noir" data-action="confirm-submit" id="submit-btn">签署委托书</button>'
+      + '  </div>'
+      + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
+      + '</div>';
+  }
+
+  function loadingBody() {
+    const rows = (state.stepRows || []).map(function (r) {
+      const mark = r.status === 'ok' ? '<span class="text-[#7fae7f]">✓</span>' : '<span class="text-[#d9b45c] tw-caret"> </span>';
+      return '<div class="flex items-center gap-3 py-1.5 text-sm tracking-[0.12em]">' + mark + '<span class="' + (r.status === 'ok' ? 'text-[rgba(232,220,192,0.55)]' : 'text-[#e8dcc0]') + '">' + esc(r.label) + '</span></div>';
+    }).join('');
+    return '<div class="progress-track mb-5"><div class="progress-fill" style="width:' + (state.progress || 0) + '%"></div></div>' + rows;
+  }
+
+  function viewLoading() {
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('PROCESSING · 正在归档', '档案誊写中')
+      + '  <div class="glass max-w-md w-full px-8 py-8 fade-in" id="loading-body">' + loadingBody() + '</div>'
+      + '</div>';
+  }
+
+  function viewDone() {
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('FILED · 归档完成', '故事开始')
+      + '  <div class="glass max-w-xl w-full px-8 py-8 text-center fade-in">'
+      + '    <div class="stamp mb-6">档案已归档</div>'
+      + '    <div class="text-sm text-[rgba(232,220,192,0.85)] leading-loose">'
+      + '      <p>' + esc(state.name) + ' 的开场白已以 AI 角色身份注入聊天流，</p>'
+      + '      <p>状态栏将随开场白一同渲染，立绘与战斗档案均已写入。</p>'
+      + '    </div>'
+      + '    <div class="mt-6 font-tw text-[0.7rem] text-[rgba(198,161,84,0.65)] tracking-wider">请关闭本界面，向下滚动查看开场楼 · 本向导重新打开时将显示归档摘要</div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function viewArchived() {
+    const d = state.doneFlag || {};
+    const rows = function (label, val) {
+      return '<div class="flex gap-3 py-1.5 tw-line"><span class="text-[rgba(44,36,22,0.6)] text-xs tracking-[0.25em] w-24 shrink-0 pt-0.5">' + esc(label) + '</span><span class="text-sm leading-relaxed">' + esc(val) + '</span></div>';
+    };
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('FILED · 已初始化', '档案摘要')
+      + '  <div class="paper max-w-xl w-full px-9 py-8 fade-in">'
+      + '    <div class="flex items-center justify-between mb-4">'
+      + '      <div class="font-black tracking-[0.4em] text-lg">归档摘要</div>'
+      + '      <div class="stamp text-xs">已建档</div>'
+      + '    </div>'
+      + rows('时间', d.ts ? fmtTs(d.ts) : '—')
+      + rows('姓名', d.name || '—')
+      + rows('技能', (d.skills && d.skills.length) ? d.skills.join('、') : '（无）')
+      + rows('物品', (d.items && d.items.length) ? d.items.join('、') : '（无）')
+      + rows('立绘', d.portrait || '（默认）')
+      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">本聊天已完成开场初始化，向导不会重复执行。如需重开新档：新开聊天，或在酒馆助手变量管理中删除聊天变量 $opening_setup_done 后刷新。</div>'
+      + '  </div>'
+      + '  <div class="mt-6"><button class="btn-ghost" data-action="force-redo">强制重新配置（覆盖写入）</button></div>'
+      + '</div>';
+  }
+
+  function viewError() {
+    return ''
+      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('ERROR · 归档受阻', '写入失败')
+      + '  <div class="glass max-w-xl w-full px-8 py-8 fade-in" style="border-color:rgba(160,48,48,0.55)">'
+      + '    <div class="text-sm text-[rgba(232,220,192,0.85)] leading-relaxed mb-4">写入过程中出现问题；已完成的步骤幂等，可直接重试：</div>'
+      + '    <div class="font-tw text-[0.75rem] text-[#d98c8c] bg-[rgba(0,0,0,0.35)] rounded p-3 break-all">' + esc(state.errorMsg || '未知错误') + '</div>'
+      + '    <div class="mt-6 text-right"><button class="btn-noir" data-action="retry">重试</button></div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  /* ==================== 事件 ==================== */
+
+  app.addEventListener('click', function (ev) {
+    const t = ev.target.closest('[data-action]');
+    if (!t) return;
+    const act = t.getAttribute('data-action');
+    switch (act) {
+      case 'tw-skip':
+        if (state.twTimer) finishTw();
+        break;
+      case 'sound': toggleSound(); break;
+      case 'start':
+        state.stage = 'story'; state.storyPage = 0; render(); break;
+      case 'story-next':
+        state.storyPage++; render(); break;
+      case 'story-done':
+        state.stage = 'identity'; render(); break;
+      case 'identity-done':
+        state.stage = 'skills'; render(); break;
+      case 'skill-toggle': toggleSkill(t.getAttribute('data-skill-id')); break;
+      case 'skills-done':
+        if (!state.selectedSkills.size) { state.flash = '至少选定一项技能'; render(); break; }
+        state.flash = ''; state.stage = 'items'; render(); break;
+      case 'item-toggle': toggleItem(t.getAttribute('data-item-id')); break;
+      case 'items-done': state.stage = 'portrait'; render(); break;
+      case 'portrait-pick':
+        state.portrait = t.getAttribute('data-portrait-key') || ''; render(); break;
+      case 'portrait-done': state.stage = 'confirm'; render(); break;
+      case 'confirm-submit': submitAll(); break;
+      case 'retry': state.stage = 'loading'; state.stepRows = []; state.progress = 0; submitAll(); break;
+      case 'force-redo':
+        state.stage = 'title'; state.openingSent = false; state.doneFlag = null; render(); break;
+      case 'back-identity': state.stage = 'identity'; render(); break;
+      case 'back-skills': state.stage = 'skills'; render(); break;
+      case 'back-items': state.stage = 'items'; render(); break;
+      case 'back-portrait': state.stage = 'portrait'; render(); break;
+    }
+  });
+
+  function toggleSound() {
+    state.soundOn = !state.soundOn;
+    try {
+      bgVideo.muted = !state.soundOn;
+      if (OPENING_DATA.bgm.url) {
+        if (!bgm.src) bgm.src = OPENING_DATA.bgm.url;
+        bgm.volume = 0.55;
+        if (state.soundOn) { bgm.play(); } else { bgm.pause(); }
+      }
+    } catch (e) { /* 自动播放策略拒绝时静默 */ }
+    render();
+  }
+
+  function refreshBudget(boxId, used, total) {
+    const box = document.getElementById(boxId);
+    if (box) box.innerHTML = budgetBar(used, total, false);
+  }
+
+  function toggleSkill(id) {
+    const entry = OPENING_DATA.skills.find(function (e) { return e.id === id; });
+    if (!entry) return;
+    if (state.selectedSkills.has(id)) { state.selectedSkills.delete(id); }
+    else {
+      if (skillsUsed() + entry.shopCost > OPENING_DATA.shop.skillPoints) {
+        refreshBudget('skill-budget', skillsUsed(), OPENING_DATA.shop.skillPoints);
+        return; // 点数不足：拒绝选中（预算边界）
+      }
+      state.selectedSkills.add(id);
+    }
+    render();
+  }
+
+  function toggleItem(id) {
+    const entry = OPENING_DATA.items.find(function (e) { return e.id === id; });
+    if (!entry) return;
+    if (state.selectedItems.has(id)) { state.selectedItems.delete(id); }
+    else {
+      if (itemsUsed() + entry.shopCost > OPENING_DATA.shop.itemPoints) {
+        refreshBudget('item-budget', itemsUsed(), OPENING_DATA.shop.itemPoints);
+        return;
+      }
+      state.selectedItems.add(id);
+    }
+    render();
+  }
+
+  /* ==================== 启动 ==================== */
+
+  async function boot() {
+    // 背景视频 / BGM 配置应用
+    if (OPENING_DATA.bgVideo.url) {
+      bgVideo.src = OPENING_DATA.bgVideo.url;
+      bgVideo.classList.remove('hidden');
+      bgVideo.style.setProperty('--vid-op', String(OPENING_DATA.bgVideo.opacity || 0.6));
+      bgFallback.style.display = 'none';
+    }
+
+    // 幂等检查：本聊天已初始化 → 归档摘要，不再进向导
+    const vars = await TH.readChatVars();
+    const done = vars ? vars.$opening_setup_done : null;
+    if (done && typeof done === 'object') {
+      state.doneFlag = done;
+      state.stage = 'archived';
+    } else {
+      state.stage = 'title';
+    }
+    render();
+  }
+
+  // 调试/测试钩子（MMS window.MMS 同款惯例，不影响产品行为）
+  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, instant: false };
+
+  boot();
+})();
+</script>
+</body>
+</html>
