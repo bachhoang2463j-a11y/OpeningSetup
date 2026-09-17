@@ -136,10 +136,16 @@
 
     // ============ 场景1：端到端主流程 ============
     group('端到端主流程');
-    let ctx;
-    try {
-      ctx = await makeStage(null);
-      assert('boot 后显示标题页（进入引导按钮存在）', () => !!ctx.doc.querySelector('[data-action="start"]'));
+      let ctx;
+      try {
+        ctx = await makeStage(null);
+        assert('boot 后显示标题页（进入引导按钮存在）', () => !!ctx.doc.querySelector('[data-action="start"]'));
+        assert('全屏按钮常驻可用（不随阶段消失）', () => {
+          const fs = ctx.doc.getElementById('fs-btn');
+          if (!fs) return false;
+          ctx.win.document.dispatchEvent(new ctx.win.Event('fullscreenchange')); // 图标切换监听不炸
+          return true;
+        });
 
       clickAction(ctx, 'start');
       clickAction(ctx, 'story-next');
@@ -195,6 +201,7 @@
         const d = ctx.mock.store.chat.$opening_setup_done;
         return d && Array.isArray(d.skills) && d.skills.join() === '现场勘查,左轮速射' && d.items.join() === '柯尔特M1911手枪,.45 ACP子弹' ? true : d;
       });
+      assert('归档标记含 customPortraits 字段', () => Array.isArray(ctx.mock.store.chat.$opening_setup_done.customPortraits) ? true : ctx.mock.store.chat.$opening_setup_done);
     } catch (e) {
       row('场景1执行中断', false, e.message);
     }
@@ -288,6 +295,93 @@
       assert('强制重配本身不产生写入', () => ctx5.mock.log.length === 0 ? true : ctx5.mock.log);
     } catch (e) {
       row('场景5执行中断', false, e.message);
+    }
+
+    // ============ 场景6A：自定义立绘（无 MMS 快照 → 合并跳过但不炸） ============
+    group('自定义立绘 · 无快照兜底');
+    try {
+      const ctx6 = await makeStage(null);
+      ctx6.win.localStorage.removeItem('mms_img_data_llm_v1'); // 清掉上一轮残留，保证"无快照"前提
+      clickAction(ctx6, 'start');
+      clickAction(ctx6, 'story-next');
+      clickAction(ctx6, 'story-next');
+      clickAction(ctx6, 'story-done');
+      clickAction(ctx6, 'identity-done');
+      click(ctx6, '[data-skill-id="investigate"]');
+      clickAction(ctx6, 'skills-done');
+      clickAction(ctx6, 'items-done');
+      // 注意：添加成功会重绘立绘页，输入框 DOM 会被重建——每次操作前重新查询
+      let nameEl = ctx6.doc.getElementById('custom-pname');
+      let urlEl = ctx6.doc.getElementById('custom-purl');
+      nameEl.value = '薇拉';
+      urlEl.value = 'catbox.moe/bad.png'; // 非法 URL：应拒绝且不选中
+      clickAction(ctx6, 'portrait-add');
+      assert('非法 URL（非 http 开头）被拒绝', () => ctx6.win.__OPENING_DEBUG__.state.customPortraits.length === 0 && ctx6.win.__OPENING_DEBUG__.state.portrait !== '薇拉' ? true : ctx6.win.__OPENING_DEBUG__.state);
+      urlEl = ctx6.doc.getElementById('custom-purl');
+      urlEl.value = 'https://files.catbox.moe/vlra.png';
+      clickAction(ctx6, 'portrait-add');
+      assert('自定义立绘添加后自动选中', () => ctx6.win.__OPENING_DEBUG__.state.portrait === '薇拉' && ctx6.win.__OPENING_DEBUG__.state.customPortraits.length === 1 ? true : ctx6.win.__OPENING_DEBUG__.state.customPortraits);
+      // 同名覆盖：重绘后重新取输入框，重填 URL 修正
+      ctx6.doc.getElementById('custom-pname').value = '薇拉';
+      ctx6.doc.getElementById('custom-purl').value = 'https://files.catbox.moe/vlra-fix.png';
+      clickAction(ctx6, 'portrait-add');
+      assert('同名重填即覆盖（无重复条目）', () => ctx6.win.__OPENING_DEBUG__.state.customPortraits.length === 1 && ctx6.win.__OPENING_DEBUG__.state.customPortraits[0].url === 'https://files.catbox.moe/vlra-fix.png' ? true : ctx6.win.__OPENING_DEBUG__.state.customPortraits);
+      clickAction(ctx6, 'portrait-done');
+      clickAction(ctx6, 'confirm-submit');
+      await sleep(80);
+      const roster6 = ctx6.mock.store.chat.rpg_combat_roster;
+      assert('自定义立绘 URL 写入战斗档案头像', () => roster6.heroes[0].config.img === 'https://files.catbox.moe/vlra-fix.png' ? true : roster6.heroes[0].config);
+      assert('$mms_portrait_choice 为自定义立绘键', () => ctx6.mock.store.chat.$mms_portrait_choice === '薇拉' ? true : ctx6.mock.store.chat.$mms_portrait_choice);
+      assert('开场白立绘标签用自定义键', () => ctx6.mock.created[0].message.indexOf('【立绘 薇拉】') >= 0 ? true : ctx6.mock.created[0].message);
+      assert('无合法快照时合并静默跳过（不创建不炸）', () => {
+        try { return ctx6.win.localStorage.getItem('mms_img_data_llm_v1') === null ? true : ctx6.win.localStorage.getItem('mms_img_data_llm_v1'); }
+        catch (e) { return true; } // 测试环境禁 localStorage 也算兜底通过
+      });
+      assert('归档标记记录自定义立绘', () => {
+        const cp = ctx6.mock.store.chat.$opening_setup_done.customPortraits;
+        return cp.length === 1 && cp[0].key === '薇拉' ? true : cp;
+      });
+    } catch (e) {
+      row('场景6A执行中断', false, e.message);
+    }
+
+    // ============ 场景6B：自定义立绘（有合法快照 → portrait 键合并写入） ============
+    // 注意：srcdoc iframe 与父页同源共享 localStorage，此场景放最后且先清残留
+    group('自定义立绘 · MMS 快照合并');
+    try {
+      const ctx7 = await makeStage(null);
+      ctx7.win.localStorage.removeItem('mms_img_data_llm_v1');
+      ctx7.win.localStorage.setItem('mms_img_data_llm_v1', JSON.stringify({
+        portrait: { 旧角色: 'https://example.com/old.png' },
+        avatar: { 旧角色: 'https://example.com/old-s.png' },
+        background: {},
+      }));
+      clickAction(ctx7, 'start');
+      clickAction(ctx7, 'story-next');
+      clickAction(ctx7, 'story-next');
+      clickAction(ctx7, 'story-done');
+      clickAction(ctx7, 'identity-done');
+      click(ctx7, '[data-skill-id="intimidate"]');
+      clickAction(ctx7, 'skills-done');
+      clickAction(ctx7, 'items-done');
+      ctx7.doc.getElementById('custom-pname').value = '薇拉';
+      ctx7.doc.getElementById('custom-purl').value = 'https://files.catbox.moe/vlra.png';
+      clickAction(ctx7, 'portrait-add');
+      clickAction(ctx7, 'portrait-done');
+      clickAction(ctx7, 'confirm-submit');
+      await sleep(80);
+      assert('快照 portrait 合并新增自定义键且保留旧键', () => {
+        const snap = JSON.parse(ctx7.win.localStorage.getItem('mms_img_data_llm_v1'));
+        return snap.portrait['薇拉'] === 'https://files.catbox.moe/vlra.png' && snap.portrait['旧角色'] === 'https://example.com/old.png' && snap.avatar['旧角色'] ? true : snap;
+      });
+      assert('合并对损坏快照防御生效（不覆盖不炸）', () => {
+        ctx7.win.localStorage.setItem('mms_img_data_llm_v1', '{broken');
+        ctx7.win.__OPENING_DEBUG__.mergeMmsPortraitSnapshot(); // 当前选中薇拉且有 URL，merge 应解析失败静默跳过
+        const raw = ctx7.win.localStorage.getItem('mms_img_data_llm_v1');
+        return raw === '{broken' ? true : raw;
+      });
+    } catch (e) {
+      row('场景6B执行中断', false, e.message);
     }
 
     finish();

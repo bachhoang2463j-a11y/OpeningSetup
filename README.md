@@ -41,6 +41,9 @@
 ## 配置（全部在 `OpeningSetup.html` 的 OPENING_DATA 配置区）
 
 - **BGM**：`bgm.url` 填《I Don't Want to Set the World on Fire》(The Ink Spots) 音频直链；
+  当前为本地测试直链（`http://127.0.0.1:8123/my_assets/…`，需 root=D:\Project 的静态服务器），
+  **发布前必须换成图床永久直链**（推荐 catbox.moe，支持音频）。
+  注意：网易云 `m*.music.126.net` 带 14 位时间戳签名的直链有时效（过期 403），不可直接发布。
   留空时标题页提示未配置，声音开关只控制背景视频。
 - **背景视频**：`bgVideo.url` 填动态视频直链（同修仙开局的 `<video>` 方案）；留空走 CSS 雾夜动画兜底。
 - **故事背景**：`story.pages`（分页文案）、`story.title`。
@@ -51,6 +54,13 @@
   **占位数值是示意**：`type`/`power`/`fxTag`/`classType` 等语义请按战斗前端编辑器的实际定义调整。
 - **立绘**：`portraits[].key` 必须与 MiniMapStatus 图片表的立绘键（`PORTRAIT_MAP`）一致才能被识别；
   `url` 仅用于向导内预览。占位键为空 URL 时显示剪影。
+- **自定义立绘（玩家上传）**：立绘选择页支持玩家粘贴**图床直链**（推荐 catbox.moe / imgur.la）
+  自行添加立绘。确认时同步三处：战斗档案头像（`rpg_combat_roster` 的 `config.img`）、
+  MMS 立绘表（合并进本机快照 `mms_img_data_llm_v1` 的 portrait 字典——MMS 官方默许的外部
+  集成路径，快照不存在或损坏时静默跳过）、开场白 `【立绘 键名】` 标签与 `$mms_portrait_choice`。
+  同名重填即覆盖；自定义候选记录在 `$opening_setup_done.customPortraits`，强制重配时自动恢复。
+  **不采用 IndexedDB/dataURL 方案**：大图 dataURL 写进聊天变量会撑爆聊天 JSON，IndexedDB 又锁
+  在本机浏览器无法被 MMS/RpgCombat 读取（情绪头像项目即纯本机自用先例）；图床 URL 三方全通且可复用。
 - **开场白**：`openingTemplate`（`{名字}{技能清单}{物品清单}` 占位）、`status`（日期/地点/行动选项）。
 
 改完源码后**必须重新构建并重新导入**（酒馆渲染的是 JSON 里内嵌的副本）：
@@ -66,5 +76,6 @@ node -e "<harness 技能内置静态服务器脚本>"   # 8123 起自动递增
 # 打开 http://127.0.0.1:<port>/OpeningSetup/integration-test/harness.html → 运行全部断言
 ```
 
-覆盖：端到端主流程（四步写入 shape 与顺序）/ 幂等（重复 boot 不二次写入、双击防抖、重试防重复落楼）/
-边界（点数预算拒绝）/ 失败路径（接口抛错出错误面板可重试）/ 开关回退（done 标记存在时进摘要模式）。
+覆盖：端到端主流程（四步写入 shape 与顺序、全屏按钮、customPortraits）/ 幂等（重复 boot 不二次写入、重试防重复落楼）/
+边界（点数预算拒绝、非法 URL）/ 失败路径（接口抛错出错误面板可重试）/ 开关回退（done 标记存在时进摘要模式）/
+自定义立绘（无快照跳过合并、同名覆盖、MMS 快照合并与损坏防御）。

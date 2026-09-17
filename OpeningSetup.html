@@ -65,6 +65,15 @@
     background: transparent; font-size: 0.82rem; letter-spacing: 0.1em; border-radius: 4px; transition: all 0.3s ease; }
   .btn-ghost:hover { border-color: var(--amber-dim); color: #e6cf9a; }
 
+  /* ---- 全屏按钮（独立于阶段重绘的常驻控件） ---- */
+  .fs-btn { position: fixed; top: 14px; right: 14px; z-index: 30; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    border: 1px solid var(--amber-dim); border-radius: 4px; color: #e6cf9a;
+    background: rgba(13, 16, 22, 0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease; }
+  .fs-btn:hover { background: rgba(198, 161, 84, 0.24); box-shadow: 0 0 16px var(--amber-glow); }
+  .fs-btn svg { width: 18px; height: 18px; }
+
   /* ---- 卡片（技能/物品/立绘可选卡） ---- */
   .card { border: 1px solid rgba(198, 161, 84, 0.22); border-radius: 6px; cursor: pointer;
     background: rgba(15, 19, 27, 0.5); transition: all 0.3s ease; }
@@ -124,6 +133,10 @@
   <div id="grain"></div>
   <div id="vignette"></div>
   <audio id="bgm" loop></audio>
+  <button id="fs-btn" type="button" title="全屏 / 退出全屏">
+    <svg id="fs-icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    <svg id="fs-icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+  </button>
   <div id="app" class="relative z-10"></div>
 
 <script>
@@ -146,8 +159,11 @@
    * ==================================================================== */
   const OPENING_DATA = {
     bgm: {
-      url: '',
-      title: "I Don't Want to Set the World on Fire · The Ink Spots（BGM 直链待填）",
+      // 本地测试直链（需启动 harness 同款静态服务器，root=D:\Project）；
+      // 发布前必须换成图床永久直链（推荐 catbox.moe，支持音频）。
+      // 注意：网易云 m*.music.126.net 带 14 位时间戳签名的直链有时效（过期 403），不可直接发布。
+      url: "http://127.0.0.1:8123/my_assets/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
+      title: "I Don't Want to Set the World on Fire · The Ink Spots（当前为本地测试直链，发布前换图床）",
     },
     bgVideo: { url: '', opacity: 0.6 },
 
@@ -271,6 +287,7 @@
     selectedSkills: new Set(),
     selectedItems: new Set(),
     portrait: OPENING_DATA.portraits.length ? OPENING_DATA.portraits[0].key : '',
+    customPortraits: [], // 玩家自定义立绘 {key, name, desc, url}（图床直链）
     submitting: false,
     openingSent: false, // 重试防重：开场白一成功就置位
     flash: '',
@@ -304,8 +321,11 @@
   function itemsUsed() {
     return itemEntries().reduce(function (a, e) { return a + e.shopCost; }, 0);
   }
+  function combinedPortraitList() {
+    return OPENING_DATA.portraits.concat(state.customPortraits);
+  }
   function portraitEntry() {
-    return OPENING_DATA.portraits.find(function (p) { return p.key === state.portrait; }) || null;
+    return combinedPortraitList().find(function (p) { return p.key === state.portrait; }) || null;
   }
   function fmtTs(ts) {
     const d = new Date(ts);
@@ -450,9 +470,26 @@
       ts: Date.now(),
       name: state.name,
       portrait: state.portrait,
+      customPortraits: state.customPortraits.slice(),
       skills: skillEntries().map(function (e) { return e.data.name; }),
       items: itemEntries().map(function (e) { return e.data.name; }),
     };
+  }
+
+  // MMS 本机图片快照合并：把选中立绘的 {键名: URL} 并入 mms_img_data_llm_v1 的 portrait
+  // 字典，MMS 立绘引擎（快照命中即整表覆盖内置表）即可直接渲染【立绘 键名】。
+  // 该 key 是 MMS 官方默许的外部集成路径（源码注释点名 ShopBlock 先例）；
+  // 快照不存在/结构不合法/存储不可用时静默跳过（玩家可在 MMS 图片管理里手动添加）。
+  function mergeMmsPortraitSnapshot() {
+    const p = portraitEntry();
+    if (!p || !p.url) return;
+    try {
+      const KEY = 'mms_img_data_llm_v1';
+      const snap = JSON.parse(localStorage.getItem(KEY));
+      if (!snap || typeof snap !== 'object' || !snap.portrait || !snap.avatar) return;
+      snap.portrait[p.key] = p.url;
+      localStorage.setItem(KEY, JSON.stringify(snap));
+    } catch (e) { /* 快照损坏或存储不可用：跳过 */ }
   }
 
   async function submitAll() {
@@ -467,6 +504,7 @@
       ['立绘选择同步 · MiniMapStatus', async function () {
         if (!state.portrait) return;
         await TH.writeChatVars({ $mms_portrait_choice: state.portrait });
+        mergeMmsPortraitSnapshot();
       }],
       ['战斗档案写入 · RpgCombat', async function () {
         await TH.writeChatVars({ rpg_combat_roster: { version: 1, heroes: [buildHeroSave()] } });
@@ -543,6 +581,20 @@
     const nameInput = document.getElementById('name-input');
     if (nameInput) {
       nameInput.addEventListener('input', function () { state.name = nameInput.value.trim() || OPENING_DATA.identity.defaultName; });
+    }
+    const urlInput = document.getElementById('custom-purl');
+    if (urlInput) {
+      urlInput.addEventListener('input', function () {
+        const prev = document.getElementById('custom-preview');
+        if (!prev) return;
+        const v = urlInput.value.trim();
+        if (/^https?:\/\//.test(v)) {
+          prev.onerror = function () { prev.classList.add('hidden'); };
+          prev.src = v;
+          prev.classList.remove('hidden');
+        }
+        else { prev.removeAttribute('src'); prev.classList.add('hidden'); }
+      });
     }
   }
 
@@ -694,14 +746,14 @@
   }
 
   function viewPortrait() {
-    const cards = OPENING_DATA.portraits.map(function (p) {
+    const cards = combinedPortraitList().map(function (p) {
       const sel = p.key === state.portrait;
       return '<div class="card p-3 flex items-center gap-3 ' + (sel ? 'sel' : '') + '" data-action="portrait-pick" data-portrait-key="' + esc(p.key) + '">'
         + '<div class="glass-soft w-16 h-16 holo-ph shrink-0 overflow-hidden">' + portraitVisual(p, false) + '</div>'
-        + '<div>'
+        + '<div class="min-w-0">'
         + '<div class="text-[#e8dcc0] tracking-[0.12em] text-sm">' + esc(p.name) + (sel ? ' <span class="font-tw text-[0.68rem] text-[#d9b45c]">· 已选</span>' : '') + '</div>'
-        + '<div class="text-xs text-[rgba(232,220,192,0.6)] mt-1">' + esc(p.desc) + '</div>'
-        + '<div class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.5)] mt-1">立绘键：' + esc(p.key) + '</div>'
+        + '<div class="text-xs text-[rgba(232,220,192,0.6)] mt-1 truncate">' + esc(p.desc) + '</div>'
+        + (p.url ? '<div class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.5)] mt-1 truncate">' + esc(p.url) + '</div>' : '<div class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.5)] mt-1">立绘键：' + esc(p.key) + '</div>')
         + '</div>'
         + '</div>';
     }).join('');
@@ -714,7 +766,22 @@
       + '      <div class="holo-wrap glass-soft min-h-[40vh] flex flex-col items-center justify-center p-6">' + portraitVisual(cur, true)
       + '        <div class="mt-4 font-tw text-[0.72rem] tracking-[0.3em] text-[rgba(198,161,84,0.8)]">' + esc(cur ? cur.name : '未选择') + '</div>'
       + '      </div>'
-      + '      <div class="flex flex-col gap-3">' + cards + '</div>'
+      + '      <div class="flex flex-col gap-3">'
+      + '        <div class="glass-soft p-4">'
+      + '          <div class="font-tw text-[0.7rem] tracking-[0.25em] text-[rgba(198,161,84,0.85)] mb-2">自定义立绘 · 图床直链</div>'
+      + '          <div class="flex gap-2 mb-2">'
+      + '            <input id="custom-pname" class="w-24 bg-[rgba(0,0,0,0.35)] border border-[rgba(198,161,84,0.3)] rounded px-2 py-1.5 text-xs text-[#e8dcc0] outline-none focus:border-[#d9b45c]" placeholder="名称" maxlength="20" value="自定义立绘">'
+      + '            <input id="custom-purl" class="flex-1 min-w-0 bg-[rgba(0,0,0,0.35)] border border-[rgba(198,161,84,0.3)] rounded px-2 py-1.5 text-xs text-[#e8dcc0] outline-none focus:border-[#d9b45c] font-tw" placeholder="https://files.catbox.moe/xxxx.png">'
+      + '          </div>'
+      + '          <div class="flex items-center gap-3">'
+      + '            <button class="btn-ghost" data-action="portrait-add">添加并选中</button>'
+      + '            <img id="custom-preview" class="h-10 rounded hidden" alt="预览">'
+      + '          </div>'
+      + '          <div class="mt-2 text-[0.66rem] text-[rgba(232,220,192,0.55)] leading-relaxed">先把图片上传到图床（推荐 catbox.moe / imgur.la），粘贴直链。确认后将同步写入 MiniMapStatus 立绘表（本机快照）与战斗档案头像，链接可在两个插件中直接复用。</div>'
+      + '          <div id="custom-flash" class="flash-warn mt-1 hidden">URL 需以 http(s):// 开头</div>'
+      + '        </div>'
+      + cards
+      + '      </div>'
       + '    </div>'
       + '    <div class="mt-8 flex items-center justify-between">'
       + '      <button class="btn-ghost" data-action="back-items">返回</button>'
@@ -847,17 +914,57 @@
       case 'items-done': state.stage = 'portrait'; render(); break;
       case 'portrait-pick':
         state.portrait = t.getAttribute('data-portrait-key') || ''; render(); break;
+      case 'portrait-add': addCustomPortrait(); break;
       case 'portrait-done': state.stage = 'confirm'; render(); break;
       case 'confirm-submit': submitAll(); break;
       case 'retry': state.stage = 'loading'; state.stepRows = []; state.progress = 0; submitAll(); break;
       case 'force-redo':
-        state.stage = 'title'; state.openingSent = false; state.doneFlag = null; render(); break;
+        state.stage = 'title'; state.openingSent = false;
+        // 已在 boot 从 doneFlag 恢复过 customPortraits；直接复用当前值
+        state.doneFlag = null; render(); break;
       case 'back-identity': state.stage = 'identity'; render(); break;
       case 'back-skills': state.stage = 'skills'; render(); break;
       case 'back-items': state.stage = 'items'; render(); break;
       case 'back-portrait': state.stage = 'portrait'; render(); break;
     }
   });
+
+  function addCustomPortrait() {
+    const nameEl = document.getElementById('custom-pname');
+    const urlEl = document.getElementById('custom-purl');
+    const flash = document.getElementById('custom-flash');
+    const name = (nameEl && nameEl.value.trim()) || '自定义立绘';
+    const url = urlEl ? urlEl.value.trim() : '';
+    if (!/^https?:\/\//.test(url)) {
+      if (flash) flash.classList.remove('hidden');
+      return;
+    }
+    if (flash) flash.classList.add('hidden');
+    // 同名覆盖：重填即修正，无需删除入口
+    state.customPortraits = state.customPortraits.filter(function (p) { return p.key !== name; });
+    state.customPortraits.push({ key: name, name: name, desc: '玩家自定义', url: url });
+    state.portrait = name;
+    render();
+  }
+
+  function toggleFs() {
+    try {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      }
+    } catch (e) { /* 宿主 iframe 未授权全屏时静默 */ }
+  }
+
+  function updateFsIcon() {
+    const expand = document.getElementById('fs-icon-expand');
+    const compress = document.getElementById('fs-icon-compress');
+    if (!expand || !compress) return;
+    const fs = !!document.fullscreenElement;
+    expand.classList.toggle('hidden', fs);
+    compress.classList.toggle('hidden', !fs);
+  }
 
   function toggleSound() {
     state.soundOn = !state.soundOn;
@@ -908,6 +1015,11 @@
   /* ==================== 启动 ==================== */
 
   async function boot() {
+    // 全屏按钮：独立常驻控件，不随阶段重绘
+    const fsBtn = document.getElementById('fs-btn');
+    if (fsBtn) fsBtn.addEventListener('click', toggleFs);
+    document.addEventListener('fullscreenchange', updateFsIcon);
+
     // 背景视频 / BGM 配置应用
     if (OPENING_DATA.bgVideo.url) {
       bgVideo.src = OPENING_DATA.bgVideo.url;
@@ -921,6 +1033,8 @@
     const done = vars ? vars.$opening_setup_done : null;
     if (done && typeof done === 'object') {
       state.doneFlag = done;
+      // 恢复玩家自定义立绘候选（强制重配时可复用）
+      if (Array.isArray(done.customPortraits)) state.customPortraits = done.customPortraits;
       state.stage = 'archived';
     } else {
       state.stage = 'title';
@@ -929,7 +1043,7 @@
   }
 
   // 调试/测试钩子（MMS window.MMS 同款惯例，不影响产品行为）
-  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, instant: false };
+  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, instant: false, mergeMmsPortraitSnapshot: mergeMmsPortraitSnapshot };
 
   boot();
 })();
