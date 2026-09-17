@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>OpeningSetup ↔ MMS ↔ RpgCombat 联动脚手架</title>
+<style>
+  body { background:#111; color:#cfc6b8; font:13px/1.6 "Consolas","Microsoft YaHei",monospace; padding:16px 20px; }
+  h1 { color:#d9b45c; font-size:16px; letter-spacing:.15em; }
+  .note { color:#8f8574; font-size:12px; max-width:960px; }
+  .note b { color:#c9a86a; }
+  #run { background:#2a241a; color:#d9b45c; border:1px solid #6b5a2e; border-radius:4px; padding:6px 18px; cursor:pointer; font:inherit; margin:10px 0; }
+  #stat { margin-left:12px; }
+  #stat.pass { color:#7fc97f; } #stat.fail { color:#e08a8a; } #stat.info { color:#8f8574; }
+  #log h2 { color:#d9b45c; font-size:13px; margin:14px 0 4px; border-bottom:1px solid #333; padding-bottom:2px; }
+  #log div.row { white-space:pre-wrap; }
+  #log .ok { color:#7fc97f; } #log .bad { color:#e08a8a; }
+  details { margin-top:12px; }
+  iframe { width:360px; height:260px; border:1px solid #333; background:#000; margin-right:8px; }
+</style>
+</head>
+<body>
+<h1>OPENING_SETUP → MMS / RPG_COMBAT 数据联动回归</h1>
+<p class="note">
+  挂真实产物三件套，验证三条数据通道端到端：① <b>rpg_combat_roster</b>（聊天变量 → RpgCombat readRoster/applyPersistedRoster 合并）
+  ② <b>mms_img_data_llm_v1</b>（localStorage 快照 → MMS 启动整表读回 → PORTRAIT_MAP 命中自定义立绘）
+  ③ <b>开场白楼层</b>（【立绘 键】+&lt;Status_block&gt; → MMS readLegacyState 解析）。<br>
+  已知留白：<b>$mms_portrait_choice</b> OpeningSetup 写字符串、MMS 端按 {角色名:键} 对象消费——预设立绘选择为 demo 已弃用（只用自定义上传），此处仅断言写入行为。<br>
+  残余边界：彻底全新安装且 MMS 从未渲染过、OpeningSetup 就先提交的首聊，快照合并会静默跳过（MMS 启动才写基线）——场景⑤锁该行为；使用上保证进新聊天前 MMS 在任一聊天渲染过一次即可。<br>
+  契约前提：OpeningSetup 玩家姓名须与 RpgCombat 我方 YAML 英雄同名（本脚手架用「埃利奥特」），否则 applyPersistedRoster 按名找不到不合并。
+</p>
+<button id="run">▶ 运行全部断言</button><span id="stat" class="info">待运行</span>
+<div id="log"></div>
+<details><summary>被测产物 iframe</summary>
+  <iframe id="os-frame"></iframe><iframe id="rpg-frame"></iframe><iframe id="mms-frame"></iframe>
+</details>
+
+<script>
+/* ==================== MOCK：酒馆助手接口（父页共享，三 iframe 同源注入） ==================== */
+const LS_KEY = 'mms_img_data_llm_v1';
+const CUSTOM_KEY = '夜鸦';
+const CUSTOM_URL = 'https://files.catbox.moe/linkage-test.png';
+const HERO_NAME = '埃利奥特';
+
+const MOCK = (function () {
+  const clone = (v) => (v === undefined ? v : JSON.parse(JSON.stringify(v)));
+  const store = { global: {}, chat: {}, message: {} };
+  let chatMessages = [];
+  let listeners = [];
+  let genCount = 0, genResponder = null, lastGenPrompt = '';
+  let failCreate = false;
+  const log = [];
+  function curId() { return chatMessages.length - 1; }
+  function bucket(o) {
+    if (o && o.type === 'message') {
+      const id = (o.message_id != null) ? o.message_id : curId();
+      store.message[id] = store.message[id] || {};
+      return store.message[id];
+    }
+    if (o && o.type === 'chat') return store.chat;
+    return store.global; // global / character
+  }
+  function deepMerge(t, s) {
+    for (const k of Object.keys(s || {})) {
+      const v = s[k];
+      if (v && typeof v === 'object' && !Array.isArray(v) && t[k] && typeof t[k] === 'object' && !Array.isArray(t[k])) deepMerge(t[k], v);
+      else t[k] = clone(v);
+    }
+    return t;
+  }
+  function parseRange(range) {
+    if (typeof range === 'number') return [range, range];
+    const s = String(range == null ? curId() : range);
+    const m = s.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (m) return [parseInt(m[1], 10), parseInt(m[2], 10)];
+    const n = parseInt(s, 10);
+    return isNaN(n) ? [curId(), curId()] : [n, n];
+  }
+  const api = {
+    tavern_events: { MESSAGE_RECEIVED: 'message_received', CHAT_CHANGED: 'chat_id_changed' },
+    getVariables: (opt) => clone(bucket(opt)) || {},
+    insertOrAssignVariables: (vars, opt) => { deepMerge(bucket(opt), vars); log.push('assign:' + Object.keys(vars).join(',')); },
+    setVariables: (vars, opt) => { deepMerge(bucket(opt), vars); },
+    replaceVariables: (vars, opt) => {
+      const b = bucket(opt);
+      for (const k of Object.keys(b)) delete b[k];
+      deepMerge(b, vars);
+    },
+    getCurrentMessageId: () => curId(),
+    getLastMessageId: () => curId(),
+    getCurrentMessage: () => clone(chatMessages[curId()] || null),
+    getChatMessages: (range) => {
+      const [a, b] = parseRange(range);
+      const out = [];
+      for (let i = a; i <= b; i++) if (chatMessages[i]) out.push(clone(chatMessages[i]));
+      return out;
+    },
+    createChatMessages: async (list, opt) => {
+      if (failCreate) throw new Error('mock: 消息接口故障');
+      (list || []).forEach((m) => {
+        chatMessages.push({ message_id: chatMessages.length, message: m.message, role: m.role || 'assistant', is_user: (m.role || 'assistant') === 'user', data: {} });
+      });
+      log.push('create');
+    },
+    triggerSlash: (cmd) => { log.push('slash:' + String(cmd).slice(0, 40)); },
+    eventOn: (event, fn) => { listeners.push({ event, fn }); },
+    eventOnce: (event, fn) => { listeners.push({ event, fn, once: true }); },
+    eventEmit: (event, ...args) => {
+      listeners.slice().forEach((l) => {
+        if (l.event !== event) return;
+        if (l.once) listeners.splice(listeners.indexOf(l), 1);
+        try { l.fn(...args); } catch (e) { console.error('[mock] listener error', e); }
+      });
+    },
+    generateRaw: async (cfg) => {
+      genCount++;
+      lastGenPrompt = ((cfg && cfg.ordered_prompts) || []).map((p) => p.content).join('\n---\n');
+      if (typeof genResponder === 'function') return genResponder(cfg);
+      throw new Error('mock generateRaw 未设置响应器');
+    },
+  };
+  return {
+    api, store,
+    chatMessages: () => chatMessages,
+    log: () => log,
+    genCount: () => genCount,
+    setGenResponder: (fn) => { genResponder = fn; },
+    setFailCreate: (v) => { failCreate = v; },
+    reset: () => {
+      store.global = {}; store.chat = {}; store.message = {};
+      chatMessages = []; listeners = []; log.length = 0;
+      genCount = 0; genResponder = null; failCreate = false;
+    },
+  };
+})();
+window.__MOCK = MOCK;
+
+/* ==================== 断言工具 ==================== */
+const logEl = document.getElementById('log');
+let passN = 0, failN = 0;
+function out(cls, text) {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = text;
+  logEl.appendChild(d);
+}
+function group(t) { const h = document.createElement('h2'); h.textContent = t; logEl.appendChild(h); }
+function check(cond, name, extra) {
+  let detail = '';
+  if (!cond) {
+    const v = extra !== undefined ? extra : cond;
+    detail = '  → ' + (typeof v === 'object' ? JSON.stringify(v).slice(0, 200) : String(v));
+  }
+  cond ? (passN++, out('ok', '  ✓ ' + name)) : (failN++, out('bad', '  ✗ ' + name + detail));
+  return !!cond;
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function waitFor(fn, what, deadline) {
+  const end = Date.now() + (deadline || 20000);
+  while (Date.now() < end) {
+    try { const v = fn(); if (v) return v; } catch (e) { /* 未就绪 */ }
+    await sleep(150);
+  }
+  throw new Error(what + '：20 秒内未就绪');
+}
+
+/* ==================== 挂载与驱动 ==================== */
+/* 挂载 token：重设 srcdoc 后旧文档仍可能在轮询窗口内被看到（旧 window 带 probe 所需的
+   全部特征），导致点击/断言打进已 detach 的旧 realm——每次挂载注入唯一 token 消除竞态 */
+const BRIDGE_BODY = '(function(){var M=parent.__MOCK.api;for(var k in M){window[k]=M[k];}})();';
+let mountSeq = 0;
+async function mountFrame(frameId, url, baseHref, probe) {
+  const token = ++mountSeq;
+  const html = await (await fetch(url, { cache: 'reload' })).text();
+  const boot = (baseHref ? '<base href="' + baseHref + '">' : '')
+    + '<script>window.__MOUNT_TOKEN=' + token + ';' + BRIDGE_BODY + '\x3c/script>';
+  const f = document.getElementById(frameId);
+  f.srcdoc = html.replace(/<head([^>]*)>/i, (m) => m + boot);
+  return waitFor(() => {
+    const w = f.contentWindow;
+    return (w && w.__MOUNT_TOKEN === token && probe(w)) ? w : '';
+  }, url + ' 挂载');
+}
+function seedMmsConfig() {
+  MOCK.api.insertOrAssignVariables({ $mms_config: { autoUpdate: false } }, { type: 'global' });
+  MOCK.log().length = 0; // 种子写入不进观测日志（只观测被测产物自己的写入）
+}
+
+async function mountOpeningSetup() {
+  const win = await mountFrame('os-frame', '../OpeningSetup.html', '',
+    (w) => w.__OPENING_DEBUG__ && w.__OPENING_DEBUG__.state && w.__OPENING_DEBUG__.state.stage);
+  await sleep(120);
+  win.__OPENING_DEBUG__.instant = true; // 打字机瞬时完成
+  return win;
+}
+
+async function driveWizard(o) {
+  const win = await mountOpeningSetup();
+  const doc = win.document;
+  const click = (sel) => {
+    const el = doc.querySelector(sel);
+    if (!el) throw new Error('向导找不到元素 ' + sel);
+    el.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+  };
+  const act = (a) => click('[data-action="' + a + '"]');
+  act('start'); act('story-next'); act('story-next'); act('story-done');
+  const inp = doc.getElementById('name-input');
+  inp.value = o.name;
+  inp.dispatchEvent(new win.Event('input', { bubbles: true }));
+  act('identity-done');
+  (o.skills || []).forEach((id) => click('[data-skill-id="' + id + '"]'));
+  act('skills-done');
+  (o.items || []).forEach((id) => click('[data-item-id="' + id + '"]'));
+  act('items-done');
+  if (o.portrait) {
+    const pn = doc.getElementById('custom-pname');
+    pn.value = o.portrait.name;
+    pn.dispatchEvent(new win.Event('input', { bubbles: true }));
+    const pu = doc.getElementById('custom-purl');
+    pu.value = o.portrait.url;
+    pu.dispatchEvent(new win.Event('input', { bubbles: true }));
+    act('portrait-add');
+  }
+  act('portrait-done');
+  // 产品行为：state 初始即预选第一张预设立绘，UI 无"不选"入口；
+  // 未选立绘边界（submitAll 的 if (!state.portrait) 守卫）须经调试钩子清空模拟
+  if (o.forceNoPortrait) win.__OPENING_DEBUG__.state.portrait = '';
+  act('confirm-submit');
+  const stage = await waitFor(() => {
+    const s = win.__OPENING_DEBUG__.state.stage;
+    return (s === 'done' || s === 'error') ? s : '';
+  }, '向导提交完成');
+  if (stage !== 'done') throw new Error('向导以 ' + stage + ' 结束：' + (win.__OPENING_DEBUG__.state.errorMsg || ''));
+  return win;
+}
+
+async function mountRpg() {
+  const win = await mountFrame('rpg-frame', '../../RpgCombat/index.html', '../../RpgCombat/',
+    (w) => typeof w.showBattleResult === 'function' && typeof w.exportCombatResultToStatus === 'function');
+  await sleep(600);
+  return win;
+}
+
+async function mountMms() {
+  const win = await mountFrame('mms-frame', '../../MiniMapStatus/MiniMapStatus.html', '../../MiniMapStatus/',
+    (w) => w.MMS && typeof w.mmsBuildCombatResult === 'function');
+  await sleep(600);
+  return win;
+}
+
+function seedSnapshot() {
+  localStorage.setItem(LS_KEY, JSON.stringify({
+    portrait: { '旧键': 'https://example.com/old.png' },
+    avatar: { '某角色': 'https://example.com/a.png' },
+    background: {},
+  }));
+}
+function readSnapshot() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch (e) { return localStorage.getItem(LS_KEY); }
+}
+
+/* ==================== 场景 ==================== */
+async function scenario1_main() {
+  group('① 端到端主流程：向导写入 → RpgCombat / MMS / 快照 / 楼层 读回');
+  try {
+    MOCK.reset(); seedMmsConfig(); seedSnapshot();
+    const osWin = await driveWizard({
+      name: HERO_NAME, skills: ['investigate', 'rapidshot'], items: ['revolver', 'bullets'],
+      portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
+    });
+
+    check(osWin.__OPENING_DEBUG__.state.stage === 'done', '向导完成进入归档完成页');
+    const want = ['assign:$mms_portrait_choice', 'assign:rpg_combat_roster', 'create', 'assign:$opening_setup_done'];
+    check(JSON.stringify(MOCK.log()) === JSON.stringify(want), '写入顺序：立绘 → roster → 开场白 → 归档标记', MOCK.log());
+    check(MOCK.chatMessages().length === 1 && MOCK.chatMessages()[0].role === 'assistant', '开场白以 assistant 落楼且仅 1 条');
+    const msg = MOCK.chatMessages()[0].message;
+    check(msg.indexOf('【立绘 ' + CUSTOM_KEY + '】') >= 0 && msg.indexOf('<Status_block>') >= 0, '开场白含【立绘 夜鸦】标签与 Status_block');
+    check(MOCK.store.chat.$mms_portrait_choice === CUSTOM_KEY, '立绘选择写入 $mms_portrait_choice（字符串形态，现状契约）');
+    const roster = MOCK.store.chat.rpg_combat_roster;
+    check(!!roster && roster.version === 1 && Array.isArray(roster.heroes) && roster.heroes.length === 1, 'roster 为 version 1 单英雄结构');
+    check(!!roster && roster.heroes[0].name === HERO_NAME && roster.heroes[0].config.img === CUSTOM_URL, '英雄档姓名正确且 config.img = 自定义立绘 URL');
+    check(!!MOCK.store.chat.$opening_setup_done && MOCK.store.chat.$opening_setup_done.name === HERO_NAME, '归档标记 $opening_setup_done 落库');
+    const snap = readSnapshot();
+    check(!!snap && snap.portrait && snap.portrait[CUSTOM_KEY] === CUSTOM_URL && snap.portrait['旧键'] === 'https://example.com/old.png', '自定义立绘并入 MMS 快照且保留原快照键');
+
+    const rpgWin = await mountRpg();
+    const rosterRead = JSON.parse(rpgWin.eval('JSON.stringify(readRoster())'));
+    check(!!rosterRead && rosterRead.version === 1 && rosterRead.heroes[0].name === HERO_NAME, 'RpgCombat readRoster 读回 OpeningSetup 写入的档案');
+    // heroesData 由战斗数据载入流程构建；按 RpgCombat 自有 harness 的 injectHeroes 惯例
+    // 注入同名基座阵容（顶层 let 须 realm 内 eval 写入），聚焦验证 applyPersistedRoster 的读取合并契约
+    rpgWin.eval('heroesData = ' + JSON.stringify([{
+      id: 'h', name: HERO_NAME, img: '', hp: 100, maxHp: 100, mp: 100, maxMp: 100,
+      tp: 0, maxTp: 100, atk: 10, def: 5, spd: 100, shield: 0, actCount: 1,
+      isAlive: true, buffs: [], skills: [], items: [], classType: '', isSummon: false,
+    }]) + '; enemiesData = [];');
+    rpgWin.eval('applyPersistedRoster()');
+    const hero = JSON.parse(rpgWin.eval('JSON.stringify((typeof heroesData !== "undefined" ? heroesData : []).find(function(h){return h.name === ' + JSON.stringify(HERO_NAME) + ';}) || null)'));
+    check(!!hero, 'applyPersistedRoster 后我方名册含同名英雄');
+    check(!!hero && hero.img === CUSTOM_URL, '战斗档案头像合并为自定义立绘 URL', hero && hero.img);
+    check(!!hero && hero.maxHp === 10 && hero.classType === '侦探', 'config 基础字段合并（maxHp=10 / classType=侦探）', hero && [hero.maxHp, hero.classType]);
+    check(!!hero && Array.isArray(hero.skills) && hero.skills.some((s) => s && s.name === '左轮速射'), '持久化技能（左轮速射）追加进英雄技能集', hero && hero.skills && hero.skills.map((s) => s.name).join(','));
+    check(!!hero && Array.isArray(hero.items) && hero.items.some((i) => i && i.name === '柯尔特M1911手枪'), '持久化物品合并进英雄物品集', hero && hero.items && hero.items.map((i) => i.name).join(','));
+
+    const mmsWin = await mountMms();
+    check(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY] === CUSTOM_URL, 'MMS 启动读回快照：PORTRAIT_MAP 命中自定义立绘 URL');
+    const legacy = JSON.parse(mmsWin.eval('JSON.stringify(typeof MMS.readLegacyState === "function" ? MMS.readLegacyState(0) : "NO_FN")'));
+    check(!!legacy && JSON.stringify(legacy).indexOf(HERO_NAME) >= 0 && JSON.stringify(legacy).indexOf('拆开委托信') >= 0, 'MMS 解析开场白楼层 Status_block（姓名与行动选项可得）', legacy);
+  } catch (e) {
+    check(false, '场景①执行中断：' + e.message);
+  }
+}
+
+async function scenario2_baseline() {
+  group('② MMS 基线快照修复：先启动 MMS（写基线）→ 再跑向导 → 合并生效');
+  try {
+    MOCK.reset(); seedMmsConfig();
+    localStorage.removeItem(LS_KEY);
+    const mmsWin1 = await mountMms();
+    const snap1 = readSnapshot();
+    check(!!snap1 && snap1.portrait && snap1.avatar, 'MMS 首次启动把内置表写为基线快照', snap1);
+    check(!(mmsWin1.PORTRAIT_MAP && mmsWin1.PORTRAIT_MAP[CUSTOM_KEY]), '基线不含向导自定义键（向导尚未运行）');
+    await driveWizard({
+      name: HERO_NAME, skills: ['investigate'], items: ['revolver'],
+      portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
+    });
+    const snap2 = readSnapshot();
+    check(!!snap2 && snap2.portrait && snap2.portrait[CUSTOM_KEY] === CUSTOM_URL, '向导自定义立绘并入基线快照');
+    const mmsWin2 = await mountMms();
+    check(mmsWin2.PORTRAIT_MAP && mmsWin2.PORTRAIT_MAP[CUSTOM_KEY] === CUSTOM_URL, 'MMS 重启后 PORTRAIT_MAP 命中自定义立绘');
+  } catch (e) {
+    check(false, '场景②执行中断：' + e.message);
+  }
+}
+
+async function scenario3_idempotent() {
+  group('③ 幂等：带归档标记 re-boot 零写入');
+  try {
+    MOCK.log().length = 0; // 清掉上一场景的写入记录，只观测 re-boot 行为
+    const storeBefore = JSON.stringify(MOCK.store.chat);
+    const msgCountBefore = MOCK.chatMessages().length;
+    const win = await mountOpeningSetup();
+    check(win.__OPENING_DEBUG__.state.stage === 'archived', '已建档聊天 boot 直接进入归档摘要', win.__OPENING_DEBUG__.state.stage);
+    check(MOCK.log().length === 0, '归档模式零写入（无 assign / create / slash）', MOCK.log());
+    check(JSON.stringify(MOCK.store.chat) === storeBefore && MOCK.chatMessages().length === msgCountBefore, '聊天变量与楼层均无变化');
+  } catch (e) {
+    check(false, '场景③执行中断：' + e.message);
+  }
+}
+
+async function scenario4_corrupt() {
+  group('④ 边界：快照损坏 → 合并静默跳过，写入链不受影响');
+  try {
+    MOCK.reset(); seedMmsConfig();
+    localStorage.setItem(LS_KEY, '{bad json');
+    const win = await driveWizard({
+      name: HERO_NAME, skills: ['investigate'], items: ['revolver'],
+      portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
+    });
+    check(win.__OPENING_DEBUG__.state.stage === 'done', '损坏快照下向导仍正常完成');
+    check(localStorage.getItem(LS_KEY) === '{bad json', '损坏快照原样保留（不覆盖不修复）');
+    check(MOCK.store.chat.rpg_combat_roster && MOCK.store.chat.$opening_setup_done, '聊天变量写入链不受影响');
+  } catch (e) {
+    check(false, '场景④执行中断：' + e.message);
+  }
+}
+
+async function scenario5_fresh() {
+  group('⑤ 边界：未选立绘 + 全新安装（MMS 从未渲染）残余边界');
+  try {
+    MOCK.reset(); seedMmsConfig();
+    localStorage.removeItem(LS_KEY);
+    const win = await driveWizard({ name: HERO_NAME, skills: ['investigate'], items: ['revolver'], portrait: null, forceNoPortrait: true });
+    check(!('$mms_portrait_choice' in MOCK.store.chat), '未选立绘：不写 $mms_portrait_choice', MOCK.store.chat.$mms_portrait_choice);
+    const m5 = MOCK.chatMessages()[0] ? MOCK.chatMessages()[0].message : '';
+    check(!(m5.match(/【立绘 ([^】]*)】/) || ['', ''])[1], '未选立绘：开场白不含立绘标签', (m5.match(/【立绘 ([^】]*)】/) || ['', ''])[1]);
+    check(MOCK.chatMessages()[0].message.indexOf('<Status_block>') >= 0, '未选立绘：Status_block 照常落楼');
+    check(localStorage.getItem(LS_KEY) === null, '未选立绘：不触碰 MMS 快照（键仍不存在）');
+  } catch (e) {
+    check(false, '场景⑤未选立绘部分中断：' + e.message);
+  }
+  try {
+    MOCK.reset(); seedMmsConfig();
+    localStorage.removeItem(LS_KEY);
+    await driveWizard({
+      name: HERO_NAME, skills: ['investigate'], items: ['revolver'],
+      portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
+    });
+    check(localStorage.getItem(LS_KEY) === null, '全新安装（MMS 从未渲染）：向导合并静默跳过（残余边界，锁行为）');
+    const mmsWin = await mountMms();
+    const snap = readSnapshot();
+    check(!!snap && snap.portrait, 'MMS 此后首次启动补写基线快照');
+    check(!(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY]), '但本聊自定义立绘未入表（首聊残余边界；文档口径：进新聊天前让 MMS 渲染过一次）');
+  } catch (e) {
+    check(false, '场景⑤全新安装部分中断：' + e.message);
+  }
+}
+
+/* ==================== 运行 ==================== */
+async function runAll() {
+  document.getElementById('run').disabled = true;
+  logEl.innerHTML = '';
+  passN = 0; failN = 0;
+  const statEl = document.getElementById('stat');
+  statEl.className = 'info';
+  statEl.textContent = '运行中…';
+  const scenarios = [scenario1_main, scenario2_baseline, scenario3_idempotent, scenario4_corrupt, scenario5_fresh];
+  for (const s of scenarios) {
+    try { await s(); }
+    catch (e) { failN++; out('bad', '  ✗ ' + s.name + ' 抛出异常：' + ((e && e.stack) || e)); }
+  }
+  group('汇总');
+  out(failN ? 'bad' : 'ok', '  ' + (failN ? '✗ ' + failN + ' 项失败' : '✓') + ' 通过 ' + passN + ' / ' + (passN + failN) + ' 项' + (failN ? '' : '全部通过'));
+  statEl.className = failN ? 'fail' : 'pass';
+  statEl.textContent = failN ? '✗ ' + failN + ' 项失败' : '✓ 全部 ' + passN + ' 项通过';
+  document.getElementById('run').disabled = false;
+}
+document.getElementById('run').addEventListener('click', runAll);
+</script>
+</body>
+</html>
