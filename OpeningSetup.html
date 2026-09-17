@@ -65,13 +65,13 @@
     background: transparent; font-size: 0.82rem; letter-spacing: 0.1em; border-radius: 4px; transition: all 0.3s ease; }
   .btn-ghost:hover { border-color: var(--amber-dim); color: #e6cf9a; }
 
-  /* ---- 全屏按钮（独立于阶段重绘的常驻控件） ---- */
-  .fs-btn { position: fixed; top: 14px; right: 14px; z-index: 30; width: 40px; height: 40px;
+  /* ---- 全屏按钮（照搬修仙开局：fixed 右上圆形半透明钮，z-100） ---- */
+  .fs-btn { position: fixed; top: 16px; right: 16px; z-index: 100; width: 42px; height: 42px;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
-    border: 1px solid var(--amber-dim); border-radius: 4px; color: #e6cf9a;
-    background: rgba(13, 16, 22, 0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(198, 161, 84, 0.4); border-radius: 9999px; color: rgba(232, 220, 192, 0.75);
+    background: rgba(13, 16, 22, 0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     transition: all 0.3s ease; }
-  .fs-btn:hover { background: rgba(198, 161, 84, 0.24); box-shadow: 0 0 16px var(--amber-glow); }
+  .fs-btn:hover { background: rgba(198, 161, 84, 0.24); box-shadow: 0 0 16px var(--amber-glow); border-color: var(--amber); color: #e6cf9a; }
   .fs-btn svg { width: 18px; height: 18px; }
 
   /* ---- 卡片（技能/物品/立绘可选卡） ---- */
@@ -133,7 +133,7 @@
   <div id="grain"></div>
   <div id="vignette"></div>
   <audio id="bgm" loop></audio>
-  <button id="fs-btn" type="button" title="全屏 / 退出全屏">
+  <button id="fs-btn" type="button" class="fs-btn" title="全屏 / 退出全屏">
     <svg id="fs-icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
     <svg id="fs-icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
   </button>
@@ -290,6 +290,7 @@
     customPortraits: [], // 玩家自定义立绘 {key, name, desc, url}（图床直链）
     submitting: false,
     openingSent: false, // 重试防重：开场白一成功就置位
+    autoFullscreen: false, // 首屏"同时开启沉浸全屏"复选框（修仙开局同款）
     flash: '',
     soundOn: false,
     twTimer: null, twEl: null, twText: '', twDone: null,
@@ -625,6 +626,12 @@
       + '      <button class="btn-noir" data-action="sound">' + soundLabel + '</button>'
       + '      <button class="btn-noir" data-action="start">进入引导</button>'
       + '    </div>'
+      + '    <div class="mt-5 flex items-center justify-center gap-2 cursor-pointer select-none" data-action="auto-fs-toggle">'
+      + '      <div class="w-4 h-4 border rounded-sm flex items-center justify-center transition-colors ' + (state.autoFullscreen ? 'border-[#d9b45c] bg-[rgba(198,161,84,0.25)]' : 'border-[rgba(198,161,84,0.4)]') + '">'
+      + (state.autoFullscreen ? '<div class="w-2 h-2 bg-[#d9b45c] rounded-sm"></div>' : '')
+      + '      </div>'
+      + '      <span class="text-xs tracking-[0.25em] transition-colors ' + (state.autoFullscreen ? 'text-[#e6cf9a]' : 'text-[rgba(232,220,192,0.55)]') + '">同时开启沉浸全屏</span>'
+      + '    </div>'
       + '    <div class="mt-4 font-tw text-[0.68rem] text-[rgba(198,161,84,0.6)] tracking-wider">' + bgmHint + (videoReady ? '' : ' · 背景视频未配置（CSS 雾夜兜底）') + '</div>'
       + '  </div>'
       + '</div>';
@@ -897,9 +904,12 @@
       case 'tw-skip':
         if (state.twTimer) finishTw();
         break;
-      case 'sound': toggleSound(); break;
+      case 'sound': enterImmersiveFs(); toggleSound(); break;
       case 'start':
+        enterImmersiveFs();
         state.stage = 'story'; state.storyPage = 0; render(); break;
+      case 'auto-fs-toggle':
+        state.autoFullscreen = !state.autoFullscreen; render(); break;
       case 'story-next':
         state.storyPage++; render(); break;
       case 'story-done':
@@ -955,6 +965,17 @@
         document.documentElement.requestFullscreen();
       }
     } catch (e) { /* 宿主 iframe 未授权全屏时静默 */ }
+  }
+
+  // 修仙开局同款：首屏勾选"同时开启沉浸全屏"后，点击进入/声音时自动请求全屏
+  function enterImmersiveFs() {
+    if (!state.autoFullscreen) return;
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        const p = document.documentElement.requestFullscreen();
+        if (p && p.catch) p.catch(function () { /* 宿主拒绝时静默 */ });
+      }
+    } catch (e) { /* 未授权全屏时静默 */ }
   }
 
   function updateFsIcon() {

@@ -146,6 +146,19 @@
           ctx.win.document.dispatchEvent(new ctx.win.Event('fullscreenchange')); // 图标切换监听不炸
           return true;
         });
+        assert('全屏按钮样式生效（fixed 定位且有实际尺寸，防 class 丢失回归）', () => {
+          const fs = ctx.doc.getElementById('fs-btn');
+          const cs = ctx.win.getComputedStyle(fs);
+          const r = fs.getBoundingClientRect();
+          return cs.position === 'fixed' && r.width > 20 && r.height > 20 ? true : { position: cs.position, w: r.width, h: r.height };
+        });
+        assert('首屏含沉浸全屏复选框（修仙开局同款）', () => {
+          const box = ctx.doc.querySelector('[data-action="auto-fs-toggle"]');
+          if (!box) return false;
+          box.dispatchEvent(new ctx.win.MouseEvent('click', { bubbles: true })); // 勾选
+          const st = ctx.win.__OPENING_DEBUG__.state;
+          return st.autoFullscreen === true ? true : st.autoFullscreen;
+        });
 
       clickAction(ctx, 'start');
       clickAction(ctx, 'story-next');
