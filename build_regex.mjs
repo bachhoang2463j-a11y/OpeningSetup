@@ -44,6 +44,14 @@ html = html.replace(/^```[^\n]*\n/, '').replace(/\n```\s*$/, '');
 if (!/<\/html>/i.test(html)) fail('源码内容异常：未找到 </html>');
 if (html.includes('```')) fail('源码含裸三反引号，违反围栏纪律');
 
+// 流式高度防回归：酒馆助手 iframe 按内容高度自适应，流式内容里的 100vh/min-h-screen
+// 会形成「内容贴 iframe 高度 → iframe 被撑高 → vh 跟涨」的无限延伸循环（真机实测事故）。
+// 仅 fixed 装饰层（如 CSS 雾夜背景）允许 vh。断言禁：h-screen / 100vh / Tailwind 任意值 vh。
+{
+  const bad = html.match(/h-screen|100vh|[0-9.]+vh\]/g) || [];
+  if (bad.length) fail('源码含流式 vh/screen 高度（会与酒馆 iframe 自适应高度形成无限延伸循环）: ' + bad.join(', '));
+}
+
 // 实体免疫：酒馆管线对代码块内容做 HTML 实体解码，且可能涉及无分号旧式
 // 实体（RpgCombat 实测事故）。统一把产物内所有 & 改写为 &amp;：管线单遍
 // 解码后逐字符还原，解码结果与改写前逐字节一致（下方断言）。

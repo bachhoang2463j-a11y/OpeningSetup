@@ -612,7 +612,7 @@
     const bgmHint = d.bgm.url ? esc(d.bgm.title) : 'BGM 未配置（OPENING_DATA.bgm.url）';
     const videoReady = !!d.bgVideo.url;
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + '  <div class="fade-in text-center mb-10">'
       + '    <div class="font-tw text-[0.72rem] tracking-[0.6em] text-[rgba(198,161,84,0.75)] uppercase mb-4">' + esc(d.story.subtitle) + '</div>'
       + '    <h1 class="text-5xl md:text-7xl font-black tracking-[0.35em] text-[#e8dcc0] flicker" style="text-shadow:0 0 30px rgba(198,161,84,0.35)">' + esc(d.story.title) + '</h1>'
@@ -637,7 +637,7 @@
       return '<span class="inline-block w-2 h-2 rounded-full mx-1 ' + (i === state.storyPage ? 'bg-[#d9b45c]' : 'bg-[rgba(198,161,84,0.25)]') + '"></span>';
     }).join('');
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('STORY · ' + (state.storyPage + 1) + ' / ' + OPENING_DATA.story.pages.length, page.title)
       + '  <div class="glass max-w-2xl w-full px-8 py-8 fade-in" data-action="tw-skip">'
       + '    <p data-tw="' + esc(page.text) + '" class="leading-loose text-[1.02rem] text-[rgba(232,220,192,0.92)] min-h-[9rem]"></p>'
@@ -653,7 +653,7 @@
   function viewIdentity() {
     const d = OPENING_DATA.identity;
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('IDENTITY · 档案登记', '你的身份')
       + '  <div class="glass max-w-2xl w-full px-8 py-8 fade-in">'
       + '    <div class="flex items-center gap-5 mb-6">'
@@ -696,7 +696,7 @@
         + '</div>';
     }).join('');
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('SKILLS · 专业训练', '技能选购')
       + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
       + '    <div id="skill-budget">' + budgetBar(skillsUsed(), OPENING_DATA.shop.skillPoints, false) + '</div>'
@@ -722,7 +722,7 @@
         + '</div>';
     }).join('');
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('GEAR · 随身装备', '物品选购')
       + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
       + '    <div id="item-budget">' + budgetBar(itemsUsed(), OPENING_DATA.shop.itemPoints, false) + '</div>'
@@ -737,7 +737,7 @@
 
   function portraitVisual(p, big) {
     if (p && p.url) {
-      return '<img src="' + esc(p.url) + '" alt="' + esc(p.name) + '" class="holo ' + (big ? 'max-h-[46vh]' : 'h-24 w-24 object-cover rounded') + '">';
+      return '<img src="' + esc(p.url) + '" alt="' + esc(p.name) + '" class="holo ' + (big ? 'max-h-[420px]' : 'h-24 w-24 object-cover rounded') + '">';
     }
     const sil = '<svg viewBox="0 0 24 24" fill="rgba(198,161,84,0.35)" ' + (big ? 'class="w-28 h-28 holo"' : 'class="w-10 h-10"') + '><path d="M12 2a5 5 0 110 10 5 5 0 010-10zm0 12c5 0 9 2.5 9 5.5V22H3v-2.5C3 16.5 7 14 12 14z"/></svg>';
     return big
@@ -759,11 +759,11 @@
     }).join('');
     const cur = portraitEntry();
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('PORTRAIT · 面目', '立绘选择')
       + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
       + '    <div class="grid md:grid-cols-2 gap-6 items-start">'
-      + '      <div class="holo-wrap glass-soft min-h-[40vh] flex flex-col items-center justify-center p-6">' + portraitVisual(cur, true)
+      + '      <div class="holo-wrap glass-soft min-h-[300px] flex flex-col items-center justify-center p-6">' + portraitVisual(cur, true)
       + '        <div class="mt-4 font-tw text-[0.72rem] tracking-[0.3em] text-[rgba(198,161,84,0.8)]">' + esc(cur ? cur.name : '未选择') + '</div>'
       + '      </div>'
       + '      <div class="flex flex-col gap-3">'
@@ -797,7 +797,7 @@
       return '<div class="flex gap-3 py-1.5 tw-line"><span class="text-[rgba(44,36,22,0.6)] text-xs tracking-[0.25em] w-24 shrink-0 pt-0.5">' + esc(label) + '</span><span class="text-sm leading-relaxed">' + esc(val) + '</span></div>';
     };
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('DOSSIER · 最终确认', '委托书')
       + '  <div class="paper max-w-xl w-full px-9 py-8 fade-in">'
       + '    <div class="flex items-center justify-between mb-4">'
@@ -830,7 +830,7 @@
 
   function viewLoading() {
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('PROCESSING · 正在归档', '档案誊写中')
       + '  <div class="glass max-w-md w-full px-8 py-8 fade-in" id="loading-body">' + loadingBody() + '</div>'
       + '</div>';
@@ -838,7 +838,7 @@
 
   function viewDone() {
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('FILED · 归档完成', '故事开始')
       + '  <div class="glass max-w-xl w-full px-8 py-8 text-center fade-in">'
       + '    <div class="stamp mb-6">档案已归档</div>'
@@ -857,7 +857,7 @@
       return '<div class="flex gap-3 py-1.5 tw-line"><span class="text-[rgba(44,36,22,0.6)] text-xs tracking-[0.25em] w-24 shrink-0 pt-0.5">' + esc(label) + '</span><span class="text-sm leading-relaxed">' + esc(val) + '</span></div>';
     };
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('FILED · 已初始化', '档案摘要')
       + '  <div class="paper max-w-xl w-full px-9 py-8 fade-in">'
       + '    <div class="flex items-center justify-between mb-4">'
@@ -877,7 +877,7 @@
 
   function viewError() {
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('ERROR · 归档受阻', '写入失败')
       + '  <div class="glass max-w-xl w-full px-8 py-8 fade-in" style="border-color:rgba(160,48,48,0.55)">'
       + '    <div class="text-sm text-[rgba(232,220,192,0.85)] leading-relaxed mb-4">写入过程中出现问题；已完成的步骤幂等，可直接重试：</div>'
