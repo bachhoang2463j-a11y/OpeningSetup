@@ -237,13 +237,13 @@
       assert('roster 为 version 1 三英雄', () => roster && roster.version === 1 && roster.heroes.length === 3 ? true : roster && roster.heroes.length);
       assert('角色一：占位名 + 隐匿者 + 6 技能 + 反应目标', () => {
         const h = roster.heroes[0];
-        return h.name === '队员一（占位）' && h.config.classType === '隐匿者' && h.config.maxHp === 85
+        return h.name === '威廉·退尔' && h.config.classType === '隐匿者' && h.config.maxHp === 85
           && h.skills.length === 6 && h.skills.some(function (s) { return s.name === '影缝闪避' && s.isReaction === true && s.reactionTarget === '近战'; })
           && h.items.length === 0 ? true : h;
       });
       assert('角色二：占位名 + 圣职者 + 6 技能', () => {
         const h = roster.heroes[1];
-        return h.name === '队员二（占位）' && h.config.classType === '圣职者' && h.skills.length === 6
+        return h.name === '冯·霍恩海姆' && h.config.classType === '圣职者' && h.skills.length === 6
           && h.skills.some(function (s) { return s.name === '圣光抚慰'; }) ? true : h;
       });
       assert('角色三：姓名/职业/购点属性合成（HP90+10=100，Atk11+2=13）', () => {
@@ -269,7 +269,7 @@
       assert('开场白 assistant 单条，含三角色名与【立绘】', () => {
         const m = ctx1.mock.created[0] && ctx1.mock.created[0].message;
         return ctx1.mock.created.length === 1 && ctx1.mock.created[0].role === 'assistant'
-          && m.indexOf('队员一（占位）') >= 0 && m.indexOf('队员二（占位）') >= 0 && m.indexOf('夜鸦') >= 0
+          && m.indexOf('威廉·退尔') >= 0 && m.indexOf('冯·霍恩海姆') >= 0 && m.indexOf('夜鸦') >= 0
           && m.indexOf('【立绘 夜鸦】') >= 0 ? true : ctx1.mock.created;
       });
       assert('Status_block 角色列表含三个角色条目', () => {
@@ -353,7 +353,7 @@
       assert('已建档聊天 boot 直接进入归档摘要', () => ctx2.win.__OPENING_DEBUG__.state.stage === 'archived' ? true : ctx2.win.__OPENING_DEBUG__.state.stage);
       assert('归档摘要展示三角色', () => {
         const t = ctx2.doc.body.textContent;
-        return t.indexOf('队员一（占位）') >= 0 && t.indexOf('夜鸦') >= 0 ? true : '摘要缺角色名';
+        return t.indexOf('威廉·退尔') >= 0 && t.indexOf('夜鸦') >= 0 ? true : '摘要缺角色名';
       });
       assert('归档模式零写入', () => ctx2.mock.log.length === 0 ? true : ctx2.mock.log);
       assert('不新增开场白', () => ctx2.mock.created.length === 0 && ctx1.mock.created.length === createCount ? true : [ctx2.mock.created.length, createCount]);
