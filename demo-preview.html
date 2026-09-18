@@ -120,28 +120,29 @@
                 radial-gradient(circle at 70% 80%, rgba(147, 51, 234, 0.16) 0%, transparent 60%);
   }
 
-  /* 顶部极简无感切换胶囊 */
+  /* 右侧竖列极简悬浮 Dock（阶段跳转与全局BGM控制） */
   .switch-dock {
     position: fixed;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 9999;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 9999px;
-    background: rgba(10, 14, 22, 0.88);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+    gap: 8px;
+    padding: 12px 6px;
+    border-radius: 24px;
+    background: rgba(10, 14, 22, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.75);
   }
   .dock-btn {
     font-size: 0.75rem;
-    padding: 4px 12px;
-    border-radius: 9999px;
+    padding: 6px 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.25s ease;
     color: rgba(255, 255, 255, 0.68);
@@ -149,6 +150,13 @@
     border: none;
     font-family: var(--font-mono);
     letter-spacing: 0.05em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    text-align: center;
+    line-height: 1.2;
   }
   .dock-btn:hover {
     color: #fff;
@@ -161,9 +169,10 @@
     box-shadow: 0 0 12px var(--accent-glow);
   }
   .dock-sep {
-    width: 1px;
-    height: 14px;
+    width: 22px;
+    height: 1px;
     background: rgba(255, 255, 255, 0.18);
+    margin: 2px 0;
   }
 
   /* 玻璃拟态主面板 */
@@ -233,13 +242,13 @@
     position: relative;
     width: 100%;
     height: 100%;
-    min-height: 520px;
+    min-height: 540px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 14px;
+    padding: 16px 18px;
     background: radial-gradient(circle at 50% 55%, var(--accent-dim) 0%, transparent 70%), var(--panel-bg);
     border: 1px solid var(--panel-border);
   }
@@ -247,23 +256,25 @@
     position: relative;
     flex: 1 1 0;
     height: 0;
-    min-height: 0;
+    min-height: 310px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     overflow: hidden;
-    margin: 4px 0;
+    margin: 2px 0;
   }
   .portrait-img {
     height: 100%;
     max-height: 100%;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.85));
-    -webkit-mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.88));
+    -webkit-mask-image: linear-gradient(to bottom, black 88%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 88%, transparent 100%);
     transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: scale(1.08);
+    transform-origin: center center;
   }
   .portrait-img.hero-swap-in {
     animation: hero-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -532,22 +543,22 @@
 
 <div id="ambient-glow"></div>
 
-<!-- 顶部极简无感切换胶囊（阶段跳转与全局BGM控制） -->
+<!-- 右侧竖列极简悬浮胶囊（阶段跳转与全局BGM控制） -->
 <div class="switch-dock">
   <button class="dock-btn active" data-stage-jump="c1">威廉</button>
   <button class="dock-btn" data-stage-jump="c2">冯</button>
-  <button class="dock-btn" data-stage-jump="c3class">主角职业</button>
-  <button class="dock-btn" data-stage-jump="c3skill">技能购点</button>
+  <button class="dock-btn" data-stage-jump="c3class">主角</button>
+  <button class="dock-btn" data-stage-jump="c3skill">技能</button>
   <div class="dock-sep"></div>
   <!-- 全局 BGM 开关按钮 -->
-  <button id="bgm-toggle-btn" class="dock-btn flex items-center gap-1" onclick="window.demoActions.toggleBgm()">
+  <button id="bgm-toggle-btn" class="dock-btn" onclick="window.demoActions.toggleBgm()" title="切换背景音乐">
     <span id="bgm-icon">🎵</span>
-    <span id="bgm-label">BGM: 开</span>
+    <span id="bgm-label" class="text-[0.58rem] mt-0.5">BGM</span>
   </button>
 </div>
 
 <!-- 主界面容器（紧凑居中适配，消除外部大面积空白） -->
-<div id="demo-app" class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2 min-h-screen flex flex-col justify-center">
+<div id="demo-app" class="relative z-10 max-w-[1240px] mx-auto px-4 sm:px-8 py-3 min-h-screen flex flex-col justify-center">
   <!-- 动态挂载区 -->
 </div>
 
@@ -557,74 +568,83 @@
   我方列表(场地:有备而来):
     - 角色:
         名字: "隐匿者"
-        属性: "[HP:85/85][MP:40/40][Atk:12][Armor:3][Speed:120][职业:隐匿者]"
+        属性: "[HP:140/140][MP:16/16][Atk:40][Armor:40][Speed:80][职业:隐匿者]"
         技能:
-          - "【雾巷潜行】[限定][价:1][MP:3][单防;power:20][持续:2][加速:1]"
-          - "【暗巷快枪】[限定][价:2][MP:4][单体;power:38][远程][特效:gunfire]"
-          - "【背刺处决】[限定][价:3][MP:6][单体;power:58][近战][暴击:35%][Hit:90]"
-          - "【烟灰迷眼】[通用][价:1][单体;power:12][单弱;power:12][Hit:85][近战]"
-          - "【影缝闪避】[通用][价:2][反应:近战][单防;power:35]"
-          - "【老练身法】[通用][价:1][加速:2][持续:3]"
+          - "【烟尘迷眼】[通用][价:1][单盲;power:40][Aim:100]"
+          - "【寂静指令】[通用][价:2][群增;power:10][群瞄;power:20][MP:2]"
+          - "【暗巷快枪】[通用][价:2][单体(枪击);power:65][单体(枪击);power:65][单体(枪击);power:65][远程][Aim:110]"
+          - "【无迹可寻】[限定][价:1][嘲讽;power:-30][单避;power:10][MP:2][限1次]"
+          - "【唯快不破】[限定][价:2][回避;power:240][MP:1][反应:近战]"
+          - "【死亡编织】[限定][群攻;power:110][TP:5][MP:2][Aim:120][远程][特效:连续扫射][高阶]"
+        物品:
+          - "【.45子弹】[弹药][数量:40][绑定:暗巷快枪*3;死亡编织*14]"
     - 角色:
         名字: "狂战士"
-        属性: "[HP:120/120][MP:20/20][Atk:16][Armor:4][Speed:100][职业:狂战士]"
+        属性: "[HP:200/200][MP:8/8][Atk:60][Armor:60][Speed:50][职业:狂战士]"
         技能:
-          - "【鲁莽挥击】[限定][价:2][单体;power:50][近战][Hit:80]"
-          - "【血怒爆发】[限定][价:3][HP:8][单体;power:70][近战]"
-          - "【破甲重锤】[限定][价:2][MP:3][单体;power:30][单弱;power:15][近战][Hit:85]"
-          - "【蛮勇冲撞】[通用][价:1][单体;power:22][近战][Hit:90]"
-          - "【痛楚反击】[通用][价:2][反应:近战][单体;power:30][近战]"
-          - "【战吼壮行】[通用][价:1][单回;power:18][加速:1]"
+          - "【战意激增】[通用][价:2][MP:2][单增;power:50][自盲;power:10]"
+          - "【碎骨连打】[通用][价:1][单体;power:60][单体;power:60][Aim:100][转火][近战]"
+          - "【鲁莽挥击】[通用][价:2][单体;power:180][HP:20][Aim:120][近战]"
+          - "【沸血之躯】[限定][价:3][免伤;power:120][HP:20][反应][MP:2]"
+          - "【双管猎象枪】[限定][价:3][单体(枪击);power:240][单降;power:20][自盲;power:30;turns:2][暴击:5%][Aim:85][TP:10][远程][特效:远程重击][高阶]"
+          - "【重击推撞】[限定][价:3][眩晕;power:140][嘲讽;power:50][Aim:160][MP:3][TP:30][近战][特效:近战重击][高阶]"
+        物品:
+          - "【.577子弹】[弹药][数量:5][绑定:双管猎象枪*1]"
     - 角色:
         名字: "防守者"
-        属性: "[HP:140/140][MP:30/30][Atk:10][Armor:8][Speed:85][职业:防守者]"
+        属性: "[HP:180/180][MP:12/12][Atk:60][Armor:60][Speed:65][职业:防守者]"
         技能:
-          - "【坚守阵地】[限定][价:1][MP:3][群防;power:25][持续:2]"
-          - "【盾墙猛击】[限定][价:2][MP:4][单体;power:28][近战][Hit:95]"
-          - "【铁壁格挡】[限定][价:3][反应][单防;power:45]"
-          - "【援护掩护】[通用][价:2][单防;power:30][他人][持续:2]"
-          - "【稳如磐石】[通用][价:1][单盾;power:25][持续:3]"
-          - "【雷霆震慑】[通用][价:2][MP:4][群攻;power:18][麻痹][Hit:80]"
+          - "【温切斯特M1897】[通用][价:1][单体(霰弹);power:115][单降;power:10][Turns:2][Aim:110][远程]"
+          - "【屏息瞄准】[通用][价:1][MP:2][单瞄;power:60][Turns:2]"
+          - "【掩体包扎】[通用][价:1][单回;power:20][单防;power:10][Turns:2][MP:1]"
+          - "【乌里的猎人】[限定][价:2][回避;power:200][MP:1][反应:近战]"
+          - "【紧急援护】[限定][价:2][舍身:近战]"
+          - "【克虏伯1918型】[限定][价:3][穿透;power:240][自盲;power:120;turns:2][Aim:200][远程][暴击:5%][延迟:3][加速:3][特效:克虏伯重狙][传奇]"
+        物品:
+          - "【12号鹿弹】[弹药][数量:12][绑定:温切斯特M1897*1]"
+          - "【反坦克子弹】[弹药][数量:2][绑定:克虏伯1918型*1]"
     - 角色:
         名字: "风行者"
-        属性: "[HP:90/90][MP:45/45][Atk:12][Armor:3][Speed:135][职业:风行者]"
+        属性: "[HP:120/120][MP:20/20][Atk:40][Armor:40][Speed:90][职业:风行者]"
         技能:
-          - "【疾风连射】[限定][价:2][MP:4][单体;power:20][远程][加速:1][特效:gunfire]"
-          - "【残影步】[限定][价:2][MP:3][单防;power:20][加速:2]"
-          - "【风压突袭】[限定][价:3][MP:5][单体;power:40][近战][Hit:90]"
-          - "【掠影闪避】[通用][价:2][反应:远程][单防;power:35]"
-          - "【疾风之势】[通用][价:1][加速:2][持续:3]"
-          - "【追风射击】[通用][价:2][MP:3][单体;power:26][远程][必中]"
+          - "【跟腱切割】[通用][价:1][单体;power:40][单缓;power:15][Aim:80][近战]"
+          - "【潜能激发】[通用][价:1][单冲:20][MP:5][他人][限2次]"
+          - "【追风射击】[通用][价:2][穿透;power:40][单弱;power:10][暴击:20%][Turns:2][Aim:200][MP:3][远程][特效:枪击穿透]"          
+          - "【疾风连击】[限定][价:2][单体;power:55][单体;power:55][再动;power:1][MP:2][TP:5][转火][近战]"
+          - "【折影步】[限定][价:2][回避;power:180][MP:3][反应]"
+          - "【生体流转】[限定][再动;power:2][HP:20][TP:10][限2次][特效:生体流转][高阶]"
+        物品:
+          - "【.45子弹】[弹药][数量:40][绑定:追风射击*1]"
     - 角色:
         名字: "施法者"
-        属性: "[HP:80/80][MP:70/70][Atk:8][Armor:2][Speed:105][职业:施法者]"
+        属性: "[HP:90/90][MP:100/100][Atk:20][Armor:40][Speed:50][职业:施法者]"
         技能:
-          - "【秘法弹幕】[限定][价:2][MP:5][单体;power:40][法术]"
-          - "【奥术护盾】[限定][价:2][MP:4][单盾;power:40][持续:3]"
-          - "【元素潮汐】[限定][价:3][MP:8][群攻;power:32][法术]"
-          - "【法力亲和】[通用][价:1][单回;power:20][法术]"
-          - "【秘术护体】[通用][价:2][反应:法术][单盾;power:35]"
-          - "【迅捷咏唱】[通用][价:1][MP:2][加速:2][持续:2]"
+          - "【精准流火】[通用][价:1][穿透(火焰);power:20][燃烧;power:10][Aim:160][MP:3][法术]"
+          - "【压缩爆燃】[通用][价:2][群攻;power:50][群燃烧;power:10][Aim:100][MP:7][法术][特效:火焰01]"
+          - "【灵风术】[通用][价:2][单避;power:40][单速;power:20][Turns:5][MP:10][法术][他人][限1次]"
+          - "【巫师护盾】[限定][价:2][单盾;power:80][MP:5][反应][暴击:5%][法术]"
+          - "【圣域帷幕】[限定][肃正:法术;power:300;Armor:40][MP:20][法术][限1次][延迟:1][传奇][特效:圣域帷幕]"
+          - "【召雷术】[限定][价:3][群攻;power:200][群麻痹;power:10][群麻痹;power:10][Aim:300][MP:10][TP:10][法术][特效:雷击01][延迟:2][高阶]"
     - 角色:
         名字: "圣职者"
-        属性: "[HP:95/95][MP:60/60][Atk:9][Armor:4][Speed:95][职业:圣职者]"
+        属性: "[HP:100/100][MP:60/60][Atk:20][Armor:40][Speed:50][职业:圣职者]"
         技能:
-          - "【圣光抚慰】[限定][价:2][MP:4][单回;power:45][法术][特效:heal]"
-          - "【祝福印记】[限定][价:2][MP:3][单防;power:25][他人][持续:3]"
-          - "【赎罪圣言】[限定][价:3][MP:6][群回;power:30][法术]"
-          - "【坚忍祷言】[通用][价:1][单回;power:20][单防;power:10]"
-          - "【庇护之誓】[通用][价:2][反应][单防;power:30]"
-          - "【净化颂歌】[通用][价:2][MP:3][群回;power:15][群驱散:1]"
+          - "【迅捷愈合法】[通用][价:2][单回;power:30][再动;power:1][MP:3][法术][他人][限3次]"
+          - "【破罪圣言】[通用][价:1][单体(光);power:60][MP:3][Aim:150][法术]"
+          - "【飞沙化甲】[通用][价:2][单防;power:40][单瞄:20][MP:10][Turns:5][法术][他人][限1次]"
+          - "【净蚀反冲】[限定][价:3][MP:10][TP:10][看破:法术][法术][限3次]"
+          - "【净化颂歌】[限定][价:3][群回;power:100][群驱散:1][MP:10][法术]"
+          - "【归尘礼赞】[限定][穿透;power:100][单降;power:20][Aim:999][MP:10][HP:10][TP:10][法术][特效:圣光01][限3次][必中][延迟:1][传奇]"
     - 角色:
         名字: "灾厄使"
-        属性: "[HP:90/90][MP:55/55][Atk:11][Armor:3][Speed:100][职业:灾厄使]"
+        属性: "[HP:120/100][MP:40/40][Atk:20][Armor:40][Speed:70][职业:灾厄使]"
         技能:
-          - "【蚀骨毒雾】[限定][价:2][MP:5][群攻;power:15][中毒][Hit:85]"
-          - "【诅咒之刃】[限定][价:2][MP:3][单体;power:30][单弱;power:15][近战]"
-          - "【灾厄降临】[限定][价:3][MP:7][单体;power:45][法术][燃烧]"
-          - "【瘟疫之手】[通用][价:1][MP:2][单体;power:12][中毒][Hit:90]"
-          - "【腐鳞护体】[通用][价:2][反应:法术][单防;power:28]"
-          - "【衰弱低语】[通用][价:1][MP:2][单体;power:10][吸蓝][Hit:90]"
+          - "【蚀骨毒刃】[通用][价:1][单体;power:20][中毒;power:10][Aim:160][MP:3][近战]"
+          - "【拉莱耶造雾术】[通用][价:1][群盲;power:15;turns:4][自盲;power:15;turns:2][MP:2][法术][限1次][必中][特效:造雾术]"
+          - "【静默之域】[通用][价:1][群滞;power:15][Aim:160][MP:2][法术]"
+          - "【灾厄降临】[限定][价:3][MP:10][TP:10][看破:远程][限3次]"
+          - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][法术][特效:高阶召唤术]"
+          - "【异种坏死雾】[限定][价:3][群中毒;power:30][群弱;power:20][群滞;power:20][远程][Aim:300][TP:20][MP:5][高阶][特效:异种坏死雾]"
 </Combat_block></script>
 
 <script>
@@ -638,7 +658,7 @@
       hero1: {
         id: 'hero1',
         name: '威廉·退尔',
-        title: '冷峻神射手 · 雾港巡夜人',
+        title: '【雾港神射手】',
         emoji: '🎯',
         portraitUrl: 'http://127.0.0.1:8766/OS/威廉·退尔.png',
         classes: ['隐匿者', '狂战士', '防守者'],
@@ -660,7 +680,7 @@
       hero2: {
         id: 'hero2',
         name: '冯·霍恩海姆',
-        title: '等价交换的真理探索者 · 炼金术士',
+        title: '【炼金术士】',
         emoji: '⚗️',
         portraitUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆.png',
         classes: ['施法者', '圣职者', '灾厄使'],
@@ -738,7 +758,7 @@
     hero3: {
       name: '亚瑟·格雷',
       classType: '风行者',
-      skills: ['影缝闪避', '疾风之势'], // 已购通用技能（2+1=3点）
+      skills: ['跟腱切割', '追风射击'], // 已购通用技能（1+2=3点，不超过4点预算）
     },
     audioPlaying: false,
     audioMuted: false,
@@ -765,7 +785,8 @@
       const armMatch = attrStr.match(/Armor:(\d+)/);
       const spdMatch = attrStr.match(/Speed:(\d+)/);
 
-      const skillLines = b.match(/- "【[^"]+"/g) || [];
+      const skillSectionMatch = b.match(/技能:\s*([\s\S]*?)(?=物品:|$)/);
+      const skillLines = skillSectionMatch ? (skillSectionMatch[1].match(/- "【[^"]+"/g) || []) : [];
       const skills = skillLines.map(sl => {
         const text = sl.replace(/^- "/, '').replace(/"$/, '');
         const nameM = text.match(/【([^】]+)】/);
@@ -773,17 +794,18 @@
         const scope = text.includes('[限定]') ? '限定' : '通用';
         const costM = text.match(/\[价:(\d+)\]/);
         const shopCost = costM ? parseInt(costM[1], 10) : 1;
-        const mpM = text.match(/\[MP:(\d+)\]/);
-        const hpM = text.match(/\[HP:(\d+)\]/);
-        const powerM = text.match(/power:(\d+)/);
-        const isReaction = text.includes('[反应');
+        const mpM = text.match(/\[MP:(\d+)\]/i);
+        const hpM = text.match(/\[HP:(\d+)\]/i);
+        const tpM = text.match(/\[TP:(\d+)\]/i);
+        const powerM = text.match(/power:(-?\d+)/i);
+        const isReaction = text.includes('[反应') || text.includes('[舍身') || text.includes('[看破');
         const isMelee = text.includes('[近战]');
         const isRanged = text.includes('[远程]');
         const isSpell = text.includes('[法术]');
         let typeTag = '战术';
-        if (isMelee) typeTag = '近战';
+        if (isSpell) typeTag = '法术';
+        else if (isMelee) typeTag = '近战';
         else if (isRanged) typeTag = '远程';
-        else if (isSpell) typeTag = '法术';
         else if (isReaction) typeTag = '反应';
 
         return {
@@ -793,6 +815,7 @@
           shopCost,
           mpCost: mpM ? mpM[1] : null,
           hpCost: hpM ? hpM[1] : null,
+          tpCost: tpM ? tpM[1] : null,
           power: powerM ? powerM[1] : null,
           typeTag,
           isReaction,
@@ -851,15 +874,16 @@
   function updateBgmUi() {
     const lbl = document.getElementById('bgm-label');
     const ico = document.getElementById('bgm-icon');
-    if (!lbl || !ico) return;
+    const btn = document.getElementById('bgm-toggle-btn');
+    if (!lbl || !ico || !btn) return;
     if (state.bgmPlaying) {
-      lbl.textContent = 'BGM: 开';
+      lbl.textContent = 'BGM';
       ico.textContent = '🎵';
-      document.getElementById('bgm-toggle-btn').classList.add('active');
+      btn.classList.add('active');
     } else {
-      lbl.textContent = 'BGM: 关';
+      lbl.textContent = '静音';
       ico.textContent = '🔇';
-      document.getElementById('bgm-toggle-btn').classList.remove('active');
+      btn.classList.remove('active');
     }
   }
 
@@ -1021,6 +1045,7 @@
     '群缓': '群体缓速',
     '单盲': '单体致盲',
     '群盲': '群体致盲',
+    '自盲': '自身致盲',
     '单瞄': '单体瞄准',
     '群瞄': '群体瞄准',
     '单冲': '单体充能',
@@ -1035,26 +1060,35 @@
     '再动': '额外行动',
     '免伤': '绝对免伤',
     '必中': '锁定必中',
-    '转火': '转火追击'
+    '转火': '转火追击',
+    '回避': '紧急回避',
+    '眩晕': '击晕瘫痪',
+    '中毒': '毒素侵蚀',
+    '群中毒': '群体中毒',
+    '燃烧': '火焰灼烧',
+    '群燃烧': '群体灼烧',
+    '群麻痹': '群体麻痹',
+    '高阶': '高阶战技',
+    '传奇': '传奇秘术'
   };
 
   function getPillColorStyle(text) {
-    if (text.includes('伤害') || text.includes('穿透')) {
+    if (text.includes('伤害') || text.includes('穿透') || text.includes('枪击') || text.includes('霰弹') || text.includes('光')) {
       return 'bg-rose-950/40 text-rose-300/90 border-rose-800/40';
     }
-    if (text.includes('回复') || text.includes('回蓝') || text.includes('充能') || text.includes('净化') || text.includes('抽取')) {
+    if (text.includes('回复') || text.includes('回蓝') || text.includes('充能') || text.includes('净化') || text.includes('抽取') || text.includes('驱散')) {
       return 'bg-emerald-950/40 text-emerald-300/90 border-emerald-800/40';
     }
-    if (text.includes('护盾') || text.includes('加防') || text.includes('闪避') || text.includes('免伤')) {
+    if (text.includes('护盾') || text.includes('加防') || text.includes('闪避') || text.includes('免伤') || text.includes('回避') || text.includes('舍身') || text.includes('肃正')) {
       return 'bg-sky-950/40 text-sky-300/90 border-sky-800/40';
     }
-    if (text.includes('降防') || text.includes('降攻') || text.includes('延迟') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕')) {
+    if (text.includes('降防') || text.includes('降攻') || text.includes('延迟') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕') || text.includes('自盲') || text.includes('滞')) {
       return 'bg-purple-950/40 text-purple-300/90 border-purple-800/40';
     }
-    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('暴击') || text.includes('必中') || text.includes('转火')) {
+    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('暴击') || text.includes('必中') || text.includes('转火') || text.includes('再动') || text.includes('高阶') || text.includes('传奇') || text.includes('召唤')) {
       return 'bg-amber-950/40 text-amber-300/80 border-amber-800/40';
     }
-    if (text.includes('反应')) {
+    if (text.includes('反应') || text.includes('看破')) {
       return 'bg-rose-950/50 text-rose-300/90 border-rose-700/40';
     }
     return 'bg-white/5 text-white/70 border-white/10';
@@ -1082,33 +1116,62 @@
       const parts = inner.split(/[;；]/);
       const mainPart = parts[0].trim();
       let powerVal = null;
+      let extraTurns = null;
       parts.slice(1).forEach(p => {
         const pm = p.match(/power:(-?\d+)/i);
         if (pm) powerVal = pm[1];
+        const tm = p.match(/turns:(\d+)/i);
+        if (tm) extraTurns = tm[1];
       });
 
       let displayLabel = '';
       let displayVal = powerVal;
 
-      if (/^持续[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^持续[:：](\d+)/i);
+      if (/^持续[:：](\d+)/i.test(mainPart) || /^Turns[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^(?:持续|Turns)[:：](\d+)/i);
         displayLabel = '持续';
         displayVal = (m ? m[1] : '') + '回合';
+      } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^(?:Aim|Hit)[:：](\d+)/i);
+        displayLabel = '命中';
+        displayVal = (m ? m[1] : '') + '%';
       } else if (/^加速[:：](\d+)/i.test(mainPart)) {
         const m = mainPart.match(/^加速[:：](\d+)/i);
         displayLabel = '加速';
         displayVal = '+' + (m ? m[1] : '');
+      } else if (/^延迟[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^延迟[:：](\d+)/i);
+        displayLabel = '延迟';
+        displayVal = (m ? m[1] : '') + '段';
       } else if (/^暴击[:：](\d+)%?/i.test(mainPart)) {
         const m = mainPart.match(/^暴击[:：](\d+)%?/i);
         displayLabel = '暴击';
         displayVal = (m ? m[1] : '') + '%';
-      } else if (/^Hit[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^Hit[:：](\d+)/i);
-        displayLabel = '命中';
-        displayVal = (m ? m[1] : '') + '%';
+      } else if (/^限(\d+)次/i.test(mainPart)) {
+        const m = mainPart.match(/^限(\d+)次/i);
+        displayLabel = '限用';
+        displayVal = (m ? m[1] : '') + '次';
       } else if (/^反应(?::([^\]]+))?/i.test(mainPart)) {
         const m = mainPart.match(/^反应(?::([^\]]+))?/i);
         displayLabel = m && m[1] ? `⟲反应·${m[1]}` : '⟲反应';
+      } else if (/^舍身(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^舍身(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `舍身·${m[1]}` : '舍身援护';
+      } else if (/^看破(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^看破(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `看破·${m[1]}` : '战术看破';
+      } else if (/^肃正(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^肃正(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `肃正·${m[1]}` : '绝对肃正';
+      } else if (/^召唤(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^召唤(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `召唤·${m[1]}` : '战术召唤';
+      } else if (/^单体\(([^)]+)\)/i.test(mainPart)) {
+        const m = mainPart.match(/^单体\(([^)]+)\)/i);
+        displayLabel = `单体(${m[1]})`;
+      } else if (/^穿透\(([^)]+)\)/i.test(mainPart)) {
+        const m = mainPart.match(/^穿透\(([^)]+)\)/i);
+        displayLabel = `穿透(${m[1]})`;
       } else if (mainPart === '他人') {
         displayLabel = '友方目标';
       } else if (mainPart === '法术' || mainPart === '近战' || mainPart === '远程') {
@@ -1123,6 +1186,10 @@
         displayLabel = TAG_EXPAND_MAP[mainPart];
       } else {
         displayLabel = mainPart;
+      }
+
+      if (extraTurns && displayVal != null) {
+        displayVal += ` (${extraTurns}T)`;
       }
 
       const style = getPillColorStyle(displayLabel);
@@ -1152,7 +1219,11 @@
     }
 
     const typeBadgeClass = s.scope === '限定' ? 'text-[var(--badge-limited)]' : 'text-[var(--badge-generic)]';
-    const costText = s.mpCost ? `${s.mpCost} MP` : (s.hpCost ? `${s.hpCost} HP` : '无消耗');
+    const costs = [];
+    if (s.mpCost) costs.push(`${s.mpCost} MP`);
+    if (s.hpCost) costs.push(`${s.hpCost} HP`);
+    if (s.tpCost) costs.push(`${s.tpCost} TP`);
+    const costText = costs.length > 0 ? costs.join(' / ') : '无消耗';
 
     return `
       <div class="skill-slot-chip ${s.scope === '限定' ? 'type-limited' : 'type-generic'} ${s.isReaction ? 'is-reaction' : ''}" style="--slot-idx:${slotIdx};">
@@ -1174,7 +1245,7 @@
 
         <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
-            <div class="font-mono text-[0.72rem] font-bold text-[var(--accent)]">${costText}</div>
+            <div class="font-mono text-[0.72rem] font-bold text-[var(--accent)] whitespace-nowrap">${costText}</div>
             <div class="font-mono text-[0.62rem] text-white/40">${s.scope === '限定' ? '随职业' : s.shopCost + ' 点'}</div>
           </div>
           ${canRemove ? `
@@ -1193,14 +1264,14 @@
 
     return `
       <div class="ui-panel portrait-podium h-full flex flex-col justify-between relative">
-        <!-- 顶部身份信息与语音条（紧凑精炼，还原原版大小） -->
+        <!-- 顶部身份信息与语音条（同行精炼微排版，小字称号与名字一行） -->
         <div class="w-full z-10">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5">
               <span class="text-xl">${hero.emoji}</span>
-              <div>
+              <div class="flex items-baseline gap-2">
                 <h2 class="text-lg sm:text-xl font-bold tracking-wide text-[var(--text-main)]">${hero.name}</h2>
-                <p class="text-xs text-[var(--accent)] font-mono mt-0.5">${hero.title}</p>
+                <span class="text-xs font-serif font-bold text-[var(--accent)] tracking-wider">${hero.title}</span>
               </div>
             </div>
 
@@ -1221,7 +1292,7 @@
           </div>
 
           <!-- 当前职业专属台词气泡（固定高度，多行垂直居中防抖） -->
-          <div class="dialogue-bubble mt-2.5">
+          <div class="dialogue-bubble mt-2">
             <p id="hero-dialogue-quote" class="text-xs sm:text-[0.78rem] text-[var(--text-main)] italic leading-relaxed smooth-fade-transition">${voiceData.quote}</p>
           </div>
         </div>
@@ -1264,12 +1335,21 @@
     `;
   }
 
+  /* 战技排序辅助：职业限定 (EX) 居前，战术通用 (TAC) 居后，1:1 契合标题结构 */
+  function getSortedHeroSkills(skills) {
+    return [...skills].sort((a, b) => {
+      if (a.scope === '限定' && b.scope !== '限定') return -1;
+      if (a.scope !== '限定' && b.scope === '限定') return 1;
+      return 0;
+    });
+  }
+
   /* 渲染：角色 1 职业选择 (威廉) */
   function viewC1() {
     const hero = DEMO_CONFIG.party.hero1;
     const curCls = state.hero1Class;
     const clsObj = COMBAT_DATA.classes[curCls];
-    const skills = clsObj ? clsObj.skills : [];
+    const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
 
     // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
     const classCards = hero.classes.map(cName => {
@@ -1290,9 +1370,9 @@
             </div>
             <p class="text-[0.7rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
           </div>
-          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-center gap-1.5 truncate">
-            <span class="text-xs">✦</span>
-            <span class="truncate">${info.passive}</span>
+          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-start gap-1 leading-snug">
+            <span class="text-xs shrink-0 mt-[-1px]">✦</span>
+            <span class="break-words">${info.passive}</span>
           </div>
         </div>
       `;
@@ -1323,7 +1403,7 @@
               </div>
               <div class="text-right">
                 <div class="font-mono text-xs font-bold text-[var(--accent)]">WILLIAM TELL</div>
-                <div class="font-mono text-[0.68rem] text-white/40">冷峻神射手 · 雾港巡夜人</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">【雾港神射手】</div>
               </div>
             </div>
 
@@ -1362,7 +1442,7 @@
     const hero = DEMO_CONFIG.party.hero2;
     const curCls = state.hero2Class;
     const clsObj = COMBAT_DATA.classes[curCls];
-    const skills = clsObj ? clsObj.skills : [];
+    const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
 
     // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
     const classCards = hero.classes.map(cName => {
@@ -1383,9 +1463,9 @@
             </div>
             <p class="text-[0.7rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
           </div>
-          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-center gap-1.5 truncate">
-            <span class="text-xs">✦</span>
-            <span class="truncate">${info.passive}</span>
+          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-start gap-1 leading-snug">
+            <span class="text-xs shrink-0 mt-[-1px]">✦</span>
+            <span class="break-words">${info.passive}</span>
           </div>
         </div>
       `;
@@ -1416,7 +1496,7 @@
               </div>
               <div class="text-right">
                 <div class="font-mono text-xs font-bold text-[var(--accent)]">VON HOHENHEIM</div>
-                <div class="font-mono text-[0.68rem] text-white/40">真理探索者 · 炼金术士</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">【炼金术士】</div>
               </div>
             </div>
 
@@ -1475,8 +1555,9 @@
             </div>
             <p class="text-[0.68rem] text-[var(--text-muted)] leading-relaxed mb-1.5 line-clamp-2">${info.intro}</p>
           </div>
-          <div class="pt-1 border-t border-white/10 text-[0.62rem] text-[var(--accent)] font-mono truncate">
-            ✦ ${info.passive}
+          <div class="pt-1 border-t border-white/10 text-[0.62rem] text-[var(--accent)] font-mono flex items-start gap-1 leading-tight">
+            <span class="shrink-0">✦</span>
+            <span class="break-words">${info.passive}</span>
           </div>
         </div>
       `;
@@ -1726,7 +1807,8 @@
       skillsContainer.style.opacity = '0';
       skillsContainer.style.transform = 'translateY(6px)';
       setTimeout(() => {
-        skillsContainer.innerHTML = clsData.skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+        const sorted = getSortedHeroSkills(clsData.skills);
+        skillsContainer.innerHTML = sorted.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
         skillsContainer.style.opacity = '1';
         skillsContainer.style.transform = 'translateY(0)';
       }, 150);
