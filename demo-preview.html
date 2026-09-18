@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Serif+SC:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* 默认：方案一 · 密教暗曜 (Noir Arcane) */
+    /* 威廉 & 自定义主角专属：密教金辉 (Noir Arcane) */
     --font-serif: 'Noto Serif SC', serif;
     --font-mono: 'Share Tech Mono', monospace;
     --font-display: 'Cinzel', serif;
@@ -36,7 +36,7 @@
     --btn-border: rgba(198, 161, 84, 0.5);
   }
 
-  /* 方案二 · 战术全息 (Tactical Holo) */
+  /* 备用：战术全息 (Tactical Holo) */
   body.theme-tactical {
     --font-serif: 'Rajdhani', 'Noto Serif SC', sans-serif;
     --font-mono: 'Share Tech Mono', monospace;
@@ -63,7 +63,7 @@
     --btn-border: rgba(56, 189, 248, 0.6);
   }
 
-  /* 方案三 · 琉璃金辉 (Gilded Crystal) */
+  /* 冯专属：琉璃暗耀 (Gilded Crystal) */
   body.theme-gilded {
     --font-serif: 'Noto Serif SC', serif;
     --font-mono: 'Share Tech Mono', monospace;
@@ -455,14 +455,10 @@
 
 <div id="ambient-glow"></div>
 
-<!-- 顶部极简无感切换胶囊（风格切换、阶段跳转与全局BGM控制） -->
+<!-- 顶部极简无感切换胶囊（阶段跳转与全局BGM控制） -->
 <div class="switch-dock">
-  <button class="dock-btn active" data-theme="arcane">密教暗曜</button>
-  <button class="dock-btn" data-theme="tactical">战术全息</button>
-  <button class="dock-btn" data-theme="gilded">琉璃金辉</button>
-  <div class="dock-sep"></div>
-  <button class="dock-btn active" data-stage-jump="c1">威廉 (角色1)</button>
-  <button class="dock-btn" data-stage-jump="c2">冯 (角色2)</button>
+  <button class="dock-btn active" data-stage-jump="c1">威廉</button>
+  <button class="dock-btn" data-stage-jump="c2">冯</button>
   <button class="dock-btn" data-stage-jump="c3class">主角职业</button>
   <button class="dock-btn" data-stage-jump="c3skill">技能购点</button>
   <div class="dock-sep"></div>
@@ -576,7 +572,7 @@
           },
           '狂战士': {
             quote: '「那我就——稍微来点大手笔的吧！」',
-            audioUrl: 'http://127.0.0.1:8766/OS/威廉退尔（狂战士者）.mp3'
+            audioUrl: 'http://127.0.0.1:8766/OS/威廉退尔（狂战士）.mp3'
           },
           '防守者': {
             quote: '「看来，现在已经没空计较一些小事了。尽管负伤的野兽非常可怕……但必须让那野兽知道，负伤的猎人更可怕才行哦？」',
@@ -866,6 +862,149 @@
     }, 2200);
   }
 
+  /* 标签扩写映射表与低饱和克制胶囊生成器（RpgCombat 范式） */
+  const TAG_EXPAND_MAP = {
+    '单回': '单体回复',
+    '群回': '群体回复',
+    '单回蓝': '单体回蓝',
+    '群回蓝': '群体回蓝',
+    '吸蓝': '法力抽取',
+    '单降': '单体降防',
+    '群降': '群体降防',
+    '单防': '单体加防',
+    '群防': '群体加防',
+    '单盾': '单体护盾',
+    '群盾': '群体护盾',
+    '单体': '单体伤害',
+    '群攻': '群体伤害',
+    '穿透': '单体穿透',
+    '群穿透': '群体穿透',
+    '单弱': '单体降攻',
+    '群弱': '群体降攻',
+    '单滞': '单体延迟',
+    '群滞': '群体延迟',
+    '单速': '单体加速',
+    '群速': '群体加速',
+    '单缓': '单体缓速',
+    '群缓': '群体缓速',
+    '单盲': '单体致盲',
+    '群盲': '群体致盲',
+    '单瞄': '单体瞄准',
+    '群瞄': '群体瞄准',
+    '单冲': '单体充能',
+    '群冲': '群体充能',
+    '单增': '单体增攻',
+    '群增': '群体增攻',
+    '单避': '单体闪避',
+    '群避': '群体闪避',
+    '嘲讽': '目标嘲讽',
+    '反击': '受击反击',
+    '群反击': '全体反击',
+    '再动': '额外行动',
+    '免伤': '绝对免伤',
+    '必中': '锁定必中',
+    '转火': '转火追击'
+  };
+
+  function getPillColorStyle(text) {
+    if (text.includes('伤害') || text.includes('穿透')) {
+      return 'bg-rose-950/40 text-rose-300/90 border-rose-800/40';
+    }
+    if (text.includes('回复') || text.includes('回蓝') || text.includes('充能') || text.includes('净化') || text.includes('抽取')) {
+      return 'bg-emerald-950/40 text-emerald-300/90 border-emerald-800/40';
+    }
+    if (text.includes('护盾') || text.includes('加防') || text.includes('闪避') || text.includes('免伤')) {
+      return 'bg-sky-950/40 text-sky-300/90 border-sky-800/40';
+    }
+    if (text.includes('降防') || text.includes('降攻') || text.includes('延迟') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕')) {
+      return 'bg-purple-950/40 text-purple-300/90 border-purple-800/40';
+    }
+    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('暴击') || text.includes('必中') || text.includes('转火')) {
+      return 'bg-amber-950/40 text-amber-300/80 border-amber-800/40';
+    }
+    if (text.includes('反应')) {
+      return 'bg-rose-950/50 text-rose-300/90 border-rose-700/40';
+    }
+    return 'bg-white/5 text-white/70 border-white/10';
+  }
+
+  function formatSkillEffectPills(rawText) {
+    if (!rawText) return '';
+    let clean = rawText.replace(/【[^】]+】/, '');
+    // 彻底剥离重复后台前缀
+    clean = clean.replace(/\[(限定|通用)\]/g, '');
+    clean = clean.replace(/\[价:\d+\]/g, '');
+    clean = clean.replace(/\[MP:\d+\]/g, '');
+    clean = clean.replace(/\[HP:\d+\]/g, '');
+    clean = clean.replace(/\[TP:\d+\]/g, '');
+    clean = clean.replace(/\[特效:[^\]]+\]/g, '');
+
+    const tagMatches = clean.match(/\[([^\]]+)\]/g) || [];
+    if (tagMatches.length === 0) {
+      return '<span class="text-[0.65rem] text-white/30 font-mono">无特殊效果</span>';
+    }
+
+    const pills = [];
+    tagMatches.forEach(tagStr => {
+      const inner = tagStr.slice(1, -1).trim();
+      const parts = inner.split(/[;；]/);
+      const mainPart = parts[0].trim();
+      let powerVal = null;
+      parts.slice(1).forEach(p => {
+        const pm = p.match(/power:(-?\d+)/i);
+        if (pm) powerVal = pm[1];
+      });
+
+      let displayLabel = '';
+      let displayVal = powerVal;
+
+      if (/^持续[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^持续[:：](\d+)/i);
+        displayLabel = '持续';
+        displayVal = (m ? m[1] : '') + '回合';
+      } else if (/^加速[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^加速[:：](\d+)/i);
+        displayLabel = '加速';
+        displayVal = '+' + (m ? m[1] : '');
+      } else if (/^暴击[:：](\d+)%?/i.test(mainPart)) {
+        const m = mainPart.match(/^暴击[:：](\d+)%?/i);
+        displayLabel = '暴击';
+        displayVal = (m ? m[1] : '') + '%';
+      } else if (/^Hit[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^Hit[:：](\d+)/i);
+        displayLabel = '命中';
+        displayVal = (m ? m[1] : '') + '%';
+      } else if (/^反应(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^反应(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `⟲反应·${m[1]}` : '⟲反应';
+      } else if (mainPart === '他人') {
+        displayLabel = '友方目标';
+      } else if (mainPart === '法术' || mainPart === '近战' || mainPart === '远程') {
+        // 头部已标注伤害属性，效果行内无需重复
+        return;
+      } else if (/^(群驱散|驱散)(?::(\d+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^(群驱散|驱散)(?::(\d+))?/i);
+        const isGroup = m[1].includes('群');
+        displayLabel = isGroup ? '群体净化' : '单体净化';
+        displayVal = m[2] ? m[2] + '层' : null;
+      } else if (TAG_EXPAND_MAP[mainPart]) {
+        displayLabel = TAG_EXPAND_MAP[mainPart];
+      } else {
+        displayLabel = mainPart;
+      }
+
+      const style = getPillColorStyle(displayLabel);
+      pills.push(`
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.64rem] font-mono border leading-none ${style}">
+          <span>${displayLabel}</span>
+          ${displayVal != null ? `<span class="font-bold opacity-90 font-mono">${displayVal}</span>` : ''}
+        </span>
+      `);
+    });
+
+    return pills.join('');
+  }
+
   /* 渲染：技能芯片卡片 (带 index 阶梯动效) */
   function renderSkillSlotChip(s, isSlotEmpty = false, slotIdx = 0, canRemove = false) {
     if (isSlotEmpty) {
@@ -895,7 +1034,9 @@
               ${s.isReaction ? '<span class="text-[0.62rem] px-1.5 py-0.5 rounded bg-rose-950/70 border border-rose-600/50 text-rose-300 font-mono">⟲反应</span>' : ''}
               <span class="text-[0.65rem] px-1.5 py-0.2 rounded bg-white/5 text-white/60 font-mono">${s.typeTag}</span>
             </div>
-            <div class="text-[0.7rem] text-[var(--text-muted)] font-mono mt-0.5 truncate">${s.rawText.replace(/【[^】]+】/, '')}</div>
+            <div class="flex items-center gap-1.5 flex-wrap mt-1">
+              ${formatSkillEffectPills(s.rawText)}
+            </div>
           </div>
         </div>
 
@@ -1036,12 +1177,12 @@
           <div>
             <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
               <div>
-                <span class="font-mono text-xs text-[var(--accent)] tracking-widest">TACTICAL PROTOCOL // 01</span>
+                <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CHARACTER DOSSIER // WILLIAM</span>
                 <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
               </div>
               <div class="text-right">
-                <span class="font-mono text-xs text-white/40">PARTY SLOT</span>
-                <div class="font-mono text-sm font-bold text-[var(--accent)]">01 / 03</div>
+                <span class="font-mono text-xs text-white/40">PARTY MEMBER</span>
+                <div class="font-mono text-sm font-bold text-[var(--accent)]">WILLIAM TELL</div>
               </div>
             </div>
 
@@ -1120,12 +1261,12 @@
           <div>
             <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
               <div>
-                <span class="font-mono text-xs text-[var(--accent)] tracking-widest">TACTICAL PROTOCOL // 02</span>
+                <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CHARACTER DOSSIER // VON</span>
                 <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
               </div>
               <div class="text-right">
-                <span class="font-mono text-xs text-white/40">PARTY SLOT</span>
-                <div class="font-mono text-sm font-bold text-[var(--accent)]">02 / 03</div>
+                <span class="font-mono text-xs text-white/40">PARTY MEMBER</span>
+                <div class="font-mono text-sm font-bold text-[var(--accent)]">VON HOHENHEIM</div>
               </div>
             </div>
 
@@ -1148,9 +1289,9 @@
 
           <!-- 导航按钮 -->
           <div class="pt-6 mt-6 border-t border-white/10 flex items-center justify-between">
-            <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c1')">← 返回角色 1 (威廉)</button>
+            <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c1')">← 返回威廉</button>
             <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3class')">
-              <span>确认配置 · 下一步 (主角职业)</span>
+              <span>确认配置 · 前往主角职业</span>
               <span>→</span>
             </button>
           </div>
@@ -1191,12 +1332,12 @@
       <div class="ui-panel p-6 sm:p-8 view-transition-in">
         <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
           <div>
-            <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CUSTOM HERO // 03</span>
+            <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CUSTOM HERO // PROTAGONIST</span>
             <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">登记主角职能核心</h2>
           </div>
           <div class="text-right">
-            <span class="font-mono text-xs text-white/40">PARTY SLOT</span>
-            <div class="font-mono text-sm font-bold text-[var(--accent)]">03 / 03</div>
+            <span class="font-mono text-xs text-white/40">PARTY MEMBER</span>
+            <div class="font-mono text-sm font-bold text-[var(--accent)]">PROTAGONIST</div>
           </div>
         </div>
 
@@ -1219,7 +1360,7 @@
         </div>
 
         <div class="pt-6 mt-6 border-t border-white/10 flex items-center justify-between">
-          <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c2')">← 返回角色 2 (冯)</button>
+          <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c2')">← 返回冯</button>
           <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3skill')">
             <span>前往自由通用技能购点插槽</span>
             <span>→</span>
@@ -1270,9 +1411,9 @@
             <span>${s.typeTag}</span>
             ${s.isReaction ? '<span class="text-rose-400">⟲反应</span>' : ''}
           </div>
-          <p class="font-mono text-[0.68rem] text-[var(--text-muted)] leading-relaxed">
-            ${s.rawText.replace(/【[^】]+】/, '')}
-          </p>
+          <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
+            ${formatSkillEffectPills(s.rawText)}
+          </div>
         </div>
       `;
     }).join('');
@@ -1385,6 +1526,12 @@
     },
     gotoStage: (st) => {
       state.stage = st;
+      // 角色专属界面主题自动切换：冯为琉璃暗耀，威廉与自定义主角为密教金辉
+      if (st === 'c2') {
+        document.body.className = 'theme-gilded';
+      } else {
+        document.body.className = 'theme-arcane';
+      }
       renderStage(true);
       // 同步顶部 dock 激活态
       document.querySelectorAll('[data-stage-jump]').forEach(btn => {
@@ -1400,17 +1547,8 @@
     }
   };
 
-  /* 主题切换与快捷跳转监听 */
+  /* 快捷跳转监听 */
   function initDockEvents() {
-    document.querySelectorAll('[data-theme]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-theme]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const theme = btn.getAttribute('data-theme');
-        document.body.className = `theme-${theme}`;
-      });
-    });
-
     document.querySelectorAll('[data-stage-jump]').forEach(btn => {
       btn.addEventListener('click', () => {
         const stage = btn.getAttribute('data-stage-jump');
@@ -1422,6 +1560,8 @@
   /* 初始化启动 */
   parseCombatBlock();
   initDockEvents();
+  // 默认启动进入威廉阶段，绑定密教金辉主题
+  document.body.className = 'theme-arcane';
   renderStage(true);
   initBgm();
 
