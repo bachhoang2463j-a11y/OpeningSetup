@@ -441,6 +441,33 @@
     transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* 跨阶段电影级柔和转场动效 (250ms 淡出 + 300ms 淡入) */
+  .stage-fade-out {
+    opacity: 0 !important;
+    transform: translateY(-8px) scale(0.995) !important;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    pointer-events: none;
+  }
+  .stage-fade-in {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  /* 插槽增量插入轻柔弹入动效 */
+  .slot-chip-pop {
+    animation: slot-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes slot-pop {
+    0% { opacity: 0; transform: scale(0.94) translateY(6px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* 局部文字与属性平滑过渡 */
+  .smooth-fade-transition {
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+
   /* 全局进场微动效 */
   .view-transition-in {
     animation: view-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -825,8 +852,54 @@
     }, 0);
   }
 
+  /* 增量刷新：仅更新插槽面板、能量条与卡片高亮，不触发整页重绘 */
+  function incrementalUpdateC3Skill(skillName, isAdded) {
+    const slotsGrid = document.getElementById('c3-equipped-slots-grid');
+    if (!slotsGrid) {
+      renderStage(false);
+      return;
+    }
+
+    // 1. 增量重绘 6 槽插槽面板（新装配项带 slot-chip-pop 动效）
+    slotsGrid.innerHTML = renderC3SlotsHtml(isAdded ? skillName : null);
+
+    // 2. 增量更新剩余点数与能量进度条
+    const usedPoints = genericSkillUsed();
+    const maxPoints = DEMO_CONFIG.shop.skillPoints;
+    const remainPoints = maxPoints - usedPoints;
+    const pct = Math.min(100, Math.round((usedPoints / maxPoints) * 100));
+
+    const remainEl = document.getElementById('c3-remain-points');
+    if (remainEl) {
+      remainEl.textContent = `${remainPoints} / ${maxPoints} 点`;
+      if (remainPoints === 0) {
+        remainEl.className = 'font-bold text-amber-400';
+      } else {
+        remainEl.className = 'font-bold text-[var(--accent)]';
+      }
+    }
+
+    const energyFill = document.getElementById('c3-energy-fill');
+    if (energyFill) {
+      energyFill.style.width = pct + '%';
+    }
+
+    // 3. 增量更新被点击卡片的选中高亮态
+    const cardEl = document.querySelector(`[data-skill-card="${skillName}"]`);
+    if (cardEl) {
+      cardEl.classList.toggle('selected', isAdded);
+    }
+
+    // 4. 增量更新底部装配计数
+    const countEl = document.getElementById('c3-equipped-count');
+    if (countEl) {
+      countEl.textContent = `通用槽已装配: ${state.hero3.skills.length}/3`;
+    }
+  }
+
   function toggleGenericSkill(skillName) {
     const idx = state.hero3.skills.indexOf(skillName);
+    let isAdded = false;
     if (idx >= 0) {
       state.hero3.skills.splice(idx, 1);
     } else {
@@ -841,8 +914,10 @@
         return;
       }
       state.hero3.skills.push(skillName);
+      isAdded = true;
     }
-    renderStage(false);
+    // 纯增量更新：绝不触发整页 DOM 重绘，消除生硬刷新
+    incrementalUpdateC3Skill(skillName, isAdded);
   }
 
   function showFlashToast(msg) {
@@ -1090,7 +1165,7 @@
 
           <!-- 当前职业专属台词气泡（伴随职业切换淡入） -->
           <div class="dialogue-bubble mt-4">
-            <p class="text-xs sm:text-sm text-[var(--text-main)] italic leading-relaxed">${voiceData.quote}</p>
+            <p id="hero-dialogue-quote" class="text-xs sm:text-sm text-[var(--text-main)] italic leading-relaxed smooth-fade-transition">${voiceData.quote}</p>
           </div>
         </div>
 
@@ -1103,28 +1178,28 @@
         <div class="w-full z-10 ui-panel-soft p-4">
           <div class="flex items-center justify-between mb-2">
             <span class="font-mono text-xs text-white/50 tracking-wider">BASE ATTRIBUTES</span>
-            <span class="font-mono text-xs text-[var(--accent)] font-bold">PROFILE // ${selectedClass}</span>
+            <span id="hero-attr-profile-tag" class="font-mono text-xs text-[var(--accent)] font-bold smooth-fade-transition">PROFILE // ${selectedClass}</span>
           </div>
           <div class="grid grid-cols-5 gap-2 text-center font-mono">
             <div class="bg-black/35 p-2 rounded-lg border border-white/5">
               <div class="text-[0.65rem] text-rose-400/80">HP</div>
-              <div class="text-sm font-bold text-white mt-0.5">${clsData.hp}</div>
+              <div id="hero-attr-hp" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.hp}</div>
             </div>
             <div class="bg-black/35 p-2 rounded-lg border border-white/5">
               <div class="text-[0.65rem] text-sky-400/80">MP</div>
-              <div class="text-sm font-bold text-white mt-0.5">${clsData.mp}</div>
+              <div id="hero-attr-mp" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.mp}</div>
             </div>
             <div class="bg-black/35 p-2 rounded-lg border border-white/5">
               <div class="text-[0.65rem] text-amber-400/80">ATK</div>
-              <div class="text-sm font-bold text-white mt-0.5">${clsData.atk}</div>
+              <div id="hero-attr-atk" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.atk}</div>
             </div>
             <div class="bg-black/35 p-2 rounded-lg border border-white/5">
               <div class="text-[0.65rem] text-emerald-400/80">DEF</div>
-              <div class="text-sm font-bold text-white mt-0.5">${clsData.armor}</div>
+              <div id="hero-attr-armor" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.armor}</div>
             </div>
             <div class="bg-black/35 p-2 rounded-lg border border-white/5">
               <div class="text-[0.65rem] text-purple-400/80">SPD</div>
-              <div class="text-sm font-bold text-white mt-0.5">${clsData.speed}</div>
+              <div id="hero-attr-speed" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.speed}</div>
             </div>
           </div>
         </div>
@@ -1144,7 +1219,7 @@
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
       return `
-        <div class="class-tab-card ${active ? 'active' : ''}" onclick="window.demoActions.pickClass1('${cName}')">
+        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass1('${cName}')">
           <div>
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-base font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
@@ -1197,7 +1272,7 @@
                 <span class="font-mono text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
                 <span class="font-mono text-xs text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
               </div>
-              <div class="flex flex-col gap-2.5">
+              <div class="flex flex-col gap-2.5 smooth-fade-transition" id="hero-skill-chips-container">
                 ${skillChips}
               </div>
             </div>
@@ -1228,7 +1303,7 @@
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
       return `
-        <div class="class-tab-card ${active ? 'active' : ''}" onclick="window.demoActions.pickClass2('${cName}')">
+        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass2('${cName}')">
           <div>
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-base font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
@@ -1281,7 +1356,7 @@
                 <span class="font-mono text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
                 <span class="font-mono text-xs text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
               </div>
-              <div class="flex flex-col gap-2.5">
+              <div class="flex flex-col gap-2.5 smooth-fade-transition" id="hero-skill-chips-container">
                 ${skillChips}
               </div>
             </div>
@@ -1370,19 +1445,13 @@
     `;
   }
 
-  /* 渲染：角色 3 自由通用技能购点（插槽装配式） */
-  function viewC3skill() {
+  /* 生成主角 6 插槽 HTML（前 3 锁定，后 3 通用装配） */
+  function renderC3SlotsHtml(justAddedName = null) {
     const curCls = state.hero3.classType;
     const clsObj = COMBAT_DATA.classes[curCls];
     const limitedSkills = clsObj ? clsObj.skills.filter(s => s.scope === '限定') : [];
-    
     const genericEquipped = state.hero3.skills.map(name => COMBAT_DATA.genericPool.find(s => s.name === name)).filter(Boolean);
-    const usedPoints = genericSkillUsed();
-    const maxPoints = DEMO_CONFIG.shop.skillPoints;
-    const remainPoints = maxPoints - usedPoints;
-    const pct = Math.min(100, Math.round((usedPoints / maxPoints) * 100));
 
-    // 渲染已装备的 6 个槽位（3 限定 + 3 自由）
     let slotHtml = '';
     limitedSkills.forEach((s, i) => {
       slotHtml += renderSkillSlotChip(s, false, i + 1);
@@ -1390,17 +1459,29 @@
     for (let i = 0; i < 3; i++) {
       const s = genericEquipped[i];
       if (s) {
-        slotHtml += renderSkillSlotChip(s, false, i + 4, true);
+        const isPop = justAddedName && s.name === justAddedName;
+        slotHtml += `<div class="${isPop ? 'slot-chip-pop' : ''}">${renderSkillSlotChip(s, false, i + 4, true)}</div>`;
       } else {
         slotHtml += renderSkillSlotChip(null, true, i + 4);
       }
     }
+    return slotHtml;
+  }
+
+  /* 渲染：角色 3 自由通用技能购点（插槽装配式） */
+  function viewC3skill() {
+    const curCls = state.hero3.classType;
+    const genericEquipped = state.hero3.skills.map(name => COMBAT_DATA.genericPool.find(s => s.name === name)).filter(Boolean);
+    const usedPoints = genericSkillUsed();
+    const maxPoints = DEMO_CONFIG.shop.skillPoints;
+    const remainPoints = maxPoints - usedPoints;
+    const pct = Math.min(100, Math.round((usedPoints / maxPoints) * 100));
 
     // 备选技能卡片网格
     const poolCards = COMBAT_DATA.genericPool.map(s => {
       const isSelected = state.hero3.skills.includes(s.name);
       return `
-        <div class="skill-pick-card ${isSelected ? 'selected' : ''}" onclick="window.demoActions.toggleSkill('${s.name}')">
+        <div class="skill-pick-card ${isSelected ? 'selected' : ''}" data-skill-card="${s.name}" onclick="window.demoActions.toggleSkill('${s.name}')">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-sm text-[var(--text-main)]">${s.name}</span>
             <span class="font-mono text-xs font-bold text-[var(--accent)]">${s.shopCost} 点</span>
@@ -1431,10 +1512,10 @@
           <div class="bg-black/40 backdrop-blur-md px-5 py-3 rounded-lg border border-white/10 min-w-[240px]">
             <div class="flex items-center justify-between font-mono text-xs mb-1.5">
               <span class="text-white/60">REMAINING BUDGET</span>
-              <span class="font-bold ${remainPoints === 0 ? 'text-amber-400' : 'text-[var(--accent)]'}">${remainPoints} / ${maxPoints} 点</span>
+              <span id="c3-remain-points" class="font-bold ${remainPoints === 0 ? 'text-amber-400' : 'text-[var(--accent)]'}">${remainPoints} / ${maxPoints} 点</span>
             </div>
             <div class="energy-meter">
-              <div class="energy-fill" style="width: ${pct}%;"></div>
+              <div id="c3-energy-fill" class="energy-fill" style="width: ${pct}%;"></div>
             </div>
           </div>
         </div>
@@ -1445,8 +1526,8 @@
             <span class="font-mono text-xs text-[var(--accent)] tracking-wider">CURRENT 6 SKILL SLOTS [ 3 EXCLUSIVE + 3 GENERIC CHIPS ]</span>
             <span class="font-mono text-xs text-white/40">点击装配槽 ✕ 可快速卸下</span>
           </div>
-          <div class="grid md:grid-cols-2 gap-3">
-            ${slotHtml}
+          <div class="grid md:grid-cols-2 gap-3" id="c3-equipped-slots-grid">
+            ${renderC3SlotsHtml()}
           </div>
         </div>
 
@@ -1465,7 +1546,7 @@
         <div class="pt-6 mt-8 border-t border-white/10 flex items-center justify-between">
           <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c3class')">← 返回主角职业</button>
           <div class="flex items-center gap-3">
-            <span class="font-mono text-xs text-[var(--text-muted)]">通用槽已装配: ${genericEquipped.length}/3</span>
+            <span id="c3-equipped-count" class="font-mono text-xs text-[var(--text-muted)]">通用槽已装配: ${genericEquipped.length}/3</span>
             <button class="ui-btn-primary" onclick="alert('恭喜！视觉 Demo 交互流验证成功。\\n\\n三位角色的技能槽位与属性档案已装配完毕。')">
               <span>完成配置 · 查看最终档案</span>
               <span>✓</span>
@@ -1504,19 +1585,144 @@
     }
   }
 
+  /* 职业切换：局部精准淡入淡出（立绘展台框架保持稳定不动） */
+  function switchHeroClassLocally(heroKey, newClass) {
+    const hero = DEMO_CONFIG.party[heroKey];
+    if (!hero) return;
+
+    if (heroKey === 'hero1') state.hero1Class = newClass;
+    else state.hero2Class = newClass;
+
+    const clsData = COMBAT_DATA.classes[newClass] || { hp: 100, mp: 40, atk: 12, armor: 3, speed: 100 };
+    const voiceData = hero.classVoiceMap[newClass] || { quote: '', audioUrl: '' };
+
+    // 1. 职业选项卡高亮增量切换
+    document.querySelectorAll('[data-class-tab]').forEach(tab => {
+      tab.classList.toggle('active', tab.getAttribute('data-class-tab') === newClass);
+    });
+
+    // 2. 左侧台词气泡平滑过渡
+    const quoteEl = document.getElementById('hero-dialogue-quote');
+    if (quoteEl) {
+      quoteEl.style.opacity = '0';
+      quoteEl.style.transform = 'translateY(4px)';
+      setTimeout(() => {
+        quoteEl.textContent = voiceData.quote;
+        quoteEl.style.opacity = '1';
+        quoteEl.style.transform = 'translateY(0)';
+      }, 160);
+    }
+
+    // 3. 五维属性面板平滑更新
+    const attrTitle = document.getElementById('hero-attr-profile-tag');
+    if (attrTitle) attrTitle.textContent = `PROFILE // ${newClass}`;
+
+    const attrs = [
+      { id: 'hero-attr-hp', val: clsData.hp },
+      { id: 'hero-attr-mp', val: clsData.mp },
+      { id: 'hero-attr-atk', val: clsData.atk },
+      { id: 'hero-attr-armor', val: clsData.armor },
+      { id: 'hero-attr-speed', val: clsData.speed },
+    ];
+    attrs.forEach(({ id, val }) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.opacity = '0.2';
+        setTimeout(() => {
+          el.textContent = val;
+          el.style.opacity = '1';
+        }, 120);
+      }
+    });
+
+    // 4. 右侧 6 技能栏重新渲染并依次阶梯滑入
+    const skillsContainer = document.getElementById('hero-skill-chips-container');
+    if (skillsContainer) {
+      skillsContainer.style.opacity = '0';
+      skillsContainer.style.transform = 'translateY(6px)';
+      setTimeout(() => {
+        skillsContainer.innerHTML = clsData.skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+        skillsContainer.style.opacity = '1';
+        skillsContainer.style.transform = 'translateY(0)';
+      }, 150);
+    }
+
+    // 5. 播放专属台词音频与声波动画
+    playHeroCurrentVoice(heroKey);
+  }
+
+  /* 跨阶段导航：柔和沉浸淡出淡入转场（250ms 淡出 + 300ms 淡入） */
+  let isStageTransitioning = false;
+
+  function gotoStageWithCrossfade(st) {
+    if (isStageTransitioning) return;
+    if (state.stage === st) return;
+
+    const appEl = document.getElementById('demo-app');
+    if (!appEl) {
+      state.stage = st;
+      renderStage(true);
+      return;
+    }
+
+    isStageTransitioning = true;
+
+    // 1. 触发柔和淡出 (250ms)
+    appEl.classList.remove('stage-fade-in');
+    appEl.classList.add('stage-fade-out');
+
+    setTimeout(() => {
+      // 2. 淡出完成时切换阶段与专属主题
+      state.stage = st;
+      if (st === 'c2') {
+        document.body.className = 'theme-gilded';
+      } else {
+        document.body.className = 'theme-arcane';
+      }
+
+      // 同步顶部 dock 激活态
+      document.querySelectorAll('[data-stage-jump]').forEach(btn => {
+        if (btn.getAttribute('data-stage-jump') === st) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      // 渲染目标阶段 DOM
+      renderStage(true);
+
+      // 3. 触发平滑淡入 (300ms)
+      appEl.classList.remove('stage-fade-out');
+      appEl.classList.add('stage-fade-in');
+
+      setTimeout(() => {
+        appEl.classList.remove('stage-fade-in');
+        isStageTransitioning = false;
+      }, 300);
+    }, 250);
+  }
+
   /* 挂载到 window 供页面交互调用 */
   window.demoActions = {
     pickClass1: (cls) => {
-      state.hero1Class = cls;
-      renderStage(true); // 切换职业时播放对应专属台词与动效
+      switchHeroClassLocally('hero1', cls);
     },
     pickClass2: (cls) => {
-      state.hero2Class = cls;
-      renderStage(true); // 切换职业时播放对应专属台词与动效
+      switchHeroClassLocally('hero2', cls);
     },
     pickClass3: (cls) => {
       state.hero3.classType = cls;
-      renderStage(false);
+      document.querySelectorAll('.class-tab-card').forEach(tab => {
+        tab.classList.toggle('active', tab.innerText.includes(cls));
+      });
+      const clsObj = COMBAT_DATA.classes[cls];
+      const limitedSkills = clsObj ? clsObj.skills.filter(s => s.scope === '限定') : [];
+      const limitedContainer = document.querySelector('.ui-panel-soft .flex-col');
+      if (limitedContainer) {
+        limitedContainer.style.opacity = '0';
+        setTimeout(() => {
+          limitedContainer.innerHTML = limitedSkills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+          limitedContainer.style.opacity = '1';
+        }, 120);
+      }
     },
     toggleSkill: (skillName) => {
       toggleGenericSkill(skillName);
@@ -1525,19 +1731,7 @@
       toggleGenericSkill(skillName);
     },
     gotoStage: (st) => {
-      state.stage = st;
-      // 角色专属界面主题自动切换：冯为琉璃暗耀，威廉与自定义主角为密教金辉
-      if (st === 'c2') {
-        document.body.className = 'theme-gilded';
-      } else {
-        document.body.className = 'theme-arcane';
-      }
-      renderStage(true);
-      // 同步顶部 dock 激活态
-      document.querySelectorAll('[data-stage-jump]').forEach(btn => {
-        if (btn.getAttribute('data-stage-jump') === st) btn.classList.add('active');
-        else btn.classList.remove('active');
-      });
+      gotoStageWithCrossfade(st);
     },
     playVoice: (heroId) => {
       playHeroCurrentVoice(heroId);
