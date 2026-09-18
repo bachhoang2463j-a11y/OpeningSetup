@@ -144,9 +144,9 @@
   .card.sel { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-glow), inset 0 0 10px rgba(198, 161, 84, 0.08);
     background: rgba(34, 30, 16, 0.65); }
 
-  /* 大尺寸角色立绘展台（破框沉浸，去除狭窄黑框留白） */
+  /* 大尺寸角色立绘展台（破框沉浸，去除狭窄黑框留白，与右侧等高对齐） */
   .portrait-podium {
-    position: relative; width: 100%; min-height: 520px;
+    position: relative; width: 100%; min-height: 520px; height: 100%;
     display: flex; flex-direction: column; justify-content: space-between;
     overflow: hidden; border-radius: 12px; padding: 20px;
     background: radial-gradient(circle at 50% 55%, var(--accent-dim) 0%, transparent 70%), var(--panel-bg);
@@ -154,13 +154,13 @@
   }
   .portrait-wrapper {
     position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
-    width: 100%; min-height: 340px; overflow: visible;
+    width: 100%; min-height: 0; overflow: hidden;
   }
   .portrait-img {
-    height: 100%; max-height: 420px; width: auto; object-fit: contain;
+    height: 100%; max-height: 480px; width: auto; object-fit: contain;
     filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.85));
-    -webkit-mask-image: linear-gradient(to bottom, black 82%, transparent 99%);
-    mask-image: linear-gradient(to bottom, black 82%, transparent 99%);
+    -webkit-mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
     transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .portrait-img.hero-swap-in { animation: hero-swap 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -224,12 +224,18 @@
     padding: 1px 4px; border-radius: 3px; border: 1px solid var(--accent); pointer-events: none;
   }
 
-  /* 台词字幕气泡 */
+  /* 台词字幕气泡（固定高度 72px，多行自适应垂直居中，防抖防挤压） */
   .dialogue-bubble {
     background: rgba(10, 14, 22, 0.88); backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px); border: 1px solid var(--panel-border);
-    border-radius: 8px; padding: 10px 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
-    width: 100%; animation: dialogue-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    border-radius: 8px; padding: 8px 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+    width: 100%; height: 72px; min-height: 72px; max-height: 72px;
+    display: flex; align-items: center; justify-content: flex-start; overflow: hidden;
+    animation: dialogue-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  #hero-dialogue-quote {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: ellipsis; line-height: 1.45;
   }
   @keyframes dialogue-in { 0% { opacity: 0; transform: translateY(6px); } 100% { opacity: 1; transform: translateY(0); } }
 
@@ -429,8 +435,10 @@
       // 本地测试直链（8766 服务器 root=D:\Project\my_assets，无需路径前缀）；
       // 发布前必须换成图床永久直链（推荐 catbox.moe，支持音频）。
       // 注意：网易云 m*.music.126.net 带 14 位时间戳签名的直链有时效（过期 403），不可直接发布。
+      storyUrl: "http://127.0.0.1:8766/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
+      selectUrl: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
       url: "http://127.0.0.1:8766/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
-      title: "I Don't Want to Set the World on Fire · The Ink Spots（当前为本地测试直链，发布前换图床）",
+      title: "I Don't Want to Set the World on Fire / The Ecstasy Of Gold",
     },
     bgVideo: { url: '', opacity: 0.6 },
 
@@ -742,6 +750,77 @@
   const bgVideo = document.getElementById('bg-video');
   const bgFallback = document.getElementById('bg-fallback');
   const bgm = document.getElementById('bgm');
+
+  /* 背景音乐分段切换管理器（叙事曲 vs 选技战歌，平滑音量过渡） */
+  function getBgmUrlForStage(stage) {
+    const d = OPENING_DATA.bgm;
+    if (!d) return '';
+    if (stage === 'title' || stage === 'story') {
+      return d.storyUrl || d.url || '';
+    }
+    return d.selectUrl || d.url || '';
+  }
+
+  let bgmFadeTimer = null;
+  function updateBgmForStage(targetStage) {
+    const targetUrl = getBgmUrlForStage(targetStage);
+    if (!targetUrl || !bgm) return;
+
+    const currentSrc = bgm.src || '';
+    const isSameSong = currentSrc && (
+      currentSrc === targetUrl ||
+      currentSrc.indexOf(encodeURI(targetUrl)) >= 0 ||
+      encodeURI(currentSrc).indexOf(encodeURI(targetUrl)) >= 0 ||
+      currentSrc.split('?')[0].split('#')[0] === targetUrl.split('?')[0].split('#')[0]
+    );
+
+    if (isSameSong) {
+      if (state.soundOn && bgm.paused) {
+        bgm.volume = 0.55;
+        bgm.play().catch(function () { /* 静默 */ });
+      } else if (!state.soundOn && !bgm.paused) {
+        bgm.pause();
+      }
+      return;
+    }
+
+    if (bgmFadeTimer) {
+      clearInterval(bgmFadeTimer);
+      bgmFadeTimer = null;
+    }
+
+    if (!state.soundOn) {
+      bgm.pause();
+      bgm.src = targetUrl;
+      return;
+    }
+
+    // 平滑淡出后切换
+    bgmFadeTimer = setInterval(function () {
+      if (bgm.volume > 0.08) {
+        bgm.volume = Math.max(0, bgm.volume - 0.08);
+      } else {
+        clearInterval(bgmFadeTimer);
+        bgmFadeTimer = null;
+        bgm.pause();
+        bgm.src = targetUrl;
+        bgm.volume = 0;
+        bgm.play().then(function () {
+          let vol = 0;
+          bgmFadeTimer = setInterval(function () {
+            vol += 0.08;
+            if (vol >= 0.55) {
+              bgm.volume = 0.55;
+              clearInterval(bgmFadeTimer);
+              bgmFadeTimer = null;
+            } else {
+              bgm.volume = vol;
+            }
+          }, 35);
+        }).catch(function () { /* 静默 */ });
+      }
+    }, 25);
+  }
 
   /* 角色专属语音音频控制器 */
   const voiceAudio = new Audio();
@@ -1238,6 +1317,7 @@
       else if (state.stage === 'c2') playHeroCurrentVoice('hero2');
       else voiceAudio.pause();
     }
+    updateBgmForStage(state.stage);
   }
 
   function renderLoading() {
@@ -1339,7 +1419,7 @@
     const cfg = clsObj.config;
     const voiceData = (hero.classVoiceMap && hero.classVoiceMap[curCls]) || { quote: hero.inner || '', audioUrl: '' };
 
-    return '<div class="portrait-podium mb-4 lg:mb-0">'
+    return '<div class="portrait-podium mb-4 lg:mb-0 h-full flex-1 flex flex-col justify-between">'
       + '  <div>'
       + '    <div class="flex items-start justify-between">'
       + '      <div>'
@@ -1503,8 +1583,8 @@
     return '<div class="min-h-[640px] max-w-6xl w-full mx-auto px-4 py-8 flex flex-col justify-center">'
       + header('PARTY 1 / 3 · ' + hero.name, '选择职业与战技')
       + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
-      + '  <div class="lg:col-span-5 flex flex-col">' + renderHeroStage(hero, curCls) + '</div>'
-      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-6">'
+      + '  <div class="lg:col-span-5 flex flex-col h-full">' + renderHeroStage(hero, curCls) + '</div>'
+      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-6 h-full">'
       + '    <div>'
       + '      <div class="flex items-center justify-between pb-3 mb-4 border-b border-white/10">'
       + '        <div>'
@@ -1565,8 +1645,8 @@
     return '<div class="min-h-[640px] max-w-6xl w-full mx-auto px-4 py-8 flex flex-col justify-center">'
       + header('PARTY 2 / 3 · ' + hero.name, '选择职业与战技')
       + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
-      + '  <div class="lg:col-span-5 flex flex-col">' + renderHeroStage(hero, curCls) + '</div>'
-      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-6">'
+      + '  <div class="lg:col-span-5 flex flex-col h-full">' + renderHeroStage(hero, curCls) + '</div>'
+      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-6 h-full">'
       + '    <div>'
       + '      <div class="flex items-center justify-between pb-3 mb-4 border-b border-white/10">'
       + '        <div>'
@@ -1955,6 +2035,14 @@
       + '</div>';
   }
 
+  function renderAttrValHtml(key) {
+    const costs = OPENING_DATA.shop.attrCosts;
+    const cfg = classConfigOf(state.hero3.classType) || { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
+    const base = cfg[key] || 0;
+    const a = state.hero3.attrs[key] || 0;
+    return (base + a * costs[key]) + (a ? ' <span class="text-[#9fbf7f]">(+' + (a * costs[key]) + ')</span>' : '');
+  }
+
   function viewC3attr() {
     const costs = OPENING_DATA.shop.attrCosts;
     const cfg = classConfigOf(state.hero3.classType) || { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
@@ -1966,7 +2054,6 @@
       { key: 'spd', label: '速度 Speed', base: cfg.spd },
     ];
     const rows = defs.map(function (r) {
-      const a = state.hero3.attrs[r.key];
       return '<div class="card p-3 flex items-center justify-between">'
         + '<div>'
         + '<div class="text-sm text-[#e8dcc0] tracking-[0.12em]">' + r.label + '</div>'
@@ -1974,7 +2061,7 @@
         + '</div>'
         + '<div class="flex items-center gap-2">'
         + '  <button class="btn-ghost" data-action="c3-attr" data-attr="' + r.key + '" data-dir="-">−</button>'
-        + '  <span class="font-tw text-[0.85rem] text-[#e8dcc0] w-20 text-center">' + (r.base + a * costs[r.key]) + (a ? ' <span class="text-[#9fbf7f]">(+' + (a * costs[r.key]) + ')</span>' : '') + '</span>'
+        + '  <span id="attr-val-' + r.key + '" class="font-tw text-[0.85rem] text-[#e8dcc0] w-20 text-center">' + renderAttrValHtml(r.key) + '</span>'
         + '  <button class="btn-ghost" data-action="c3-attr" data-attr="' + r.key + '" data-dir="+">＋</button>'
         + '</div>'
         + '</div>';
@@ -2327,11 +2414,7 @@
     state.soundOn = !state.soundOn;
     try {
       bgVideo.muted = !state.soundOn;
-      if (OPENING_DATA.bgm.url) {
-        if (!bgm.src) bgm.src = OPENING_DATA.bgm.url;
-        bgm.volume = 0.55;
-        if (state.soundOn) { bgm.play(); } else { bgm.pause(); }
-      }
+      updateBgmForStage(state.stage);
     } catch (e) { /* 自动播放策略拒绝时静默 */ }
     render();
   }
@@ -2367,31 +2450,48 @@
 
   function toggleC3Attr(key, dir) {
     if (!(key in state.hero3.attrs)) return;
+    const cost = OPENING_DATA.shop.attrCosts[key] || 1;
+    const totalPoints = OPENING_DATA.shop.attrPoints;
     if (dir === '+') {
-      const cost = OPENING_DATA.shop.attrCosts[key] || 1;
-      if (attrsUsed() + cost > OPENING_DATA.shop.attrPoints) {
-        refreshBudget('attr-budget', attrsUsed(), OPENING_DATA.shop.attrPoints);
+      if (attrsUsed() + cost > totalPoints) {
+        showFlashToast('属性点数不足（上限 ' + totalPoints + ' 点）');
+        refreshBudget('attr-budget', attrsUsed(), totalPoints);
         return; // 点数不足：拒绝（预算边界）
       }
       state.hero3.attrs[key]++;
     } else {
-      if (state.hero3.attrs[key] > 0) state.hero3.attrs[key]--;
+      if (state.hero3.attrs[key] > 0) {
+        state.hero3.attrs[key]--;
+      } else {
+        return;
+      }
     }
-    render();
+    // 纯增量更新：局部刷新顶部能量条与该项数值，绝不整页重绘
+    refreshBudget('attr-budget', attrsUsed(), totalPoints);
+    const valEl = document.getElementById('attr-val-' + key);
+    if (valEl) valEl.innerHTML = renderAttrValHtml(key);
   }
 
   function toggleItem(id) {
     const entry = OPENING_DATA.items.find(function (e) { return e.id === id; });
     if (!entry) return;
-    if (state.selectedItems.has(id)) { state.selectedItems.delete(id); }
-    else {
-      if (itemsUsed() + entry.shopCost > OPENING_DATA.shop.itemPoints) {
-        refreshBudget('item-budget', itemsUsed(), OPENING_DATA.shop.itemPoints);
+    const totalPoints = OPENING_DATA.shop.itemPoints;
+    if (state.selectedItems.has(id)) {
+      state.selectedItems.delete(id);
+    } else {
+      if (itemsUsed() + entry.shopCost > totalPoints) {
+        showFlashToast('物品预算不足（上限 ' + totalPoints + ' 点）');
+        refreshBudget('item-budget', itemsUsed(), totalPoints);
         return;
       }
       state.selectedItems.add(id);
     }
-    render();
+    // 纯增量更新：局部刷新顶部能量条与被点击卡片高亮，绝不整页重绘
+    refreshBudget('item-budget', itemsUsed(), totalPoints);
+    const cardEl = document.querySelector('[data-item-id="' + id + '"]');
+    if (cardEl) {
+      cardEl.classList.toggle('sel', state.selectedItems.has(id));
+    }
   }
 
   /* ==================== 启动 ==================== */
