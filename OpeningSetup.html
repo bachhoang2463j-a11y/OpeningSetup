@@ -1204,12 +1204,21 @@
     return { version: 1, heroes: [hero1, hero2, hero3] };
   }
 
-  function buildItemsString(entries) {
-    if (!entries.length) return '无';
-    return '[💼] ' + entries.map(function (e) {
+  // 战斗物品分类词条（RpgCombat/MMS 通道：【弹药】【消耗品】【道具】独立行，格式 [名x数量] 供 _sbParseItems 解析）
+  function buildItemsOfCategory(entries, category) {
+    const list = entries.filter(function (e) { return e.data.category === category; });
+    if (!list.length) return '无';
+    return list.map(function (e) {
       const c = e.data.count || 0;
       return '[' + e.data.name + (c > 1 ? 'x' + c : '') + ']';
     }).join('');
+  }
+  // 物品行=叙事物品徽章：无数量段，RpgCombat _sbParseItems 不入列，只叙事不进战斗数据
+  function buildStoryBadgeString(story) {
+    const parts = String(story || '').split(/[、，,;；]/).map(function (s) {
+      return s.trim().replace(/[\[\]]/g, '');
+    }).filter(Boolean);
+    return parts.length ? parts.map(function (p) { return '[' + p + ']'; }).join('') : '无';
   }
   function buildWeaponsString(entries) {
     const weapons = entries.filter(function (e) { return e.data.category === '武器'; });
@@ -1235,10 +1244,14 @@
       lines.push('    - 角色:');
       lines.push('        名字: "' + r.emoji + r.name + '"');
       lines.push('        属性: "' + (r.attrs || '未分配') + '"');
-      lines.push('        穿着: "' + r.wearing + (r.story ? '；随身携有' + r.story : '') + '"');
+      lines.push('        穿着: "' + r.wearing + '"');
       lines.push('        内心: "' + r.inner + '"');
       lines.push('        武器: "' + buildWeaponsString(r.items) + '"');
-      lines.push('        物品: "' + buildItemsString(r.items) + '"');
+      // 物品=叙事徽章（只叙事）；战斗物品走【弹药】【消耗品】【道具】词条与 RpgCombat 打通
+      lines.push('        物品: "' + buildStoryBadgeString(r.story) + '"');
+      lines.push('        弹药: "' + buildItemsOfCategory(r.items, '弹药') + '"');
+      lines.push('        消耗品: "' + buildItemsOfCategory(r.items, '消耗品') + '"');
+      lines.push('        道具: "' + buildItemsOfCategory(r.items, '道具') + '"');
     });
     if (OPENING_DATA.status.allies.length || OPENING_DATA.status.npcs.length) {
       lines.push('  人物:');
