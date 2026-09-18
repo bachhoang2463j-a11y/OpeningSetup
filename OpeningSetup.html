@@ -1235,10 +1235,10 @@
       lines.push('    - 角色:');
       lines.push('        名字: "' + r.emoji + r.name + '"');
       lines.push('        属性: "' + (r.attrs || '未分配') + '"');
-      lines.push('        穿着: "' + r.wearing + '"');
+      lines.push('        穿着: "' + r.wearing + (r.story ? '；随身携有' + r.story : '') + '"');
       lines.push('        内心: "' + r.inner + '"');
       lines.push('        武器: "' + buildWeaponsString(r.items) + '"');
-      lines.push('        物品: "' + (r.story ? '[📜] ' + r.story : '') + buildItemsString(r.items) + '"');
+      lines.push('        物品: "' + buildItemsString(r.items) + '"');
     });
     if (OPENING_DATA.status.allies.length || OPENING_DATA.status.npcs.length) {
       lines.push('  人物:');
