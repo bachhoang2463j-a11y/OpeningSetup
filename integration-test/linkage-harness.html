@@ -198,32 +198,40 @@ async function driveWizard(o) {
   const doc = win.document;
   const click = (sel) => {
     const el = doc.querySelector(sel);
-    if (!el) throw new Error('向导找不到元素 ' + sel);
+    if (!el) throw new Error('向导找不到元素 ' + sel + '（stage=' + win.__OPENING_DEBUG__.state.stage + '）');
     el.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
   };
   const act = (a) => click('[data-action="' + a + '"]');
+  const pickClass = (slot, cls) => click('[data-action="' + (slot === 'c3' ? 'c3-class-pick' : slot + '-pick') + '"][data-class="' + cls + '"]');
   act('start'); act('story-next'); act('story-next'); act('story-done');
+  pickClass('c1', o.c1 || '隐匿者');
+  act('c1-done');
+  pickClass('c2', o.c2 || '圣职者');
+  act('c2-done');
   const inp = doc.getElementById('name-input');
-  inp.value = o.name;
+  if (!inp) throw new Error('找不到自定义角色姓名输入框');
+  inp.value = o.name || HERO_NAME;
   inp.dispatchEvent(new win.Event('input', { bubbles: true }));
-  act('identity-done');
-  (o.skills || []).forEach((id) => click('[data-skill-id="' + id + '"]'));
-  act('skills-done');
-  (o.items || []).forEach((id) => click('[data-item-id="' + id + '"]'));
-  act('items-done');
   if (o.portrait) {
     const pn = doc.getElementById('custom-pname');
-    pn.value = o.portrait.name;
-    pn.dispatchEvent(new win.Event('input', { bubbles: true }));
     const pu = doc.getElementById('custom-purl');
+    pn.value = o.portrait.name;
     pu.value = o.portrait.url;
     pu.dispatchEvent(new win.Event('input', { bubbles: true }));
     act('portrait-add');
   }
-  act('portrait-done');
-  // 产品行为：state 初始即预选第一张预设立绘，UI 无"不选"入口；
-  // 未选立绘边界（submitAll 的 if (!state.portrait) 守卫）须经调试钩子清空模拟
-  if (o.forceNoPortrait) win.__OPENING_DEBUG__.state.portrait = '';
+  act('c3id-done');
+  pickClass('c3', o.c3 || '灾厄使');
+  act('c3class-done');
+  (o.skills || []).forEach((name) => click('[data-action="c3-skill-toggle"][data-skill="' + name + '"]'));
+  act('c3skill-done');
+  (o.attrs || []).forEach((a) => {
+    for (let i = 0; i < (a.count || 1); i++) click('[data-action="c3-attr"][data-attr="' + a.key + '"][data-dir="+"]');
+  });
+  act('c3attr-done');
+  (o.items || []).forEach((id) => click('[data-item-id="' + id + '"]'));
+  act('c3item-done');
+  if (o.forceNoPortrait) win.__OPENING_DEBUG__.state.hero3.portrait = '';
   act('confirm-submit');
   const stage = await waitFor(() => {
     const s = win.__OPENING_DEBUG__.state.stage;
@@ -264,7 +272,10 @@ async function scenario1_main() {
   try {
     MOCK.reset(); seedMmsConfig(); seedSnapshot();
     const osWin = await driveWizard({
-      name: HERO_NAME, skills: ['investigate', 'rapidshot'], items: ['revolver', 'bullets'],
+      name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
+      skills: ['烟灰迷眼', '影缝闪避'],
+      attrs: [{ key: 'atk', count: 2 }, { key: 'maxHp', count: 2 }],
+      items: ['revolver', 'bullets'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
 
@@ -273,20 +284,25 @@ async function scenario1_main() {
     check(JSON.stringify(MOCK.log()) === JSON.stringify(want), '写入顺序：立绘 → roster → 开场白 → 归档标记', MOCK.log());
     check(MOCK.chatMessages().length === 1 && MOCK.chatMessages()[0].role === 'assistant', '开场白以 assistant 落楼且仅 1 条');
     const msg = MOCK.chatMessages()[0].message;
-    check(msg.indexOf('【立绘 ' + CUSTOM_KEY + '】') >= 0 && msg.indexOf('<Status_block>') >= 0, '开场白含【立绘 夜鸦】标签与 Status_block');
+    check(msg.indexOf('【立绘 ' + CUSTOM_KEY + '】') >= 0 && msg.indexOf('<Status_block>') >= 0, '开场白含自定义立绘标签与 Status_block');
+    check((msg.match(/- 角色:/g) || []).length === 3, 'Status_block 角色列表含三个角色');
+    check(msg.indexOf('队员一（占位）') >= 0 && msg.indexOf('队员二（占位）') >= 0 && msg.indexOf(HERO_NAME) >= 0, '开场白含三位角色姓名');
     check(MOCK.store.chat.$mms_portrait_choice === CUSTOM_KEY, '立绘选择写入 $mms_portrait_choice（字符串形态，现状契约）');
     const roster = MOCK.store.chat.rpg_combat_roster;
-    check(!!roster && roster.version === 1 && Array.isArray(roster.heroes) && roster.heroes.length === 1, 'roster 为 version 1 单英雄结构');
-    check(!!roster && roster.heroes[0].name === HERO_NAME && roster.heroes[0].config.img === CUSTOM_URL, '英雄档姓名正确且 config.img = 自定义立绘 URL');
-    check(!!MOCK.store.chat.$opening_setup_done && MOCK.store.chat.$opening_setup_done.name === HERO_NAME, '归档标记 $opening_setup_done 落库');
+    check(!!roster && roster.version === 1 && Array.isArray(roster.heroes) && roster.heroes.length === 3, 'roster 为 version 1 三英雄结构');
+    check(!!roster && roster.heroes[0].name === '队员一（占位）' && roster.heroes[0].config.classType === '隐匿者' && roster.heroes[0].skills.length === 6, '角色一占位档案：隐匿者 + 6 技能');
+    check(!!roster && roster.heroes[1].name === '队员二（占位）' && roster.heroes[1].config.classType === '圣职者' && roster.heroes[1].skills.length === 6, '角色二占位档案：圣职者 + 6 技能');
+    check(!!roster && roster.heroes[2].name === HERO_NAME && roster.heroes[2].config.classType === '灾厄使' && roster.heroes[2].config.img === CUSTOM_URL, '角色三档案：姓名/灾厄使/自定义 URL');
+    check(!!roster && roster.heroes[2].skills.length === 5 && roster.heroes[2].skills.some((s) => s.name === '蚀骨毒雾') && roster.heroes[2].skills.some((s) => s.name === '影缝闪避'), '角色三：3 限定 + 2 通用技能');
+    check(!!roster && roster.heroes[2].items.length === 2, '角色三物品 2 件');
+    check(!!MOCK.store.chat.$opening_setup_done && Array.isArray(MOCK.store.chat.$opening_setup_done.chars) && MOCK.store.chat.$opening_setup_done.chars.length === 3, '归档标记保存三角色');
     const snap = readSnapshot();
     check(!!snap && snap.portrait && snap.portrait[CUSTOM_KEY] === CUSTOM_URL && snap.portrait['旧键'] === 'https://example.com/old.png', '自定义立绘并入 MMS 快照且保留原快照键');
 
     const rpgWin = await mountRpg();
     const rosterRead = JSON.parse(rpgWin.eval('JSON.stringify(readRoster())'));
-    check(!!rosterRead && rosterRead.version === 1 && rosterRead.heroes[0].name === HERO_NAME, 'RpgCombat readRoster 读回 OpeningSetup 写入的档案');
-    // heroesData 由战斗数据载入流程构建；按 RpgCombat 自有 harness 的 injectHeroes 惯例
-    // 注入同名基座阵容（顶层 let 须 realm 内 eval 写入），聚焦验证 applyPersistedRoster 的读取合并契约
+    check(!!rosterRead && rosterRead.version === 1 && rosterRead.heroes.length === 3 && rosterRead.heroes[2].name === HERO_NAME, 'RpgCombat readRoster 读回三英雄档案');
+    // RpgCombat 按名合并：注入第三角色的同名基座，验证自定义角色真实消费端
     rpgWin.eval('heroesData = ' + JSON.stringify([{
       id: 'h', name: HERO_NAME, img: '', hp: 100, maxHp: 100, mp: 100, maxMp: 100,
       tp: 0, maxTp: 100, atk: 10, def: 5, spd: 100, shield: 0, actCount: 1,
@@ -294,16 +310,17 @@ async function scenario1_main() {
     }]) + '; enemiesData = [];');
     rpgWin.eval('applyPersistedRoster()');
     const hero = JSON.parse(rpgWin.eval('JSON.stringify((typeof heroesData !== "undefined" ? heroesData : []).find(function(h){return h.name === ' + JSON.stringify(HERO_NAME) + ';}) || null)'));
-    check(!!hero, 'applyPersistedRoster 后我方名册含同名英雄');
-    check(!!hero && hero.img === CUSTOM_URL, '战斗档案头像合并为自定义立绘 URL', hero && hero.img);
-    check(!!hero && hero.maxHp === 10 && hero.classType === '侦探', 'config 基础字段合并（maxHp=10 / classType=侦探）', hero && [hero.maxHp, hero.classType]);
-    check(!!hero && Array.isArray(hero.skills) && hero.skills.some((s) => s && s.name === '左轮速射'), '持久化技能（左轮速射）追加进英雄技能集', hero && hero.skills && hero.skills.map((s) => s.name).join(','));
-    check(!!hero && Array.isArray(hero.items) && hero.items.some((i) => i && i.name === '柯尔特M1911手枪'), '持久化物品合并进英雄物品集', hero && hero.items && hero.items.map((i) => i.name).join(','));
+    check(!!hero && hero.img === CUSTOM_URL, 'RpgCombat 同名英雄头像合并为自定义 URL', hero && hero.img);
+    check(!!hero && hero.classType === '灾厄使' && hero.maxHp === 100 && hero.atk === 13, 'RpgCombat 同名英雄职业与购点属性合并', hero && [hero.classType, hero.maxHp, hero.atk]);
+    check(!!hero && Array.isArray(hero.skills) && hero.skills.some((s) => s.name === '蚀骨毒雾') && hero.skills.some((s) => s.name === '影缝闪避'), 'RpgCombat 同名英雄技能合并');
+    check(!!hero && Array.isArray(hero.items) && hero.items.length === 2, 'RpgCombat 同名英雄物品合并');
 
     const mmsWin = await mountMms();
-    check(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY] === CUSTOM_URL, 'MMS 启动读回快照：PORTRAIT_MAP 命中自定义立绘 URL');
+    check(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY] === CUSTOM_URL, 'MMS 启动读回快照：PORTRAIT_MAP 命中自定义 URL');
     const legacy = JSON.parse(mmsWin.eval('JSON.stringify(typeof MMS.readLegacyState === "function" ? MMS.readLegacyState(0) : "NO_FN")'));
-    check(!!legacy && JSON.stringify(legacy).indexOf(HERO_NAME) >= 0 && JSON.stringify(legacy).indexOf('拆开委托信') >= 0, 'MMS 解析开场白楼层 Status_block（姓名与行动选项可得）', legacy);
+    const legacyText = JSON.stringify(legacy);
+    check(!!legacy && legacyText.indexOf(HERO_NAME) >= 0 && legacyText.indexOf('队员一（占位）') >= 0 && legacyText.indexOf('队员二（占位）') >= 0, 'MMS 解析开场白 Status_block：三角色姓名可得');
+    check(!!legacy && legacyText.indexOf('拆开委托信') >= 0, 'MMS 解析开场白行动选项');
   } catch (e) {
     check(false, '场景①执行中断：' + e.message);
   }
@@ -319,7 +336,8 @@ async function scenario2_baseline() {
     check(!!snap1 && snap1.portrait && snap1.avatar, 'MMS 首次启动把内置表写为基线快照', snap1);
     check(!(mmsWin1.PORTRAIT_MAP && mmsWin1.PORTRAIT_MAP[CUSTOM_KEY]), '基线不含向导自定义键（向导尚未运行）');
     await driveWizard({
-      name: HERO_NAME, skills: ['investigate'], items: ['revolver'],
+      name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
+      skills: ['烟灰迷眼'], items: ['revolver'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
     const snap2 = readSnapshot();
@@ -352,7 +370,8 @@ async function scenario4_corrupt() {
     MOCK.reset(); seedMmsConfig();
     localStorage.setItem(LS_KEY, '{bad json');
     const win = await driveWizard({
-      name: HERO_NAME, skills: ['investigate'], items: ['revolver'],
+      name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
+      skills: ['烟灰迷眼'], items: ['revolver'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
     check(win.__OPENING_DEBUG__.state.stage === 'done', '损坏快照下向导仍正常完成');
@@ -368,8 +387,10 @@ async function scenario5_fresh() {
   try {
     MOCK.reset(); seedMmsConfig();
     localStorage.removeItem(LS_KEY);
-    const win = await driveWizard({ name: HERO_NAME, skills: ['investigate'], items: ['revolver'], portrait: null, forceNoPortrait: true });
-    check(!('$mms_portrait_choice' in MOCK.store.chat), '未选立绘：不写 $mms_portrait_choice', MOCK.store.chat.$mms_portrait_choice);
+    const win = await driveWizard({
+      name: HERO_NAME, c1: '防守者', c2: '圣职者', c3: '灾厄使',
+      skills: [], items: [], portrait: null, forceNoPortrait: true,
+    });
     const m5 = MOCK.chatMessages()[0] ? MOCK.chatMessages()[0].message : '';
     check(!(m5.match(/【立绘 ([^】]*)】/) || ['', ''])[1], '未选立绘：开场白不含立绘标签', (m5.match(/【立绘 ([^】]*)】/) || ['', ''])[1]);
     check(MOCK.chatMessages()[0].message.indexOf('<Status_block>') >= 0, '未选立绘：Status_block 照常落楼');
@@ -381,7 +402,8 @@ async function scenario5_fresh() {
     MOCK.reset(); seedMmsConfig();
     localStorage.removeItem(LS_KEY);
     await driveWizard({
-      name: HERO_NAME, skills: ['investigate'], items: ['revolver'],
+      name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
+      skills: ['烟灰迷眼'], items: ['revolver'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
     check(localStorage.getItem(LS_KEY) === null, '全新安装（MMS 从未渲染）：向导合并静默跳过（残余边界，锁行为）');
