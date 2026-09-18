@@ -190,35 +190,36 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 10px 24px;
+    gap: 6px;
+    padding: 7px 20px;
     background: var(--btn-bg);
     border: 1px solid var(--btn-border);
     border-radius: 8px;
     color: var(--accent);
     font-family: var(--font-serif);
     font-weight: 700;
-    letter-spacing: 0.15em;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   }
   .ui-btn-primary:hover {
     border-color: var(--accent);
-    box-shadow: 0 0 24px var(--accent-glow);
+    box-shadow: 0 0 20px var(--accent-glow);
     transform: translateY(-1px);
   }
   .ui-btn-ghost {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 18px;
+    padding: 6px 14px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
     transition: all 0.25s ease;
   }
@@ -227,17 +228,17 @@
     color: var(--text-main);
   }
 
-  /* ① 大尺寸角色立绘展台（破框沉浸，去除狭窄黑框留白） */
+  /* ① 大尺寸角色立绘展台（尺寸紧凑优雅，消除多余空白） */
   .portrait-podium {
     position: relative;
     width: 100%;
-    min-height: 640px;
+    min-height: 480px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    border-radius: 14px;
-    padding: 24px;
+    border-radius: 12px;
+    padding: 16px;
     background: radial-gradient(circle at 50% 55%, var(--accent-dim) 0%, transparent 70%), var(--panel-bg);
   }
   .portrait-wrapper {
@@ -247,24 +248,25 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 440px;
-    overflow: visible;
+    min-height: 220px;
+    max-height: 340px;
+    overflow: hidden;
   }
   .portrait-img {
     height: 100%;
-    max-height: 520px;
+    max-height: 330px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.85));
-    -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 99%);
-    mask-image: linear-gradient(to bottom, black 80%, transparent 99%);
-    transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.85));
+    -webkit-mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .portrait-img.hero-swap-in {
-    animation: hero-swap 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: hero-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   @keyframes hero-swap {
-    0% { opacity: 0; transform: scale(0.96) translateY(14px); filter: brightness(1.4) blur(4px); }
+    0% { opacity: 0; transform: scale(0.96) translateY(12px); filter: brightness(1.3) blur(4px); }
     100% { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1) blur(0); }
   }
 
@@ -273,10 +275,10 @@
     display: flex;
     align-items: center;
     gap: 3px;
-    height: 18px;
+    height: 16px;
   }
   .voice-bar {
-    width: 3px;
+    width: 2.5px;
     height: 100%;
     background-color: var(--accent);
     border-radius: 2px;
@@ -296,24 +298,24 @@
     transform: scaleY(0.3);
   }
 
-  /* ② 现代过渡动效：技能插槽阶梯式滑入 (Staggered Entrance) */
+  /* ② 现代过渡动效：技能插槽阶梯式滑入（尺寸收缩紧凑） */
   .skill-slot-chip {
     background: var(--slot-bg);
     border: 1px solid var(--slot-border);
-    border-radius: 10px;
-    padding: 12px 16px;
+    border-radius: 8px;
+    padding: 7px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    gap: 10px;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
-    animation: slot-slide-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--slot-idx, 0) * 0.045s);
+    animation: slot-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--slot-idx, 0) * 0.04s);
   }
   @keyframes slot-slide-in {
-    0% { opacity: 0; transform: translateY(14px); }
+    0% { opacity: 0; transform: translateY(10px); }
     100% { opacity: 1; transform: translateY(0); }
   }
   .skill-slot-chip:before {
@@ -322,9 +324,9 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 4px;
+    width: 3px;
     background: var(--slot-border);
-    transition: background 0.3s ease;
+    transition: background 0.25s ease;
   }
   .skill-slot-chip.type-limited:before { background: var(--badge-limited); }
   .skill-slot-chip.type-generic:before { background: var(--badge-generic); }
@@ -334,19 +336,19 @@
     border-color: var(--panel-border-bright);
     box-shadow: var(--slot-glow);
     background: var(--card-hover);
-    transform: translateX(3px);
+    transform: translateX(2px);
   }
 
-  /* ③ 职业介绍卡片（完整无截断，舒适排版与高亮被动） */
+  /* ③ 职业介绍卡片与悬浮 GIF 块 */
   .class-tab-card {
     background: var(--panel-glass);
     border: 1px solid var(--slot-border);
-    border-radius: 10px;
-    padding: 16px;
+    border-radius: 8px;
+    padding: 10px 12px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -359,17 +361,47 @@
   .class-tab-card.active {
     border-color: var(--accent);
     background: linear-gradient(150deg, var(--card-hover), var(--accent-dim));
-    box-shadow: 0 0 24px var(--accent-glow);
+    box-shadow: 0 0 20px var(--accent-glow);
   }
   .class-tab-card.active:before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
+    top: -1px;
+    left: 8px;
+    right: 8px;
+    height: 2.5px;
+    border-radius: 9999px;
     background: var(--accent);
-    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 */
+  .class-hover-gif-box {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(8px) scale(0.95);
+    width: 140px;
+    height: 140px;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 999;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0.85) 65%, rgba(0,0,0,0) 96%);
+    mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0.85) 65%, rgba(0,0,0,0) 96%);
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.95));
+    background: transparent;
+  }
+  .class-tab-card:hover .class-hover-gif-box {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  .class-hover-gif-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
   }
 
   /* 技能备选卡片（购点） */
@@ -496,8 +528,8 @@
   </button>
 </div>
 
-<!-- 主界面容器 -->
-<div id="demo-app" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16 min-h-screen flex flex-col justify-center">
+<!-- 主界面容器（紧凑居中适配，消除外部大面积空白） -->
+<div id="demo-app" class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-6 min-h-screen flex flex-col justify-center">
   <!-- 动态挂载区 -->
 </div>
 
@@ -635,37 +667,44 @@
       '隐匿者': {
         intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。',
         passive: '低仇恨 · 隐匿加成 · 暗袭眩晕',
-        role: '敏捷 / 刺客'
+        role: '敏捷 / 刺客',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_隐匿者.gif'
       },
       '狂战士': {
         intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留存最后一口气。',
         passive: '损血增攻 · 濒死穿透 · 毅力留存',
-        role: '强攻 / 绝地'
+        role: '强攻 / 绝地',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_狂战士.gif'
       },
       '防守者': {
         intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。',
         passive: '高仇恨嘲讽 · 致命留存 · 受击反打',
-        role: '防御 / 坚壁'
+        role: '防御 / 坚壁',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_防守者.gif'
       },
       '风行者': {
         intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。',
         passive: '闪避成长 · 多重施法 · 回避致命',
-        role: '极速 / 连击'
+        role: '极速 / 连击',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/主角_风行者.gif'
       },
       '施法者': {
         intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。',
         passive: '开场护盾 · 法力回响',
-        role: '爆发 / 护盾'
+        role: '爆发 / 护盾',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_施法者.gif'
       },
       '圣职者': {
         intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。',
         passive: '强治疗 · 团队祝福 · 支援爆发',
-        role: '支援 / 圣佑'
+        role: '支援 / 圣佑',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_圣职者.gif'
       },
       '灾厄使': {
         intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。',
         passive: '减益增伤 · 附带剧毒',
-        role: '减益 / 持续伤害'
+        role: '减益 / 持续伤害',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_灾厄使.gif'
       },
     },
     shop: {
@@ -1099,29 +1138,29 @@
 
     return `
       <div class="skill-slot-chip ${s.scope === '限定' ? 'type-limited' : 'type-generic'} ${s.isReaction ? 'is-reaction' : ''}" style="--slot-idx:${slotIdx};">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="w-9 h-9 rounded bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
-            <span class="font-mono text-xs font-bold ${typeBadgeClass}">${s.scope === '限定' ? 'EX' : 'TAC'}</span>
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
+            <span class="font-mono text-[0.62rem] font-bold ${typeBadgeClass}">${s.scope === '限定' ? 'EX' : 'TAC'}</span>
           </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-bold tracking-wider text-[var(--text-main)] truncate">${s.name}</span>
-              ${s.isReaction ? '<span class="text-[0.62rem] px-1.5 py-0.5 rounded bg-rose-950/70 border border-rose-600/50 text-rose-300 font-mono">⟲反应</span>' : ''}
-              <span class="text-[0.65rem] px-1.5 py-0.2 rounded bg-white/5 text-white/60 font-mono">${s.typeTag}</span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 truncate">
+              <span class="text-xs sm:text-sm font-bold tracking-wider text-[var(--text-main)] truncate">${s.name}</span>
+              ${s.isReaction ? '<span class="text-[0.58rem] px-1 py-0.2 rounded bg-rose-950/70 border border-rose-600/50 text-rose-300 font-mono shrink-0">⟲反应</span>' : ''}
+              <span class="text-[0.62rem] px-1 py-0.2 rounded bg-white/5 text-white/60 font-mono shrink-0">${s.typeTag}</span>
             </div>
-            <div class="flex items-center gap-1.5 flex-wrap mt-1">
+            <div class="flex items-center gap-1 flex-wrap mt-0.5">
               ${formatSkillEffectPills(s.rawText)}
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
-            <div class="font-mono text-xs font-bold text-[var(--accent)]">${costText}</div>
-            <div class="font-mono text-[0.65rem] text-white/40">${s.scope === '限定' ? '随职业' : s.shopCost + ' 点'}</div>
+            <div class="font-mono text-[0.72rem] font-bold text-[var(--accent)]">${costText}</div>
+            <div class="font-mono text-[0.62rem] text-white/40">${s.scope === '限定' ? '随职业' : s.shopCost + ' 点'}</div>
           </div>
           ${canRemove ? `
-            <button onclick="window.demoActions.removeSkill('${s.name}')" class="text-xs text-rose-400/80 hover:text-rose-300 p-1.5 rounded hover:bg-rose-950/40 transition-colors" title="卸下插槽">✕</button>
+            <button onclick="window.demoActions.removeSkill('${s.name}')" class="text-xs text-rose-400/80 hover:text-rose-300 p-1 rounded hover:bg-rose-950/40 transition-colors" title="卸下插槽">✕</button>
           ` : ''}
         </div>
       </div>
@@ -1174,32 +1213,32 @@
           <img src="${hero.portraitUrl}" alt="${hero.name}" class="portrait-img hero-swap-in">
         </div>
 
-        <!-- 底部角色五维属性面板 -->
-        <div class="w-full z-10 ui-panel-soft p-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-mono text-xs text-white/50 tracking-wider">BASE ATTRIBUTES</span>
-            <span id="hero-attr-profile-tag" class="font-mono text-xs text-[var(--accent)] font-bold smooth-fade-transition">PROFILE // ${selectedClass}</span>
+        <!-- 底部角色五维属性面板（紧凑型，消除多余占位） -->
+        <div class="w-full z-10 ui-panel-soft p-2.5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-[0.62rem] text-white/50 tracking-wider">BASE ATTRIBUTES</span>
+            <span id="hero-attr-profile-tag" class="font-mono text-[0.65rem] text-[var(--accent)] font-bold smooth-fade-transition">PROFILE // ${selectedClass}</span>
           </div>
-          <div class="grid grid-cols-5 gap-2 text-center font-mono">
-            <div class="bg-black/35 p-2 rounded-lg border border-white/5">
-              <div class="text-[0.65rem] text-rose-400/80">HP</div>
-              <div id="hero-attr-hp" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.hp}</div>
+          <div class="grid grid-cols-5 gap-1 text-center font-mono">
+            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
+              <div class="text-[0.6rem] text-rose-400/80">HP</div>
+              <div id="hero-attr-hp" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.hp}</div>
             </div>
-            <div class="bg-black/35 p-2 rounded-lg border border-white/5">
-              <div class="text-[0.65rem] text-sky-400/80">MP</div>
-              <div id="hero-attr-mp" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.mp}</div>
+            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
+              <div class="text-[0.6rem] text-sky-400/80">MP</div>
+              <div id="hero-attr-mp" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.mp}</div>
             </div>
-            <div class="bg-black/35 p-2 rounded-lg border border-white/5">
-              <div class="text-[0.65rem] text-amber-400/80">ATK</div>
-              <div id="hero-attr-atk" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.atk}</div>
+            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
+              <div class="text-[0.6rem] text-amber-400/80">ATK</div>
+              <div id="hero-attr-atk" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.atk}</div>
             </div>
-            <div class="bg-black/35 p-2 rounded-lg border border-white/5">
-              <div class="text-[0.65rem] text-emerald-400/80">DEF</div>
-              <div id="hero-attr-armor" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.armor}</div>
+            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
+              <div class="text-[0.6rem] text-emerald-400/80">DEF</div>
+              <div id="hero-attr-armor" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.armor}</div>
             </div>
-            <div class="bg-black/35 p-2 rounded-lg border border-white/5">
-              <div class="text-[0.65rem] text-purple-400/80">SPD</div>
-              <div id="hero-attr-speed" class="text-sm font-bold text-white mt-0.5 smooth-fade-transition">${clsData.speed}</div>
+            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
+              <div class="text-[0.6rem] text-purple-400/80">SPD</div>
+              <div id="hero-attr-speed" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.speed}</div>
             </div>
           </div>
         </div>
@@ -1214,24 +1253,28 @@
     const clsObj = COMBAT_DATA.classes[curCls];
     const skills = clsObj ? clsObj.skills : [];
 
-    // ③ 职业介绍卡片：完整展开无截断
+    // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
     const classCards = hero.classes.map(cName => {
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
+      const gifSrc = info.gifUrl || '';
       return `
         <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass1('${cName}')">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-base font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
-              <span class="font-mono text-[0.65rem] px-2 py-0.5 rounded bg-black/40 border border-white/10 text-[var(--accent)] font-bold">${info.role || '战术'}</span>
-            </div>
-            <!-- 完整职业介绍正文 -->
-            <p class="text-xs text-[var(--text-muted)] leading-relaxed mb-3">${info.intro}</p>
+          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
+          <div class="class-hover-gif-box">
+            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23080d18\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23d9b45c\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23d9b45c\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
           </div>
-          <!-- 底部被动特性独立方框展示 -->
-          <div class="pt-2 border-t border-white/10 text-[0.68rem] text-[var(--accent)] font-mono flex items-center gap-1.5">
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 class="text-sm font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
+              <span class="font-mono text-[0.62rem] px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[var(--accent)] font-bold">${info.role || '战术'}</span>
+            </div>
+            <p class="text-[0.7rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
+          </div>
+          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-center gap-1.5 truncate">
             <span class="text-xs">✦</span>
-            <span>${info.passive}</span>
+            <span class="truncate">${info.passive}</span>
           </div>
         </div>
       `;
@@ -1241,46 +1284,51 @@
     const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
 
     return `
-      <div class="grid lg:grid-cols-12 gap-6 items-stretch view-transition-in">
+      <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
         <!-- 左半屏：大尺寸展台 -->
         <div class="lg:col-span-5 flex flex-col">
           ${renderHeroStage(hero, curCls)}
         </div>
 
-        <!-- 右半屏：职业挑选与 6 技能阶梯动效 -->
-        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-6 sm:p-8">
+        <!-- 右半屏：职业挑选与 6 技能列表 -->
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-5 sm:p-6">
           <div>
-            <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+            <!-- ① 把顶在外面的重复标题直接合并到框里 -->
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
               <div>
-                <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CHARACTER DOSSIER // WILLIAM</span>
-                <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">PARTY 1 / 3</span>
+                  <span class="text-white/20 text-xs font-mono">/</span>
+                  <span class="font-mono text-xs text-white/50 tracking-wider">CHARACTER DOSSIER</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
               </div>
               <div class="text-right">
-                <span class="font-mono text-xs text-white/40">PARTY MEMBER</span>
-                <div class="font-mono text-sm font-bold text-[var(--accent)]">WILLIAM TELL</div>
+                <div class="font-mono text-xs font-bold text-[var(--accent)]">WILLIAM TELL</div>
+                <div class="font-mono text-[0.68rem] text-white/40">冷峻神射手 · 雾港巡夜人</div>
               </div>
             </div>
 
-            <!-- ③ 候选职业卡组（空间充足、完整显示） -->
-            <div class="grid sm:grid-cols-3 gap-3 mb-6">
+            <!-- ③ 候选职业卡组（悬浮时浮现边缘模糊实机 GIF） -->
+            <div class="grid sm:grid-cols-3 gap-2.5 mb-3">
               ${classCards}
             </div>
 
-            <!-- ② 当前职业 6 槽技能装配（阶梯滑入动效） -->
-            <div class="mt-6">
-              <div class="flex items-center justify-between mb-3">
-                <span class="font-mono text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
-                <span class="font-mono text-xs text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
+            <!-- ② 当前职业 6 槽技能装配（尺寸收缩，去除多余留白） -->
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
               </div>
-              <div class="flex flex-col gap-2.5 smooth-fade-transition" id="hero-skill-chips-container">
+              <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
                 ${skillChips}
               </div>
             </div>
           </div>
 
-          <!-- 下一步导航按钮 -->
-          <div class="pt-6 mt-6 border-t border-white/10 flex items-center justify-between">
-            <div class="text-xs text-[var(--text-muted)] font-mono">整组 6 技能随职业自动上阵</div>
+          <!-- ② 下一步导航按钮（高度紧凑） -->
+          <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
+            <div class="text-[0.7rem] text-[var(--text-muted)] font-mono">整组 6 技能随职业自动上阵</div>
             <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c2')">
               <span>确认配置 · 下一位 (冯)</span>
               <span>→</span>
@@ -1298,24 +1346,28 @@
     const clsObj = COMBAT_DATA.classes[curCls];
     const skills = clsObj ? clsObj.skills : [];
 
-    // ③ 职业介绍卡片：完整展开无截断
+    // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
     const classCards = hero.classes.map(cName => {
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
+      const gifSrc = info.gifUrl || '';
       return `
         <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass2('${cName}')">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-base font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
-              <span class="font-mono text-[0.65rem] px-2 py-0.5 rounded bg-black/40 border border-white/10 text-[var(--accent)] font-bold">${info.role || '炼金秘术'}</span>
-            </div>
-            <!-- 完整职业介绍正文 -->
-            <p class="text-xs text-[var(--text-muted)] leading-relaxed mb-3">${info.intro}</p>
+          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
+          <div class="class-hover-gif-box">
+            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23120b22\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23f59e0b\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23f59e0b\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
           </div>
-          <!-- 底部被动特性独立方框展示 -->
-          <div class="pt-2 border-t border-white/10 text-[0.68rem] text-[var(--accent)] font-mono flex items-center gap-1.5">
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 class="text-sm font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
+              <span class="font-mono text-[0.62rem] px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[var(--accent)] font-bold">${info.role || '炼金秘术'}</span>
+            </div>
+            <p class="text-[0.7rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
+          </div>
+          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-center gap-1.5 truncate">
             <span class="text-xs">✦</span>
-            <span>${info.passive}</span>
+            <span class="truncate">${info.passive}</span>
           </div>
         </div>
       `;
@@ -1325,45 +1377,50 @@
     const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
 
     return `
-      <div class="grid lg:grid-cols-12 gap-6 items-stretch view-transition-in">
+      <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
         <!-- 左半屏：大尺寸展台 -->
         <div class="lg:col-span-5 flex flex-col">
           ${renderHeroStage(hero, curCls)}
         </div>
 
         <!-- 右半屏：职业挑选与技能全插槽 -->
-        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-6 sm:p-8">
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-5 sm:p-6">
           <div>
-            <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+            <!-- ① 把顶在外面的重复标题直接合并到框里 -->
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
               <div>
-                <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CHARACTER DOSSIER // VON</span>
-                <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">PARTY 2 / 3</span>
+                  <span class="text-white/20 text-xs font-mono">/</span>
+                  <span class="font-mono text-xs text-white/50 tracking-wider">CHARACTER DOSSIER</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
               </div>
               <div class="text-right">
-                <span class="font-mono text-xs text-white/40">PARTY MEMBER</span>
-                <div class="font-mono text-sm font-bold text-[var(--accent)]">VON HOHENHEIM</div>
+                <div class="font-mono text-xs font-bold text-[var(--accent)]">VON HOHENHEIM</div>
+                <div class="font-mono text-[0.68rem] text-white/40">真理探索者 · 炼金术士</div>
               </div>
             </div>
 
             <!-- ③ 候选职业卡组 -->
-            <div class="grid sm:grid-cols-3 gap-3 mb-6">
+            <div class="grid sm:grid-cols-3 gap-2.5 mb-3">
               ${classCards}
             </div>
 
-            <!-- ② 当前职业技能 6 槽（阶梯动效） -->
-            <div class="mt-6">
-              <div class="flex items-center justify-between mb-3">
-                <span class="font-mono text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
-                <span class="font-mono text-xs text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
+            <!-- ② 当前职业技能 6 槽（尺寸收缩，去除多余留白） -->
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
               </div>
-              <div class="flex flex-col gap-2.5 smooth-fade-transition" id="hero-skill-chips-container">
+              <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
                 ${skillChips}
               </div>
             </div>
           </div>
 
-          <!-- 导航按钮 -->
-          <div class="pt-6 mt-6 border-t border-white/10 flex items-center justify-between">
+          <!-- ② 导航按钮（高度紧凑） -->
+          <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
             <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c1')">← 返回威廉</button>
             <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3class')">
               <span>确认配置 · 前往主角职业</span>
@@ -1385,16 +1442,22 @@
     const cards = allClasses.map(cName => {
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
+      const gifSrc = info.gifUrl || '';
       return `
         <div class="class-tab-card ${active ? 'active' : ''}" onclick="window.demoActions.pickClass3('${cName}')">
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="font-bold text-sm text-[var(--text-main)]">${cName}</span>
-              <span class="font-mono text-[0.62rem] text-[var(--accent)] font-bold">${info.role || ''}</span>
-            </div>
-            <p class="text-[0.72rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
+          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
+          <div class="class-hover-gif-box">
+            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23080d18\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23d9b45c\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23d9b45c\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
           </div>
-          <div class="pt-1.5 border-t border-white/10 text-[0.64rem] text-[var(--accent)] font-mono truncate">
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs sm:text-sm text-[var(--text-main)]">${cName}</span>
+              <span class="font-mono text-[0.6rem] text-[var(--accent)] font-bold">${info.role ? info.role.split('/')[0] : ''}</span>
+            </div>
+            <p class="text-[0.68rem] text-[var(--text-muted)] leading-relaxed mb-1.5 line-clamp-2">${info.intro}</p>
+          </div>
+          <div class="pt-1 border-t border-white/10 text-[0.62rem] text-[var(--accent)] font-mono truncate">
             ✦ ${info.passive}
           </div>
         </div>
@@ -1404,37 +1467,41 @@
     const limitedChips = limitedSkills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
 
     return `
-      <div class="ui-panel p-6 sm:p-8 view-transition-in">
-        <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+      <div class="ui-panel p-5 sm:p-6 view-transition-in">
+        <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
           <div>
-            <span class="font-mono text-xs text-[var(--accent)] tracking-widest">CUSTOM HERO // PROTAGONIST</span>
-            <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">登记主角职能核心</h2>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">PARTY 3 / 3</span>
+              <span class="text-white/20 text-xs font-mono">/</span>
+              <span class="font-mono text-xs text-white/50 tracking-wider">PROTAGONIST</span>
+            </div>
+            <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">登记主角职能核心</h2>
           </div>
           <div class="text-right">
-            <span class="font-mono text-xs text-white/40">PARTY MEMBER</span>
-            <div class="font-mono text-sm font-bold text-[var(--accent)]">PROTAGONIST</div>
+            <div class="font-mono text-xs font-bold text-[var(--accent)]">${state.hero3.name}</div>
+            <div class="font-mono text-[0.68rem] text-white/40">PARTY LEADER</div>
           </div>
         </div>
 
-        <div class="mb-6">
-          <div class="font-mono text-xs text-[var(--accent)] mb-3">SELECT CLASS SPECIFICATION (7 CLASSES)</div>
-          <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="mb-3">
+          <div class="font-mono text-[0.68rem] text-[var(--accent)] mb-2">SELECT CLASS SPECIFICATION (7 CLASSES)</div>
+          <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-2.5">
             ${cards}
           </div>
         </div>
 
         <!-- 职业限定槽位展示 -->
-        <div class="ui-panel-soft p-5 mt-6">
-          <div class="flex items-center justify-between mb-3">
+        <div class="ui-panel-soft p-3 mt-3">
+          <div class="flex items-center justify-between mb-2">
             <span class="font-mono text-xs tracking-wider text-[var(--text-main)]">3 个职业限定战技（随职业自动锁定生效）</span>
-            <span class="font-mono text-xs text-[var(--accent)]">[ LOCKED EXCLUSIVE ]</span>
+            <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ LOCKED EXCLUSIVE ]</span>
           </div>
-          <div class="flex flex-col gap-2.5">
+          <div class="flex flex-col gap-1.5">
             ${limitedChips}
           </div>
         </div>
 
-        <div class="pt-6 mt-6 border-t border-white/10 flex items-center justify-between">
+        <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
           <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c2')">← 返回冯</button>
           <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3skill')">
             <span>前往自由通用技能购点插槽</span>
@@ -1500,17 +1567,17 @@
     }).join('');
 
     return `
-      <div class="ui-panel p-6 sm:p-8 view-transition-in">
+      <div class="ui-panel p-5 sm:p-6 view-transition-in">
         <!-- 顶栏与能量条 -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-white/10 gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 mb-3 border-b border-white/10 gap-3">
           <div>
             <span class="font-mono text-xs text-[var(--accent)] tracking-widest">TACTICAL CHIP SLOTS // SKILL BUDGET</span>
-            <h2 class="text-2xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">主角自由通用战技插槽装配</h2>
+            <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">主角自由通用战技插槽装配</h2>
           </div>
 
           <!-- 购点预算刻度指示 -->
-          <div class="bg-black/40 backdrop-blur-md px-5 py-3 rounded-lg border border-white/10 min-w-[240px]">
-            <div class="flex items-center justify-between font-mono text-xs mb-1.5">
+          <div class="bg-black/40 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 min-w-[220px]">
+            <div class="flex items-center justify-between font-mono text-[0.68rem] mb-1">
               <span class="text-white/60">REMAINING BUDGET</span>
               <span id="c3-remain-points" class="font-bold ${remainPoints === 0 ? 'text-amber-400' : 'text-[var(--accent)]'}">${remainPoints} / ${maxPoints} 点</span>
             </div>
@@ -1521,32 +1588,32 @@
         </div>
 
         <!-- 当前 6 槽装配全景面板 -->
-        <div class="mb-8">
-          <div class="flex items-center justify-between mb-3">
-            <span class="font-mono text-xs text-[var(--accent)] tracking-wider">CURRENT 6 SKILL SLOTS [ 3 EXCLUSIVE + 3 GENERIC CHIPS ]</span>
-            <span class="font-mono text-xs text-white/40">点击装配槽 ✕ 可快速卸下</span>
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-mono text-[0.68rem] text-[var(--accent)] tracking-wider">CURRENT 6 SKILL SLOTS [ 3 EXCLUSIVE + 3 GENERIC CHIPS ]</span>
+            <span class="font-mono text-[0.65rem] text-white/40">点击装配槽 ✕ 可快速卸下</span>
           </div>
-          <div class="grid md:grid-cols-2 gap-3" id="c3-equipped-slots-grid">
+          <div class="grid md:grid-cols-2 gap-2" id="c3-equipped-slots-grid">
             ${renderC3SlotsHtml()}
           </div>
         </div>
 
         <!-- 备选池：21 个战术通用技能芯片 -->
         <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="font-mono text-xs text-[var(--text-main)] tracking-wider">ALL AVAILABLE GENERIC SKILL CHIPS (点击安装 / 移除)</span>
-            <span class="font-mono text-xs text-[var(--text-muted)]">最多选择 3 个 · 预算不超 ${maxPoints} 点</span>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-mono text-[0.68rem] text-[var(--text-main)] tracking-wider">ALL AVAILABLE GENERIC SKILL CHIPS (点击安装 / 移除)</span>
+            <span class="font-mono text-[0.65rem] text-[var(--text-muted)]">最多选择 3 个 · 预算不超 ${maxPoints} 点</span>
           </div>
-          <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             ${poolCards}
           </div>
         </div>
 
         <!-- 导航按钮 -->
-        <div class="pt-6 mt-8 border-t border-white/10 flex items-center justify-between">
+        <div class="pt-2.5 mt-3 border-t border-white/10 flex items-center justify-between">
           <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c3class')">← 返回主角职业</button>
           <div class="flex items-center gap-3">
-            <span id="c3-equipped-count" class="font-mono text-xs text-[var(--text-muted)]">通用槽已装配: ${genericEquipped.length}/3</span>
+            <span id="c3-equipped-count" class="font-mono text-[0.68rem] text-[var(--text-muted)]">通用槽已装配: ${genericEquipped.length}/3</span>
             <button class="ui-btn-primary" onclick="alert('恭喜！视觉 Demo 交互流验证成功。\\n\\n三位角色的技能槽位与属性档案已装配完毕。')">
               <span>完成配置 · 查看最终档案</span>
               <span>✓</span>
