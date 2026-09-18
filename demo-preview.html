@@ -228,11 +228,12 @@
     color: var(--text-main);
   }
 
-  /* ① 大尺寸角色立绘展台（尺寸紧凑优雅，消除多余空白） */
+  /* ① 大尺寸角色立绘展台（1:1复刻原版沉浸立绘，无多余空隙，与右侧等高自适应） */
   .portrait-podium {
     position: relative;
     width: 100%;
-    min-height: 480px;
+    height: 100%;
+    min-height: 520px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -240,27 +241,29 @@
     border-radius: 12px;
     padding: 16px;
     background: radial-gradient(circle at 50% 55%, var(--accent-dim) 0%, transparent 70%), var(--panel-bg);
+    border: 1px solid var(--panel-border);
   }
   .portrait-wrapper {
     position: relative;
-    flex: 1;
+    flex: 1 1 0;
+    height: 0;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 220px;
-    max-height: 340px;
     overflow: hidden;
+    margin: 4px 0;
   }
   .portrait-img {
     height: 100%;
-    max-height: 330px;
+    max-height: 100%;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.85));
-    -webkit-mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.85));
+    -webkit-mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
+    transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .portrait-img.hero-swap-in {
     animation: hero-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -303,7 +306,7 @@
     background: var(--slot-bg);
     border: 1px solid var(--slot-border);
     border-radius: 8px;
-    padding: 7px 12px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -344,7 +347,7 @@
     background: var(--panel-glass);
     border: 1px solid var(--slot-border);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 8px 12px;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
@@ -441,20 +444,35 @@
     pointer-events: none;
   }
 
-  /* 台词字幕气泡（平滑淡入动效） */
+  /* 台词字幕气泡（固定高度 68px，多行自适应垂直居中，防抖防挤压） */
   .dialogue-bubble {
     background: rgba(10, 14, 22, 0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--panel-border);
-    border-radius: 10px;
-    padding: 12px 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 8px 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
     width: 100%;
+    height: 68px;
+    min-height: 68px;
+    max-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
     animation: dialogue-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+  #hero-dialogue-quote {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.42;
+  }
   @keyframes dialogue-in {
-    0% { opacity: 0; transform: translateY(8px); }
+    0% { opacity: 0; transform: translateY(6px); }
     100% { opacity: 1; transform: translateY(0); }
   }
 
@@ -529,7 +547,7 @@
 </div>
 
 <!-- 主界面容器（紧凑居中适配，消除外部大面积空白） -->
-<div id="demo-app" class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-6 min-h-screen flex flex-col justify-center">
+<div id="demo-app" class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2 min-h-screen flex flex-col justify-center">
   <!-- 动态挂载区 -->
 </div>
 
@@ -1167,7 +1185,7 @@
     `;
   }
 
-  /* ① & ④ 渲染：左侧大立绘展台（破框大画幅、对齐右侧高度、职业专属台词与语音） */
+  /* ① & ④ 渲染：左侧大立绘展台（1:1沉浸大画幅立绘、紧凑身份卡与五维属性） */
   function renderHeroStage(hero, selectedClass) {
     const clsInfo = DEMO_CONFIG.classIntro[selectedClass] || {};
     const clsData = COMBAT_DATA.classes[selectedClass] || { hp: 100, mp: 40, atk: 12, armor: 3, speed: 100 };
@@ -1175,22 +1193,22 @@
 
     return `
       <div class="ui-panel portrait-podium h-full flex flex-col justify-between relative">
-        <!-- 顶部身份信息与语音条 -->
+        <!-- 顶部身份信息与语音条（紧凑精炼，还原原版大小） -->
         <div class="w-full z-10">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="text-3xl">${hero.emoji}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">${hero.emoji}</span>
               <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-[var(--text-main)] drop-shadow">${hero.name}</h1>
-                <p class="text-xs tracking-wider text-[var(--accent)] font-mono mt-0.5">${hero.title}</p>
+                <h2 class="text-lg sm:text-xl font-bold tracking-wide text-[var(--text-main)]">${hero.name}</h2>
+                <p class="text-xs text-[var(--accent)] font-mono mt-0.5">${hero.title}</p>
               </div>
             </div>
 
             <!-- 语音触发与声波组件 -->
-            <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-              <button onclick="window.demoActions.playVoice('${hero.id}')" class="flex items-center gap-1.5 text-xs text-[var(--accent)] hover:text-white transition-colors cursor-pointer" title="重播台词语音">
+            <div class="flex items-center gap-2 bg-black/40 px-2.5 py-1 rounded-full border border-white/10">
+              <button onclick="window.demoActions.playVoice('${hero.id}')" class="flex items-center gap-1 text-xs text-[var(--accent)] hover:text-white transition-colors cursor-pointer" title="重播台词语音">
                 <span>🔊</span>
-                <span class="font-mono text-[0.7rem] hidden sm:inline">VOICE</span>
+                <span class="font-mono text-[0.68rem] hidden sm:inline">VOICE</span>
               </button>
               <div class="voice-wave ${state.audioPlaying && state.currentAudioHero === hero.id ? '' : 'paused'}">
                 <div class="voice-bar"></div>
@@ -1202,42 +1220,42 @@
             </div>
           </div>
 
-          <!-- 当前职业专属台词气泡（伴随职业切换淡入） -->
-          <div class="dialogue-bubble mt-4">
-            <p id="hero-dialogue-quote" class="text-xs sm:text-sm text-[var(--text-main)] italic leading-relaxed smooth-fade-transition">${voiceData.quote}</p>
+          <!-- 当前职业专属台词气泡（固定高度，多行垂直居中防抖） -->
+          <div class="dialogue-bubble mt-2.5">
+            <p id="hero-dialogue-quote" class="text-xs sm:text-[0.78rem] text-[var(--text-main)] italic leading-relaxed smooth-fade-transition">${voiceData.quote}</p>
           </div>
         </div>
 
-        <!-- 中部大尺寸立绘展台（占满画幅，带有切换进场动效） -->
-        <div class="portrait-wrapper my-2">
+        <!-- 中部大尺寸立绘展台（占满可用高度，消除大片空白，1:1沉浸呈现） -->
+        <div class="portrait-wrapper my-1">
           <img src="${hero.portraitUrl}" alt="${hero.name}" class="portrait-img hero-swap-in">
         </div>
 
-        <!-- 底部角色五维属性面板（紧凑型，消除多余占位） -->
-        <div class="w-full z-10 ui-panel-soft p-2.5">
+        <!-- 底部角色五维属性面板（微型紧凑胶囊，极简不抢占纵深） -->
+        <div class="w-full z-10 ui-panel-soft py-1.5 px-2.5">
           <div class="flex items-center justify-between mb-1">
-            <span class="font-mono text-[0.62rem] text-white/50 tracking-wider">BASE ATTRIBUTES</span>
-            <span id="hero-attr-profile-tag" class="font-mono text-[0.65rem] text-[var(--accent)] font-bold smooth-fade-transition">PROFILE // ${selectedClass}</span>
+            <span class="font-mono text-[0.6rem] text-white/50 tracking-wider">BASE ATTRIBUTES</span>
+            <span id="hero-attr-profile-tag" class="font-mono text-[0.62rem] text-[var(--accent)] font-bold smooth-fade-transition">PROFILE // ${selectedClass}</span>
           </div>
           <div class="grid grid-cols-5 gap-1 text-center font-mono">
-            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
-              <div class="text-[0.6rem] text-rose-400/80">HP</div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-rose-400/80">HP</div>
               <div id="hero-attr-hp" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.hp}</div>
             </div>
-            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
-              <div class="text-[0.6rem] text-sky-400/80">MP</div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-sky-400/80">MP</div>
               <div id="hero-attr-mp" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.mp}</div>
             </div>
-            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
-              <div class="text-[0.6rem] text-amber-400/80">ATK</div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-amber-400/80">ATK</div>
               <div id="hero-attr-atk" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.atk}</div>
             </div>
-            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
-              <div class="text-[0.6rem] text-emerald-400/80">DEF</div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-emerald-400/80">DEF</div>
               <div id="hero-attr-armor" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.armor}</div>
             </div>
-            <div class="bg-black/35 py-1 px-1 rounded border border-white/5">
-              <div class="text-[0.6rem] text-purple-400/80">SPD</div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-purple-400/80">SPD</div>
               <div id="hero-attr-speed" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.speed}</div>
             </div>
           </div>
@@ -1291,7 +1309,7 @@
         </div>
 
         <!-- 右半屏：职业挑选与 6 技能列表 -->
-        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-5 sm:p-6">
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-4 sm:p-5">
           <div>
             <!-- ① 把顶在外面的重复标题直接合并到框里 -->
             <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
@@ -1384,7 +1402,7 @@
         </div>
 
         <!-- 右半屏：职业挑选与技能全插槽 -->
-        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-5 sm:p-6">
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-4 sm:p-5">
           <div>
             <!-- ① 把顶在外面的重复标题直接合并到框里 -->
             <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
