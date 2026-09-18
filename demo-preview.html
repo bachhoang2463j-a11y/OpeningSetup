@@ -239,7 +239,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    min-height: 600px;
+    min-height: 640px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -253,7 +253,7 @@
     position: relative;
     flex: 1 1 0;
     height: 0;
-    min-height: 380px;
+    min-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,19 +266,19 @@
     max-height: 100%;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.9));
-    -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+    filter: drop-shadow(0 24px 50px rgba(0, 0, 0, 0.95));
+    -webkit-mask-image: linear-gradient(to bottom, black 92%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 92%, transparent 100%);
     transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: scale(1.25);
-    transform-origin: center 42%;
+    transform: scale(1.45);
+    transform-origin: center 36%;
   }
   .portrait-img.hero-swap-in {
     animation: hero-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   @keyframes hero-swap {
-    0% { opacity: 0; transform: scale(0.96) translateY(12px); filter: brightness(1.3) blur(4px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1) blur(0); }
+    0% { opacity: 0; transform: scale(1.35) translateY(12px); filter: brightness(1.3) blur(4px); }
+    100% { opacity: 1; transform: scale(1.45) translateY(0); filter: brightness(1) blur(0); }
   }
 
   /* 语音跳动声波 */
@@ -339,13 +339,15 @@
     background: var(--slot-border);
     transition: background 0.25s ease;
   }
+  .skill-slot-chip.theme-gold:before,
   .skill-slot-chip.type-limited:before {
-    background: var(--badge-limited);
-    box-shadow: 0 0 8px rgba(217, 180, 92, 0.45);
+    background: #d9b45c;
+    box-shadow: 0 0 10px rgba(217, 180, 92, 0.5);
   }
+  .skill-slot-chip.theme-purple:before,
   .skill-slot-chip.type-generic:before {
-    background: var(--badge-generic);
-    box-shadow: 0 0 8px rgba(192, 132, 252, 0.45);
+    background: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
   }
 
   .skill-slot-chip:hover {
@@ -457,24 +459,41 @@
     pointer-events: none;
   }
 
-  /* 台词字幕气泡（固定高度 68px，多行自适应垂直居中，防抖防挤压） */
-  .dialogue-bubble {
-    background: rgba(10, 14, 22, 0.88);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
-    width: 100%;
-    height: 68px;
-    min-height: 68px;
-    max-height: 68px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    overflow: hidden;
-    animation: dialogue-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* 悬浮台词气泡（绝对定位不占用立绘画幅，仅在语音播放时浮现） */
+  .floating-speech-bubble {
+    position: absolute;
+    top: 54px;
+    left: 14px;
+    right: 14px;
+    z-index: 40;
+    background: rgba(10, 14, 22, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--panel-border-bright);
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 16px var(--accent-glow);
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+    pointer-events: none;
+    transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .floating-speech-bubble.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .floating-speech-bubble:after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 36px;
+    width: 12px;
+    height: 12px;
+    background: rgba(10, 14, 22, 0.94);
+    border-right: 1px solid var(--panel-border-bright);
+    border-bottom: 1px solid var(--panel-border-bright);
+    transform: rotate(45deg);
   }
   #hero-dialogue-quote {
     display: -webkit-box;
@@ -482,11 +501,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.42;
-  }
-  @keyframes dialogue-in {
-    0% { opacity: 0; transform: translateY(6px); }
-    100% { opacity: 1; transform: translateY(0); }
+    line-height: 1.45;
   }
 
   /* 能量点数条 */
@@ -904,19 +919,23 @@
     voiceAudio.play().then(() => {
       state.audioPlaying = true;
       updateVoiceWave(true);
+      updateSpeechBubble(true);
     }).catch(() => {
       state.audioPlaying = false;
       updateVoiceWave(false);
+      updateSpeechBubble(false);
     });
   }
 
   voiceAudio.onended = () => {
     state.audioPlaying = false;
     updateVoiceWave(false);
+    updateSpeechBubble(false);
   };
   voiceAudio.onpause = () => {
     state.audioPlaying = false;
     updateVoiceWave(false);
+    updateSpeechBubble(false);
   };
 
   function updateVoiceWave(playing) {
@@ -925,6 +944,16 @@
       if (playing) w.classList.remove('paused');
       else w.classList.add('paused');
     });
+  }
+
+  function updateSpeechBubble(visible) {
+    const bubble = document.getElementById('hero-speech-bubble');
+    if (!bubble) return;
+    if (visible) {
+      bubble.classList.add('active');
+    } else {
+      bubble.classList.remove('active');
+    }
   }
 
   /* 通用技能装配与购点计算 */
@@ -1206,8 +1235,8 @@
     return pills.join('');
   }
 
-  /* 渲染：技能芯片卡片 (带 index 阶梯动效) */
-  function renderSkillSlotChip(s, isSlotEmpty = false, slotIdx = 0, canRemove = false) {
+  /* 渲染：技能芯片卡片 (带 index 阶梯动效与专属角色色彩体系) */
+  function renderSkillSlotChip(s, isSlotEmpty = false, slotIdx = 0, canRemove = false, heroTheme = null) {
     if (isSlotEmpty) {
       return `
         <div class="skill-slot-chip border-dashed border-opacity-40" style="--slot-idx:${slotIdx}; border-color:var(--slot-border); background:rgba(0,0,0,0.3);">
@@ -1220,24 +1249,60 @@
       `;
     }
 
-    const typeBadgeClass = s.scope === '限定' ? 'text-amber-400' : 'text-purple-300';
-    const badgeBoxClass = s.scope === '限定' ? 'border-amber-500/40 bg-amber-950/25' : 'border-purple-500/40 bg-purple-950/25';
+    let chipClass = '';
+    let badgeBoxClass = '';
+    let badgeText = '';
+    let typeBadgeClass = '';
+    let costRightText = '';
+    const formattedIdx = slotIdx < 10 ? `0${slotIdx}` : `${slotIdx}`;
+
+    if (heroTheme === 'gold') {
+      chipClass = 'theme-gold';
+      badgeBoxClass = 'border-amber-500/50 bg-amber-950/40';
+      badgeText = formattedIdx;
+      typeBadgeClass = 'text-amber-400 font-bold';
+      costRightText = '随职业';
+    } else if (heroTheme === 'purple') {
+      chipClass = 'theme-purple';
+      badgeBoxClass = 'border-purple-500/50 bg-purple-950/40';
+      badgeText = formattedIdx;
+      typeBadgeClass = 'text-purple-300 font-bold';
+      costRightText = '随职业';
+    } else {
+      chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
+      badgeBoxClass = s.scope === '限定' ? 'border-amber-500/40 bg-amber-950/25' : 'border-purple-500/40 bg-purple-950/25';
+      badgeText = s.scope === '限定' ? 'EX' : 'TAC';
+      typeBadgeClass = s.scope === '限定' ? 'text-amber-400' : 'text-purple-300';
+      costRightText = s.scope === '限定' ? '随职业' : (s.shopCost + ' 点');
+    }
+
     const costs = [];
     if (s.mpCost) costs.push(`${s.mpCost} MP`);
     if (s.hpCost) costs.push(`${s.hpCost} HP`);
     if (s.tpCost) costs.push(`${s.tpCost} TP`);
     const costText = costs.length > 0 ? costs.join(' / ') : '无消耗';
 
+    const reactionBadge = s.isReaction ? (
+      heroTheme === 'gold'
+        ? `<span class="text-[0.58rem] px-1 py-0.2 rounded font-mono shrink-0 bg-amber-950/60 border border-amber-500/40 text-amber-300">⟲反应</span>`
+        : heroTheme === 'purple'
+          ? `<span class="text-[0.58rem] px-1 py-0.2 rounded font-mono shrink-0 bg-purple-950/60 border border-purple-500/40 text-purple-300">⟲反应</span>`
+          : (s.scope === '限定'
+              ? `<span class="text-[0.58rem] px-1 py-0.2 rounded font-mono shrink-0 bg-amber-950/60 border border-amber-500/40 text-amber-300">⟲反应</span>`
+              : `<span class="text-[0.58rem] px-1 py-0.2 rounded font-mono shrink-0 bg-purple-950/60 border border-purple-500/40 text-purple-300">⟲反应</span>`
+            )
+    ) : '';
+
     return `
-      <div class="skill-slot-chip ${s.scope === '限定' ? 'type-limited' : 'type-generic'}" style="--slot-idx:${slotIdx};">
+      <div class="skill-slot-chip ${chipClass}" style="--slot-idx:${slotIdx};">
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
           <div class="w-7 h-7 rounded ${badgeBoxClass} border flex items-center justify-center shrink-0">
-            <span class="font-mono text-[0.62rem] font-bold ${typeBadgeClass}">${s.scope === '限定' ? 'EX' : 'TAC'}</span>
+            <span class="font-mono text-[0.62rem] ${typeBadgeClass}">${badgeText}</span>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 truncate">
               <span class="text-xs sm:text-sm font-bold tracking-wider text-[var(--text-main)] truncate">${s.name}</span>
-              ${s.isReaction ? `<span class="text-[0.58rem] px-1 py-0.2 rounded font-mono shrink-0 ${s.scope === '限定' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' : 'bg-purple-950/60 border border-purple-500/40 text-purple-300'}">⟲反应</span>` : ''}
+              ${reactionBadge}
               <span class="text-[0.62rem] px-1 py-0.2 rounded bg-white/5 text-white/60 font-mono shrink-0">${s.typeTag}</span>
             </div>
             <div class="flex items-center gap-1 flex-wrap mt-0.5">
@@ -1249,7 +1314,7 @@
         <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
             <div class="font-mono text-[0.72rem] font-bold text-[var(--accent)] whitespace-nowrap">${costText}</div>
-            <div class="font-mono text-[0.62rem] text-white/40">${s.scope === '限定' ? '随职业' : s.shopCost + ' 点'}</div>
+            <div class="font-mono text-[0.62rem] text-white/40">${costRightText}</div>
           </div>
           ${canRemove ? `
             <button onclick="window.demoActions.removeSkill('${s.name}')" class="text-xs text-rose-400/80 hover:text-rose-300 p-1 rounded hover:bg-rose-950/40 transition-colors" title="卸下插槽">✕</button>
@@ -1293,11 +1358,11 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- 当前职业专属台词气泡（固定高度，多行垂直居中防抖） -->
-          <div class="dialogue-bubble mt-2">
-            <p id="hero-dialogue-quote" class="text-xs sm:text-[0.78rem] text-[var(--text-main)] italic leading-relaxed smooth-fade-transition">${voiceData.quote}</p>
-          </div>
+        <!-- 悬浮台词气泡（仅在播放台词语音时浮现，绝对定位不抢占立绘画幅） -->
+        <div id="hero-speech-bubble" class="floating-speech-bubble ${state.audioPlaying && state.currentAudioHero === hero.id ? 'active' : ''}">
+          <p id="hero-dialogue-quote" class="text-xs sm:text-[0.78rem] text-[var(--text-main)] italic leading-relaxed">${voiceData.quote}</p>
         </div>
 
         <!-- 中部大尺寸立绘展台（占满可用高度，消除大片空白，1:1沉浸呈现） -->
@@ -1381,8 +1446,8 @@
       `;
     }).join('');
 
-    // ② 技能阶梯滑入芯片
-    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+    // ② 技能阶梯滑入芯片 (威廉：专属金色主题，隐藏EX/TAC标签)
+    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, 'gold')).join('');
 
     return `
       <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
@@ -1419,7 +1484,7 @@
             <div class="mt-2.5">
               <div class="flex items-center justify-between mb-1.5">
                 <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
-                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 6 CLASS COMBAT ARTS ]</span>
               </div>
               <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
                 ${skillChips}
@@ -1474,8 +1539,8 @@
       `;
     }).join('');
 
-    // ② 技能阶梯滑入芯片
-    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+    // ② 技能阶梯滑入芯片 (冯：专属紫色主题，隐藏EX/TAC标签)
+    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, 'purple')).join('');
 
     return `
       <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
@@ -1512,7 +1577,7 @@
             <div class="mt-2.5">
               <div class="flex items-center justify-between mb-1.5">
                 <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
-                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 6 CLASS COMBAT ARTS ]</span>
               </div>
               <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
                 ${skillChips}
@@ -1811,7 +1876,8 @@
       skillsContainer.style.transform = 'translateY(6px)';
       setTimeout(() => {
         const sorted = getSortedHeroSkills(clsData.skills);
-        skillsContainer.innerHTML = sorted.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+        const heroTheme = heroKey === 'hero1' ? 'gold' : (heroKey === 'hero2' ? 'purple' : null);
+        skillsContainer.innerHTML = sorted.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, heroTheme)).join('');
         skillsContainer.style.opacity = '1';
         skillsContainer.style.transform = 'translateY(0)';
       }, 150);
