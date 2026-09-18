@@ -421,39 +421,16 @@
     box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
   }
 
-  /* 高阶技能 (Tier 2 / Advanced)：优雅晶辉微脉冲与能量流光 */
+  /* 高阶技能 (Tier 2 / Advanced)：继承原传奇金色跑马流光与璀璨耀芒横扫动效 */
   .skill-slot-chip.tier-advanced {
-    border-color: rgba(192, 132, 252, 0.48);
-    background: linear-gradient(90deg, rgba(192, 132, 252, 0.12) 0%, rgba(28, 16, 46, 0.65) 30%, rgba(14, 10, 24, 0.82) 100%);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 14px rgba(192, 132, 252, 0.22);
-    position: relative;
-  }
-  .skill-slot-chip.tier-advanced:before {
-    background: linear-gradient(to bottom, #e879f9 0%, #c084fc 50%, #818cf8 100%);
-    box-shadow: 0 0 14px rgba(192, 132, 252, 0.85);
-  }
-  .skill-slot-chip.tier-advanced .tier-badge {
-    background: rgba(192, 132, 252, 0.18);
-    border: 1px solid rgba(192, 132, 252, 0.55);
-    color: #e9d5ff;
-    text-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
-    animation: tier-adv-pulse 3s ease-in-out infinite alternate;
-  }
-  @keyframes tier-adv-pulse {
-    0% { box-shadow: 0 0 4px rgba(192, 132, 252, 0.2); }
-    100% { box-shadow: 0 0 10px rgba(192, 132, 252, 0.6); }
-  }
-
-  /* 传奇技能 (Tier 3 / Legendary)：黄金传说跑马流光与璀璨耀芒横扫动效 */
-  .skill-slot-chip.tier-legendary {
     border-color: rgba(251, 191, 36, 0.7);
     background: linear-gradient(90deg, rgba(245, 158, 11, 0.16) 0%, rgba(38, 26, 12, 0.72) 32%, rgba(18, 14, 8, 0.88) 100%);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.75), 0 0 20px rgba(245, 158, 11, 0.35);
     position: relative;
     overflow: hidden;
-    animation: tier-legend-glow 2.8s ease-in-out infinite alternate;
+    animation: tier-adv-glow 2.8s ease-in-out infinite alternate;
   }
-  @keyframes tier-legend-glow {
+  @keyframes tier-adv-glow {
     0% {
       border-color: rgba(245, 158, 11, 0.55);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(245, 158, 11, 0.25);
@@ -463,13 +440,13 @@
       box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(251, 191, 36, 0.55);
     }
   }
-  .skill-slot-chip.tier-legendary:before {
+  .skill-slot-chip.tier-advanced:before {
     background: linear-gradient(to bottom, #fffbeb 0%, #fbbf24 45%, #d97706 100%);
     box-shadow: 0 0 16px rgba(251, 191, 36, 0.95), 0 0 8px #fff;
     width: 3.5px;
   }
-  /* 传奇专属流光横扫（每 4.6 秒一道金色光芒掠过卡片） */
-  .skill-slot-chip.tier-legendary:after {
+  /* 高阶专属流光横扫（每 4.4 秒一道金色光芒掠过卡片） */
+  .skill-slot-chip.tier-advanced:after {
     content: '';
     position: absolute;
     top: 0;
@@ -478,19 +455,69 @@
     height: 100%;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.18) 50%, rgba(251, 191, 36, 0.3) 65%, transparent 100%);
     transform: skewX(-24deg);
-    animation: legendary-shimmer 4.6s ease-in-out infinite;
+    animation: advanced-shimmer 4.4s ease-in-out infinite;
     pointer-events: none;
   }
-  @keyframes legendary-shimmer {
+  @keyframes advanced-shimmer {
+    0% { left: -120%; }
+    30% { left: 180%; }
+    100% { left: 180%; }
+  }
+  .skill-slot-chip.tier-advanced .tier-badge {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(180, 83, 9, 0.55) 100%);
+    border: 1px solid rgba(251, 191, 36, 0.85);
+    color: #fef08a;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+    font-weight: 700;
+  }
+
+  /* 传奇技能 (Tier 3 / Legendary)：赤红传说炽烈光焰与猩红烈焰横扫动效 */
+  .skill-slot-chip.tier-legendary {
+    border-color: rgba(239, 68, 68, 0.8);
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(48, 12, 16, 0.78) 32%, rgba(24, 8, 10, 0.92) 100%);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(239, 68, 68, 0.45);
+    position: relative;
+    overflow: hidden;
+    animation: tier-legend-red-glow 2.6s ease-in-out infinite alternate;
+  }
+  @keyframes tier-legend-red-glow {
+    0% {
+      border-color: rgba(239, 68, 68, 0.6);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 16px rgba(239, 68, 68, 0.3);
+    }
+    100% {
+      border-color: rgba(248, 113, 113, 0.98);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 28px rgba(239, 68, 68, 0.75);
+    }
+  }
+  .skill-slot-chip.tier-legendary:before {
+    background: linear-gradient(to bottom, #fee2e2 0%, #ef4444 45%, #991b1b 100%);
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.95), 0 0 8px #fff;
+    width: 3.5px;
+  }
+  /* 传奇专属猩红流光横扫（每 4.0 秒一道绯红烈焰光芒掠过卡片） */
+  .skill-slot-chip.tier-legendary:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, rgba(239, 68, 68, 0.45) 65%, transparent 100%);
+    transform: skewX(-24deg);
+    animation: legendary-red-shimmer 4.0s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes legendary-red-shimmer {
     0% { left: -120%; }
     30% { left: 180%; }
     100% { left: 180%; }
   }
   .skill-slot-chip.tier-legendary .tier-badge {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(180, 83, 9, 0.55) 100%);
-    border: 1px solid rgba(251, 191, 36, 0.85);
-    color: #fef08a;
-    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.4) 0%, rgba(153, 27, 27, 0.7) 100%);
+    border: 1px solid rgba(248, 113, 113, 0.9);
+    color: #fee2e2;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.85);
     font-weight: 700;
   }
 
@@ -786,7 +813,7 @@
           - "【迅捷愈合法】[通用][价:2][单回;power:30][再动;power:1][MP:3][法术][他人][限3次]"
           - "【破罪圣言】[通用][价:1][单体(光);power:60][MP:3][Aim:150][法术]"
           - "【飞沙化甲】[通用][价:2][单防;power:40][单瞄:20][MP:10][Turns:5][法术][他人][限1次]"
-          - "【净蚀反冲】[限定][价:3][MP:10][TP:10][看破:法术][法术][限3次]"
+          - "【净蚀反冲】[限定][价:3][MP:10][TP:10][看破:法术][法术][限3次][高阶]"
           - "【净化颂歌】[限定][价:3][群回;power:100][群驱散:1][MP:10][法术]"
           - "【归尘礼赞】[限定][穿透;power:100][单降;power:20][Aim:999][MP:10][HP:10][TP:10][法术][特效:圣光01][限3次][必中][延迟:1][传奇]"
     - 角色:
@@ -1241,6 +1268,9 @@
   };
 
   function getPillColorStyle(text) {
+    if (text === '他人' || text.includes('他人')) {
+      return 'bg-emerald-950/50 text-emerald-300 border-emerald-500/50';
+    }
     if (text.includes('伤害') || text.includes('穿透') || text.includes('枪击') || text.includes('霰弹') || text.includes('光')) {
       return 'bg-rose-950/40 text-rose-300/90 border-rose-800/40';
     }
@@ -1250,10 +1280,10 @@
     if (text.includes('护盾') || text.includes('加防') || text.includes('闪避') || text.includes('免伤') || text.includes('回避') || text.includes('舍身') || text.includes('肃正')) {
       return 'bg-sky-950/40 text-sky-300/90 border-sky-800/40';
     }
-    if (text.includes('降防') || text.includes('降攻') || text.includes('延迟') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕') || text.includes('自盲') || text.includes('滞')) {
+    if (text.includes('降防') || text.includes('降攻') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕') || text.includes('自盲') || text.includes('滞')) {
       return 'bg-purple-950/40 text-purple-300/90 border-purple-800/40';
     }
-    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('暴击') || text.includes('必中') || text.includes('转火') || text.includes('再动') || text.includes('高阶') || text.includes('传奇') || text.includes('召唤')) {
+    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('暴击') || text.includes('必中') || text.includes('转火') || text.includes('再动') || text.includes('蓄力') || text.includes('高阶') || text.includes('传奇') || text.includes('召唤')) {
       return 'bg-amber-950/40 text-amber-300/80 border-amber-800/40';
     }
     if (text.includes('反应') || text.includes('看破')) {
@@ -1309,8 +1339,8 @@
         displayVal = '+' + (m ? m[1] : '');
       } else if (/^延迟[:：](\d+)/i.test(mainPart)) {
         const m = mainPart.match(/^延迟[:：](\d+)/i);
-        displayLabel = '延迟';
-        displayVal = (m ? m[1] : '') + '段';
+        displayLabel = '蓄力';
+        displayVal = (m ? m[1] : '') + '回合';
       } else if (/^暴击[:：](\d+)%?/i.test(mainPart)) {
         const m = mainPart.match(/^暴击[:：](\d+)%?/i);
         displayLabel = '暴击';
@@ -1340,13 +1370,14 @@
       } else if (/^穿透\(([^)]+)\)/i.test(mainPart)) {
         const m = mainPart.match(/^穿透\(([^)]+)\)/i);
         displayLabel = `穿透(${m[1]})`;
-      } else if (mainPart === '他人') {
-        displayLabel = '友方目标';
+      } else if (mainPart === '他人' || mainPart === '友方' || mainPart === '友方目标') {
+        displayLabel = '他人';
+        displayVal = null;
+      } else if (mainPart === '必中') {
+        displayLabel = '必中';
+        displayVal = null;
       } else if (mainPart === '法术' || mainPart === '近战' || mainPart === '远程' || mainPart === '高阶' || mainPart === '传奇') {
         // 头部与阶级徽章已标注伤害属性与阶级，效果行内无需重复
-        return;
-      } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart) || mainPart === '必中') {
-        // 右侧状态列已专设四角星金色命中率栏，胶囊中跳过以防冗余
         return;
       } else if (/^(群驱散|驱散)(?::(\d+))?/i.test(mainPart)) {
         const m = mainPart.match(/^(群驱散|驱散)(?::(\d+))?/i);
@@ -1414,7 +1445,7 @@
     if (!s) return 1;
     const text = (s.rawText || '') + ' ' + (s.name || '');
     if (text.includes('[传奇]') || text.includes('传奇')) return 3;
-    if (text.includes('[高阶]') || text.includes('高阶')) return 2;
+    if (text.includes('[高阶]') || text.includes('高阶') || text.includes('净蚀反冲')) return 2;
     return 1;
   }
 
