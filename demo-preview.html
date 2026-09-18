@@ -28,9 +28,8 @@
     --slot-bg: rgba(9, 12, 18, 0.82);
     --slot-border: rgba(198, 161, 84, 0.25);
     --slot-glow: 0 0 15px rgba(217, 180, 92, 0.22);
-    --badge-limited: rgba(217, 180, 92, 0.95);
-    --badge-generic: rgba(120, 200, 150, 0.95);
-    --badge-reaction: rgba(235, 110, 110, 0.95);
+    --badge-limited: #d9b45c;
+    --badge-generic: #c084fc;
     --card-hover: rgba(26, 34, 48, 0.75);
     --btn-bg: linear-gradient(135deg, rgba(198, 161, 84, 0.24), rgba(198, 161, 84, 0.06));
     --btn-border: rgba(198, 161, 84, 0.5);
@@ -55,9 +54,8 @@
     --slot-bg: rgba(6, 14, 24, 0.88);
     --slot-border: rgba(56, 189, 248, 0.28);
     --slot-glow: 0 0 18px rgba(56, 189, 248, 0.3);
-    --badge-limited: rgba(56, 189, 248, 0.95);
-    --badge-generic: rgba(52, 211, 153, 0.95);
-    --badge-reaction: rgba(251, 113, 133, 0.95);
+    --badge-limited: #d9b45c;
+    --badge-generic: #c084fc;
     --card-hover: rgba(14, 34, 52, 0.78);
     --btn-bg: linear-gradient(135deg, rgba(56, 189, 248, 0.26), rgba(56, 189, 248, 0.06));
     --btn-border: rgba(56, 189, 248, 0.6);
@@ -82,9 +80,8 @@
     --slot-bg: rgba(18, 11, 30, 0.88);
     --slot-border: rgba(216, 180, 254, 0.32);
     --slot-glow: 0 0 20px rgba(192, 132, 252, 0.32);
-    --badge-limited: rgba(245, 158, 11, 0.95);
-    --badge-generic: rgba(192, 132, 252, 0.95);
-    --badge-reaction: rgba(244, 63, 94, 0.95);
+    --badge-limited: #d9b45c;
+    --badge-generic: #c084fc;
     --card-hover: rgba(45, 28, 72, 0.78);
     --btn-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(192, 132, 252, 0.16));
     --btn-border: rgba(245, 158, 11, 0.6);
@@ -242,13 +239,13 @@
     position: relative;
     width: 100%;
     height: 100%;
-    min-height: 540px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
     border-radius: 14px;
-    padding: 16px 18px;
+    padding: 14px 16px;
     background: radial-gradient(circle at 50% 55%, var(--accent-dim) 0%, transparent 70%), var(--panel-bg);
     border: 1px solid var(--panel-border);
   }
@@ -256,25 +253,25 @@
     position: relative;
     flex: 1 1 0;
     height: 0;
-    min-height: 310px;
+    min-height: 380px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     overflow: hidden;
-    margin: 2px 0;
+    margin: 0;
   }
   .portrait-img {
     height: 100%;
     max-height: 100%;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.88));
-    -webkit-mask-image: linear-gradient(to bottom, black 88%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 88%, transparent 100%);
+    filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.9));
+    -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
     transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: scale(1.08);
-    transform-origin: center center;
+    transform: scale(1.25);
+    transform-origin: center 42%;
   }
   .portrait-img.hero-swap-in {
     animation: hero-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -342,9 +339,14 @@
     background: var(--slot-border);
     transition: background 0.25s ease;
   }
-  .skill-slot-chip.type-limited:before { background: var(--badge-limited); }
-  .skill-slot-chip.type-generic:before { background: var(--badge-generic); }
-  .skill-slot-chip.is-reaction:before { background: var(--badge-reaction); }
+  .skill-slot-chip.type-limited:before {
+    background: var(--badge-limited);
+    box-shadow: 0 0 8px rgba(217, 180, 92, 0.45);
+  }
+  .skill-slot-chip.type-generic:before {
+    background: var(--badge-generic);
+    box-shadow: 0 0 8px rgba(192, 132, 252, 0.45);
+  }
 
   .skill-slot-chip:hover {
     border-color: var(--panel-border-bright);
@@ -557,8 +559,8 @@
   </button>
 </div>
 
-<!-- 主界面容器（紧凑居中适配，消除外部大面积空白） -->
-<div id="demo-app" class="relative z-10 max-w-[1240px] mx-auto px-4 sm:px-8 py-3 min-h-screen flex flex-col justify-center">
+<!-- 主界面容器（长宽扩大贴合屏幕绿框，消除外部冗余空白） -->
+<div id="demo-app" class="relative z-10 w-full max-w-[1560px] mx-auto pl-3 sm:pl-6 pr-14 sm:pr-18 py-2 min-h-screen flex flex-col justify-center">
   <!-- 动态挂载区 -->
 </div>
 
@@ -658,7 +660,7 @@
       hero1: {
         id: 'hero1',
         name: '威廉·退尔',
-        title: '【雾港神射手】',
+        title: '雾港神射手',
         emoji: '🎯',
         portraitUrl: 'http://127.0.0.1:8766/OS/威廉·退尔.png',
         classes: ['隐匿者', '狂战士', '防守者'],
@@ -680,7 +682,7 @@
       hero2: {
         id: 'hero2',
         name: '冯·霍恩海姆',
-        title: '【炼金术士】',
+        title: '炼金术士',
         emoji: '⚗️',
         portraitUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆.png',
         classes: ['施法者', '圣职者', '灾厄使'],
@@ -1218,7 +1220,8 @@
       `;
     }
 
-    const typeBadgeClass = s.scope === '限定' ? 'text-[var(--badge-limited)]' : 'text-[var(--badge-generic)]';
+    const typeBadgeClass = s.scope === '限定' ? 'text-amber-400' : 'text-purple-300';
+    const badgeBoxClass = s.scope === '限定' ? 'border-amber-500/40 bg-amber-950/25' : 'border-purple-500/40 bg-purple-950/25';
     const costs = [];
     if (s.mpCost) costs.push(`${s.mpCost} MP`);
     if (s.hpCost) costs.push(`${s.hpCost} HP`);
@@ -1226,15 +1229,15 @@
     const costText = costs.length > 0 ? costs.join(' / ') : '无消耗';
 
     return `
-      <div class="skill-slot-chip ${s.scope === '限定' ? 'type-limited' : 'type-generic'} ${s.isReaction ? 'is-reaction' : ''}" style="--slot-idx:${slotIdx};">
+      <div class="skill-slot-chip ${s.scope === '限定' ? 'type-limited' : 'type-generic'}" style="--slot-idx:${slotIdx};">
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <div class="w-7 h-7 rounded bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded ${badgeBoxClass} border flex items-center justify-center shrink-0">
             <span class="font-mono text-[0.62rem] font-bold ${typeBadgeClass}">${s.scope === '限定' ? 'EX' : 'TAC'}</span>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 truncate">
               <span class="text-xs sm:text-sm font-bold tracking-wider text-[var(--text-main)] truncate">${s.name}</span>
-              ${s.isReaction ? '<span class="text-[0.58rem] px-1 py-0.2 rounded bg-rose-950/70 border border-rose-600/50 text-rose-300 font-mono shrink-0">⟲反应</span>' : ''}
+              ${s.isReaction ? `<span class="text-[0.58rem] px-1 py-0.2 rounded font-mono shrink-0 ${s.scope === '限定' ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300' : 'bg-purple-950/60 border border-purple-500/40 text-purple-300'}">⟲反应</span>` : ''}
               <span class="text-[0.62rem] px-1 py-0.2 rounded bg-white/5 text-white/60 font-mono shrink-0">${s.typeTag}</span>
             </div>
             <div class="flex items-center gap-1 flex-wrap mt-0.5">
@@ -1403,7 +1406,7 @@
               </div>
               <div class="text-right">
                 <div class="font-mono text-xs font-bold text-[var(--accent)]">WILLIAM TELL</div>
-                <div class="text-[0.68rem] text-white/50 font-serif">【雾港神射手】</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">${hero.title}</div>
               </div>
             </div>
 
@@ -1496,7 +1499,7 @@
               </div>
               <div class="text-right">
                 <div class="font-mono text-xs font-bold text-[var(--accent)]">VON HOHENHEIM</div>
-                <div class="text-[0.68rem] text-white/50 font-serif">【炼金术士】</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">${hero.title}</div>
               </div>
             </div>
 
@@ -1656,7 +1659,7 @@
             <span>来源: ${s.srcClass}</span>
             <span>·</span>
             <span>${s.typeTag}</span>
-            ${s.isReaction ? '<span class="text-rose-400">⟲反应</span>' : ''}
+            ${s.isReaction ? '<span class="text-purple-300">⟲反应</span>' : ''}
           </div>
           <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
             ${formatSkillEffectPills(s.rawText)}
