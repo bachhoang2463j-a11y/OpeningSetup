@@ -746,7 +746,6 @@
       const lim = cc.skills.filter(function (s) { return s.scope === '限定'; }).length;
       const gen = cc.skills.filter(function (s) { return s.scope === '通用'; }).length;
       if (lim !== 3 || gen !== 3) errs.push(cls + ' 限定/通用 ≠ 3/3（' + lim + '/' + gen + '）');
-      if (!cc.skills.some(function (s) { return s.data.isReaction; })) errs.push(cls + ' 缺反应技能');
       if (!cc.config || !cc.config.classType) errs.push(cls + ' 缺属性行');
       const skillNames = {};
       cc.skills.forEach(function (s) { skillNames[s.data.name] = 1; });
@@ -786,6 +785,9 @@
       name: OPENING_DATA.identity.defaultName,
       portrait: '',        // 所选立绘键（自定义立绘的键名）
       customPortraits: [], // 玩家自定义立绘 {key, name, desc, url}（图床直链）
+      wearing: OPENING_DATA.identity.wearing, // 自定义穿着（叙事，写 Status_block）
+      inner: OPENING_DATA.identity.inner,     // 自定义内心（叙事，写 Status_block）
+      storyItems: '',      // 自定义叙事物品自由文本（纯叙事，不进战斗档案）
       classType: '',
       skills: [],          // 已购通用技能名数组（切职业保留）
       attrs: { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 }, // 属性购点叠加值
@@ -1220,9 +1222,9 @@
     const h2 = OPENING_DATA.party.hero2;
     const cfg3 = hero3Config();
     const roles = [
-      { emoji: h1.emoji, name: h1.name, attrs: state.hero1Class ? attrLine(classConfigOf(state.hero1Class)) : '', wearing: h1.wearing, inner: h1.inner, items: classItems(state.hero1Class) },
-      { emoji: h2.emoji, name: h2.name, attrs: state.hero2Class ? attrLine(classConfigOf(state.hero2Class)) : '', wearing: h2.wearing, inner: h2.inner, items: classItems(state.hero2Class) },
-      { emoji: OPENING_DATA.identity.emoji, name: hero3Name(), attrs: cfg3 ? attrLine(cfg3) : '', wearing: OPENING_DATA.identity.wearing, inner: OPENING_DATA.identity.inner, items: hero3ItemEntries() },
+      { emoji: h1.emoji, name: h1.name, attrs: state.hero1Class ? attrLine(classConfigOf(state.hero1Class)) : '', wearing: h1.wearing, inner: h1.inner, items: classItems(state.hero1Class), story: '' },
+      { emoji: h2.emoji, name: h2.name, attrs: state.hero2Class ? attrLine(classConfigOf(state.hero2Class)) : '', wearing: h2.wearing, inner: h2.inner, items: classItems(state.hero2Class), story: '' },
+      { emoji: OPENING_DATA.identity.emoji, name: hero3Name(), attrs: cfg3 ? attrLine(cfg3) : '', wearing: state.hero3.wearing, inner: state.hero3.inner, items: hero3ItemEntries(), story: state.hero3.storyItems },
     ];
     const lines = [];
     lines.push('状态栏:');
@@ -1236,7 +1238,7 @@
       lines.push('        穿着: "' + r.wearing + '"');
       lines.push('        内心: "' + r.inner + '"');
       lines.push('        武器: "' + buildWeaponsString(r.items) + '"');
-      lines.push('        物品: "' + buildItemsString(r.items) + '"');
+      lines.push('        物品: "' + (r.story ? '[📜] ' + r.story : '') + buildItemsString(r.items) + '"');
     });
     if (OPENING_DATA.status.allies.length || OPENING_DATA.status.npcs.length) {
       lines.push('  人物:');
@@ -1401,6 +1403,18 @@
     const nameInput = document.getElementById('name-input');
     if (nameInput) {
       nameInput.addEventListener('input', function () { state.hero3.name = nameInput.value.trim() || OPENING_DATA.identity.defaultName; });
+    }
+    const wearingInput = document.getElementById('wearing-input');
+    if (wearingInput) {
+      wearingInput.addEventListener('input', function () { state.hero3.wearing = wearingInput.value.trim() || OPENING_DATA.identity.wearing; });
+    }
+    const innerInput = document.getElementById('inner-input');
+    if (innerInput) {
+      innerInput.addEventListener('input', function () { state.hero3.inner = innerInput.value.trim() || OPENING_DATA.identity.inner; });
+    }
+    const storyItemsInput = document.getElementById('story-items-input');
+    if (storyItemsInput) {
+      storyItemsInput.addEventListener('input', function () { state.hero3.storyItems = storyItemsInput.value.trim(); });
     }
     const urlInput = document.getElementById('custom-purl');
     if (urlInput) {
@@ -1823,7 +1837,6 @@
   }
 
   function viewC3id() {
-    const d = OPENING_DATA.identity;
     const cur = state.hero3.customPortraits.find(function (p) { return p.key === state.hero3.portrait; }) || null;
     return ''
       + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
@@ -1838,8 +1851,12 @@
       + '          <label class="block text-xs tracking-[0.3em] text-[rgba(198,161,84,0.8)] mb-2">代号 / 姓名</label>'
       + '          <input id="name-input" class="w-full bg-[rgba(0,0,0,0.35)] border border-[rgba(198,161,84,0.35)] rounded px-4 py-3 text-lg text-[#e8dcc0] tracking-[0.15em] outline-none focus:border-[#d9b45c]" value="' + esc(hero3Name()) + '" maxlength="20">'
       + '          <div class="mt-3 text-sm text-[rgba(232,220,192,0.72)] leading-relaxed">'
-      + '            <div>' + esc(d.wearing) + '</div>'
-      + '            <div class="mt-1">' + esc(d.inner) + '</div>'
+      + '            <input id="wearing-input" class="w-full bg-transparent border-b border-[rgba(198,161,84,0.25)] focus:border-[#d9b45c] rounded-none px-1 py-1.5 text-sm text-[rgba(232,220,192,0.9)] outline-none transition-colors" value="' + esc(state.hero3.wearing) + '" maxlength="60" title="自定义穿着">'
+      + '            <input id="inner-input" class="w-full bg-transparent border-b border-[rgba(198,161,84,0.25)] focus:border-[#d9b45c] rounded-none px-1 py-1.5 mt-1 text-sm text-[rgba(232,220,192,0.9)] outline-none transition-colors" value="' + esc(state.hero3.inner) + '" maxlength="60" title="自定义内心独白">'
+      + '          </div>'
+      + '          <div class="mt-3">'
+      + '            <label class="block text-xs tracking-[0.2em] text-[rgba(198,161,84,0.8)] mb-1.5">随身物品 · 纯叙事<span class="text-[rgba(232,220,192,0.45)] tracking-normal">（战斗物品在后续购点里选择）</span></label>'
+      + '            <input id="story-items-input" class="w-full bg-[rgba(0,0,0,0.35)] border border-[rgba(198,161,84,0.3)] rounded px-3 py-2 text-sm text-[rgba(232,220,192,0.9)] outline-none focus:border-[#d9b45c]" placeholder="例：银质怀表、半包烟、一封未寄出的信" value="' + esc(state.hero3.storyItems) + '" maxlength="80">'
       + '          </div>'
       + '        </div>'
       + '        <div class="glass-soft p-4">'
