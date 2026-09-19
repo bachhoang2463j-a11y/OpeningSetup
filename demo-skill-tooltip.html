@@ -502,17 +502,53 @@
       theme: 'purple',
       desc: '降低受击目标的防御力，使目标在持续期间承受更多伤害。'
     },
+    '目标加防': {
+      title: '目标加防',
+      icon: '🛡️',
+      theme: 'sky',
+      desc: '提升目标的护甲防御力（Armor），直接按数值抵扣承受的物理与法术伤害；无法减免穿透伤害与真实伤害。'
+    },
+    '目标增攻': {
+      title: '目标增攻',
+      icon: '⚔️',
+      theme: 'amber',
+      desc: '提升目标的攻击力（Atk），直接提高其在持续期间造成的物理与法术伤害。'
+    },
     '目标降攻': {
       title: '目标降攻',
       icon: '⚔️',
       theme: 'purple',
       desc: '降低受击目标的攻击力，削弱其在持续期间造成的伤害。'
     },
+    '目标瞄准': {
+      title: '目标瞄准',
+      icon: '🎯',
+      theme: 'amber',
+      desc: '提升目标的攻击命中率（Aim），增强攻击判定命中上限，抵消受击方闪避率。'
+    },
     '目标致盲': {
       title: '目标致盲',
       icon: '👁️',
       theme: 'purple',
       desc: '降低受击目标的命中率，削弱其攻击命中上限。'
+    },
+    '战技充能': {
+      title: '战技充能',
+      icon: '🔋',
+      theme: 'emerald',
+      desc: '为目标注入指定点数的战技点（TP），加速极限爆发充能或战技点储备。'
+    },
+    '仇恨嘲讽': {
+      title: '仇恨嘲讽',
+      icon: '🎯',
+      theme: 'amber',
+      desc: '大幅提升自身受击仇恨权重，强制敌方在索敌与单体攻击时优先锁定自身为第一目标。'
+    },
+    '场次限制': {
+      title: '场次限制',
+      icon: '⏳',
+      theme: 'amber',
+      desc: '单场战斗内限制最大施展次数，耗尽后本场战斗无法再次施展，脱离战斗后自动重置。'
     },
     '自身致盲': {
       title: '代价·自盲',
@@ -747,12 +783,18 @@
     if (rawText.includes('召唤')) keys.push('召唤');
     if (rawText.includes('单速') || rawText.includes('群速')) keys.push('单速');
     if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('目标缓速');
-    if (rawText.includes('单滞') || rawText.includes('群滞')) keys.push('目标降避');
+    if (rawText.includes('单滞') || rawText.includes('群滞') || rawText.includes('降避')) keys.push('目标降避');
     if (rawText.includes('单避') || rawText.includes('群避')) keys.push('持续闪避');
-    if (rawText.includes('单盾') || rawText.includes('群盾')) keys.push('护盾吸收');
-    if (rawText.includes('单降') || rawText.includes('群降')) keys.push('目标降防');
-    if (rawText.includes('单弱') || rawText.includes('群弱')) keys.push('目标降攻');
-    if (rawText.includes('单盲') || rawText.includes('群盲')) keys.push('目标致盲');
+    if (rawText.includes('单盾') || rawText.includes('群盾') || rawText.includes('护盾')) keys.push('护盾吸收');
+    if (rawText.includes('单降') || rawText.includes('群降') || rawText.includes('降防')) keys.push('目标降防');
+    if (rawText.includes('单防') || rawText.includes('群防') || rawText.includes('加防')) keys.push('目标加防');
+    if (rawText.includes('单弱') || rawText.includes('群弱') || rawText.includes('降攻')) keys.push('目标降攻');
+    if (rawText.includes('单增') || rawText.includes('群增') || rawText.includes('增攻')) keys.push('目标增攻');
+    if (rawText.includes('单盲') || rawText.includes('群盲') || rawText.includes('致盲')) keys.push('目标致盲');
+    if (rawText.includes('单瞄') || rawText.includes('群瞄') || rawText.includes('瞄准')) keys.push('目标瞄准');
+    if (rawText.includes('单冲') || rawText.includes('群冲') || rawText.includes('充能')) keys.push('战技充能');
+    if (rawText.includes('嘲讽')) keys.push('仇恨嘲讽');
+    if (/限\d+次|限用/.test(rawText)) keys.push('场次限制');
     if (rawText.includes('自盲') || rawText.includes('自降') || rawText.includes('自弱')) keys.push('自身致盲');
     if (rawText.includes('必中')) keys.push('必中');
     if (rawText.includes('暴击')) keys.push('暴击');
@@ -780,6 +822,9 @@
     clean = clean.replace(/\[HP:\d+\]/g, '');
     clean = clean.replace(/\[TP:\d+\]/g, '');
     clean = clean.replace(/\[特效:[^\]]+\]/g, '');
+
+    const hasOthers = rawText.includes('[他人]') || rawText.includes('他人');
+    const targetOrSelf = hasOthers ? '目标' : '自身';
 
     const tagMatches = clean.match(/\[([^\]]+)\]/g) || [];
     const pills = [];
@@ -809,24 +854,35 @@
       else if (mainPart.includes('穿透')) { label = '单体穿透'; targetMechKey = '穿透'; }
       else if (mainPart.includes('再动')) { label = '额外行动'; targetMechKey = '再动'; }
       else if (mainPart.includes('延迟')) { label = '蓄力准备'; targetMechKey = '延迟'; }
-      else if (mainPart.includes('加速')) { label = '蓄力库存'; targetMechKey = '加速'; }
+      else if (mainPart.includes('加速')) { label = '加速机制'; targetMechKey = '加速'; }
       else if (mainPart.includes('麻痹')) { label = '雷电麻痹'; targetMechKey = '麻痹'; }
       else if (mainPart.includes('中毒')) { label = '毒素侵蚀'; targetMechKey = '中毒'; }
       else if (mainPart.includes('燃烧')) { label = '火焰灼烧'; targetMechKey = '燃烧'; }
-      else if (mainPart.includes('单降')) { label = '目标降防'; targetMechKey = '目标降防'; }
+      else if (mainPart.includes('单降') || mainPart.includes('降防')) { label = '目标降防'; targetMechKey = '目标降防'; }
+      else if (mainPart.includes('单防') || mainPart.includes('加防')) { label = `${targetOrSelf}加防`; targetMechKey = '目标加防'; }
+      else if (mainPart.includes('单弱') || mainPart.includes('降攻')) { label = '目标降攻'; targetMechKey = '目标降攻'; }
+      else if (mainPart.includes('单增') || mainPart.includes('增攻')) { label = `${targetOrSelf}增攻`; targetMechKey = '目标增攻'; }
+      else if (mainPart.includes('单盲') || mainPart.includes('致盲')) { label = '目标致盲'; targetMechKey = '目标致盲'; }
+      else if (mainPart.includes('单瞄') || mainPart.includes('瞄准')) { label = `${targetOrSelf}瞄准`; targetMechKey = '目标瞄准'; }
+      else if (mainPart.includes('单冲') || mainPart.includes('充能')) { label = `${targetOrSelf}充能`; targetMechKey = '战技充能'; }
+      else if (mainPart.includes('嘲讽')) { label = `${targetOrSelf}嘲讽`; targetMechKey = '仇恨嘲讽'; }
+      else if (/限\d+次|限用/.test(mainPart)) { label = '限用'; targetMechKey = '场次限制'; }
+      else if (mainPart.includes('单滞') || mainPart.includes('降避')) { label = '目标降避'; targetMechKey = '目标降避'; }
+      else if (mainPart.includes('单盾') || mainPart.includes('护盾')) { label = `${targetOrSelf}护盾`; targetMechKey = '护盾吸收'; }
+      else if (mainPart.includes('单避') || (mainPart.includes('闪避') && !mainPart.includes('紧急回避'))) { label = `${targetOrSelf}闪避`; targetMechKey = '持续闪避'; }
       else if (mainPart.includes('自盲')) { label = '自身致盲'; targetMechKey = '自身致盲'; }
-      else if (mainPart.includes('单缓')) { label = '目标缓速'; targetMechKey = '单缓'; }
+      else if (mainPart.includes('单缓') || mainPart.includes('缓速')) { label = '目标缓速'; targetMechKey = '目标缓速'; }
       else if (mainPart === '他人') { label = '指定友方'; targetMechKey = '他人'; }
       else if (mainPart.includes('驱散')) { label = '净化驱散'; targetMechKey = '驱散'; }
 
       let dotClass = 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]';
       if (label.includes('伤害') || label.includes('穿透') || label.includes('散射')) {
         dotClass = 'bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)]';
-      } else if (label.includes('回复') || label.includes('净化') || label.includes('友方')) {
+      } else if (label.includes('回复') || label.includes('净化') || label.includes('充能') || label.includes('友方')) {
         dotClass = 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]';
-      } else if (label.includes('护盾') || label.includes('加防') || label.includes('肃正') || label.includes('免伤') || label.includes('回避')) {
+      } else if (label.includes('护盾') || label.includes('加防') || label.includes('闪避') || label.includes('肃正') || label.includes('免伤') || label.includes('回避')) {
         dotClass = 'bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.9)]';
-      } else if (label.includes('降') || label.includes('盲') || label.includes('缓') || label.includes('毒') || label.includes('燃') || label.includes('麻痹')) {
+      } else if (label.includes('降') || label.includes('盲') || label.includes('缓') || label.includes('毒') || label.includes('燃') || label.includes('麻痹') || label.includes('自盲')) {
         dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
       }
 
@@ -929,11 +985,13 @@
 
     // 2. 提取并渲染关联机制
     const mechKeys = extractMechanicsKeys(skill.rawText);
-    
-    // 如果指定了具体聚焦的机制，将其置顶高亮
-    let displayKeys = mechKeys;
-    if (focusMechKey && mechKeys.includes(focusMechKey)) {
-      displayKeys = [focusMechKey, ...mechKeys.filter(k => k !== focusMechKey)];
+    let displayKeys = [...mechKeys];
+    if (focusMechKey) {
+      if (!displayKeys.includes(focusMechKey)) {
+        displayKeys.unshift(focusMechKey);
+      } else {
+        displayKeys = [focusMechKey, ...displayKeys.filter(k => k !== focusMechKey)];
+      }
     }
 
     // 无特性机制则不显示悬浮窗
