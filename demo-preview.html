@@ -33,6 +33,9 @@
     --card-hover: rgba(26, 34, 48, 0.75);
     --btn-bg: linear-gradient(135deg, rgba(198, 161, 84, 0.24), rgba(198, 161, 84, 0.06));
     --btn-border: rgba(198, 161, 84, 0.5);
+    --tooltip-bg: rgba(11, 15, 22, 0.94);
+    --tooltip-border: rgba(217, 180, 92, 0.45);
+    --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.85), 0 0 20px rgba(217, 180, 92, 0.2);
   }
 
   /* 备用：战术全息 (Tactical Holo) */
@@ -85,6 +88,9 @@
     --card-hover: rgba(45, 28, 72, 0.78);
     --btn-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(192, 132, 252, 0.16));
     --btn-border: rgba(245, 158, 11, 0.6);
+    --tooltip-bg: rgba(18, 12, 30, 0.95);
+    --tooltip-border: rgba(236, 195, 110, 0.5);
+    --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.88), 0 0 24px rgba(192, 132, 252, 0.25);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -637,6 +643,68 @@
     pointer-events: none;
   }
 
+  /* 胶囊交互态：当鼠标 hover 在卡片内某个特定标签胶囊上时，高亮放大 */
+  .pill-trigger {
+    cursor: help;
+    transition: all 0.18s ease;
+  }
+  .pill-trigger:hover {
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.04);
+  }
+
+  /* 纯悬浮窗 (Floating Tooltip) 核心样式体系 */
+  #skill-tooltip-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 320px;
+    max-width: 90vw;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #skill-tooltip-container.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .tooltip-glass-card {
+    background: var(--tooltip-bg);
+    backdrop-filter: blur(20px) saturate(1.25);
+    -webkit-backdrop-filter: blur(20px) saturate(1.25);
+    border: 1px solid var(--tooltip-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: var(--tooltip-glow);
+    position: relative;
+    overflow: hidden;
+  }
+  .tooltip-glass-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+    opacity: 0.85;
+  }
+  .tooltip-mech-entry {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .tooltip-mech-entry:last-child {
+    border-bottom: none;
+    padding-bottom: 2px;
+  }
+  .tooltip-mech-entry:first-child {
+    padding-top: 2px;
+  }
+
   /* 悬浮台词气泡（紧凑排版，仅在语音播放时浮现，不抢占立绘画幅与面部视野） */
   .floating-speech-bubble {
     position: absolute;
@@ -789,7 +857,7 @@
         名字: "防守者"
         属性: "[HP:180/180][MP:12/12][Atk:60][Armor:60][Speed:65][职业:防守者]"
         技能:
-          - "【温切斯特M1897】[通用][价:1][单体(霰弹);power:115][单降;power:10][Turns:2][Aim:110][远程]"
+          - "【温切斯特M1897】[通用][价:1][散射(霰弹);power:140][单降;power:10][Turns:2][Aim:150][远程]"
           - "【屏息瞄准】[通用][价:1][MP:2][单瞄;power:60][Turns:2]"
           - "【掩体包扎】[通用][价:1][单回;power:20][单防;power:10][Turns:2][MP:1]"
           - "【乌里的猎人】[限定][价:2][回避;power:200][MP:1][反应:近战]"
@@ -1262,41 +1330,41 @@
     }, 2200);
   }
 
-  /* 标签扩写映射表与低饱和克制胶囊生成器（RpgCombat 范式） */
+  /* 标签扩写映射表与低饱和克制胶囊生成器（完全对齐现代规范） */
   const TAG_EXPAND_MAP = {
-    '单回': '单体回复',
+    '单回': '目标回复',
     '群回': '群体回复',
-    '单回蓝': '单体回蓝',
+    '单回蓝': '目标回蓝',
     '群回蓝': '群体回蓝',
     '吸蓝': '法力抽取',
-    '单降': '单体降防',
+    '单降': '目标降防',
     '群降': '群体降防',
-    '单防': '单体加防',
+    '单防': '目标加防',
     '群防': '群体加防',
-    '单盾': '单体护盾',
+    '单盾': '目标护盾',
     '群盾': '群体护盾',
     '单体': '单体伤害',
     '群攻': '群体伤害',
     '穿透': '单体穿透',
     '群穿透': '群体穿透',
-    '单弱': '单体降攻',
+    '单弱': '目标降攻',
     '群弱': '群体降攻',
-    '单滞': '单体延迟',
-    '群滞': '群体延迟',
-    '单速': '单体加速',
+    '单滞': '目标降避',
+    '群滞': '群体降避',
+    '单速': '目标加速',
     '群速': '群体加速',
-    '单缓': '单体缓速',
+    '单缓': '目标缓速',
     '群缓': '群体缓速',
-    '单盲': '单体致盲',
+    '单盲': '目标致盲',
     '群盲': '群体致盲',
     '自盲': '自身致盲',
-    '单瞄': '单体瞄准',
+    '单瞄': '目标瞄准',
     '群瞄': '群体瞄准',
-    '单冲': '单体充能',
+    '单冲': '目标充能',
     '群冲': '群体充能',
-    '单增': '单体增攻',
+    '单增': '目标增攻',
     '群增': '群体增攻',
-    '单避': '单体闪避',
+    '单避': '目标闪避',
     '群避': '群体闪避',
     '嘲讽': '目标嘲讽',
     '反击': '受击反击',
@@ -1311,10 +1379,77 @@
     '群中毒': '群体中毒',
     '燃烧': '火焰灼烧',
     '群燃烧': '群体灼烧',
+    '麻痹': '雷电麻痹',
     '群麻痹': '群体麻痹',
+    '散射': '散射伤害',
+    '群散射': '群体散射',
     '高阶': '高阶战技',
     '传奇': '传奇秘术'
   };
+
+  /* 18 种技能概念专业词条数据库 (仅说明【怎么用 / 怎么生效】) */
+  const MECHANICS_REGISTRY = {
+    '看破': { title: '看破', icon: '👁️', desc: '敌方宣告技能时触发，消耗资源强制中断并完全无效化对应伤害类型的技能，使其本次行动落空。' },
+    '反应': { title: '反应', icon: '⚡', desc: '闪避判定失败、即将遭受攻击时触发，消耗资源插队施展身法或防御技，重新进行闪避判定或减免伤害。' },
+    '舍身': { title: '舍身', icon: '🛡️', desc: '友方目标闪避失败、即将承受单体攻击时触发，挺身代替其承受本次攻击的全部伤害与负面效果。' },
+    '反击': { title: '受击反击', icon: '⚔️', desc: '进入反击架势，成功闪避敌方近战攻击后，自动以自身攻击力结合技能威力回敬目标。' },
+    '肃正': { title: '绝对肃正', icon: '✨', desc: '展开全队共享圣域结界，存在期间敌方单体攻击强制归集结界，全额吸收穿透伤害并隔离负面效果。结界未被击破前无法重复施展。' },
+    '免伤': { title: '绝对免伤', icon: '🛡️', desc: '赋予自身一次性极高防御抵扣层，在下一次遭受攻击结算后立即消耗清除。' },
+    '再动': { title: '额外行动', icon: '⏩', desc: '施展后立即获得一次额外的行动回合。该技能每大回合限制使用一次。' },
+    '延迟': { title: '蓄力准备', icon: '⏳', desc: '开启时即时押注扣除资源并进入蓄力，蓄力 N 回合后就绪释放。蓄力期间仍可触发反应与看破。' },
+    '加速': { title: '蓄力库存', icon: '⚡', desc: '蓄力技能释放完成后获得，形成永久库存，用于直接抵扣未来蓄力技能所需的准备回合。' },
+    '单速': { title: '目标加速', icon: '🟢', desc: '提升目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。' },
+    '单缓': { title: '目标缓速', icon: '🔴', desc: '降低目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。' },
+    '目标降防': { title: '目标降防', icon: '🛡️', desc: '降低受击目标的防御力，使目标在持续期间承受更多伤害。' },
+    '目标降攻': { title: '目标降攻', icon: '⚔️', desc: '降低受击目标的攻击力，削弱其在持续期间造成的伤害。' },
+    '目标致盲': { title: '目标致盲', icon: '👁️', desc: '降低受击目标的命中率，削弱其攻击命中上限。' },
+    '自身致盲': { title: '代价·自盲', icon: '⚠️', desc: '施展技能时降低自身命中率，使用后无条件生效，且数值不受爆发与暴击放大。' },
+    '必中': { title: '锁定必中', icon: '🎯', desc: '攻击跳过被动闪避判定必定命中目标，但仍可被敌方主动反应或看破化解。' },
+    '暴击': { title: '暴击机制', icon: '💥', desc: '按概率触发效果翻倍，本技能所有效果槽数值提升 100%。与极限爆发效果互斥。' },
+    '穿透': { title: '无视防御', icon: '⚡', desc: '造成的伤害完全无视目标的护甲防御力与免伤状态。' },
+    '散射': { title: '散射伤害', icon: '💥', desc: '造成大范围多弹丸散射伤害，受目标护甲的 3 倍防御减免。' },
+    '转火': { title: '转火追击', icon: '🔥', desc: '多段连续攻击中，若前置伤害击杀当前目标，后续攻击段自动转移至其他存活敌人。' },
+    '回避': { title: '紧急回避', icon: '💨', desc: '提升自身闪避值，在下一次遭遇攻击判定后立刻消耗清除。' },
+    '麻痹': { title: '雷电麻痹', icon: '⚡', desc: '降低目标闪避率，且目标每次行动时按层数概率发生僵直跳过行动，成功僵直后消耗一层。' },
+    '中毒': { title: '毒素侵蚀', icon: '🧪', desc: '每回合持续造成无视防御与护盾的真实伤害，每次命中独立叠层，层数无上限。' },
+    '燃烧': { title: '火焰灼烧', icon: '🔥', desc: '每回合持续造成无视防御与护盾的真实伤害，重复施加仅刷新持续时间，期间目标受到的治疗效果降低 50%。' },
+    '他人': { title: '友方指定', icon: '🤝', desc: '赋予纯单体有益技能选择友方目标施放的能力，未携带时仅限自身生效。' },
+    '驱散': { title: '净化驱散', icon: '✨', desc: '驱散目标身上的中毒、燃烧、眩晕、麻痹及负面属性状态，无法驱散战前场地效果。' },
+    '材料绑定': { title: '弹药与材料消耗', icon: '🎒', desc: '施展技能时消耗绑定的物品或弹药。道具每场战斗重置满额，消耗品跨场持久扣减，弹药按实际射击段数逐发扣除。' }
+  };
+
+  function extractMechanicsKeys(rawText) {
+    const keys = [];
+    if (!rawText) return keys;
+    if (rawText.includes('看破')) keys.push('看破');
+    if (rawText.includes('反应')) keys.push('反应');
+    if (rawText.includes('舍身')) keys.push('舍身');
+    if (rawText.includes('反击')) keys.push('反击');
+    if (rawText.includes('肃正')) keys.push('肃正');
+    if (rawText.includes('免伤')) keys.push('免伤');
+    if (rawText.includes('再动')) keys.push('再动');
+    if (rawText.includes('延迟')) keys.push('延迟');
+    if (rawText.includes('加速')) keys.push('加速');
+    if (rawText.includes('单速') || rawText.includes('群速')) keys.push('单速');
+    if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('单缓');
+    if (rawText.includes('单降') || rawText.includes('群降')) keys.push('目标降防');
+    if (rawText.includes('单弱') || rawText.includes('群弱')) keys.push('目标降攻');
+    if (rawText.includes('单盲') || rawText.includes('群盲')) keys.push('目标致盲');
+    if (rawText.includes('自盲') || rawText.includes('自降') || rawText.includes('自弱')) keys.push('自身致盲');
+    if (rawText.includes('必中')) keys.push('必中');
+    if (rawText.includes('暴击')) keys.push('暴击');
+    if (rawText.includes('穿透')) keys.push('穿透');
+    if (rawText.includes('散射') || rawText.includes('霰弹')) keys.push('散射');
+    if (rawText.includes('转火')) keys.push('转火');
+    if (rawText.includes('回避')) keys.push('回避');
+    if (rawText.includes('麻痹')) keys.push('麻痹');
+    if (rawText.includes('中毒')) keys.push('中毒');
+    if (rawText.includes('燃烧')) keys.push('燃烧');
+    if (rawText.includes('他人')) keys.push('他人');
+    if (rawText.includes('驱散')) keys.push('驱散');
+    if (rawText.includes('子弹') || rawText.includes('鹿弹') || rawText.includes('道具') || rawText.includes('消耗品')) keys.push('材料绑定');
+    return Array.from(new Set(keys));
+  }
 
   function getPillColorStyle(text) {
     if (text === '他人' || text.includes('他人')) {
@@ -1443,8 +1578,12 @@
       } else if (/^召唤(?::([^\]]+))?/i.test(mainPart)) {
         const m = mainPart.match(/^召唤(?::([^\]]+))?/i);
         displayLabel = m && m[1] ? `召唤·${m[1]}` : '战术召唤';
+      } else if (/^散射(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '散射伤害';
+      } else if (/^群散射(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '群体散射';
       } else if (/^单体(?:\([^)]+\))?/i.test(mainPart)) {
-        // 括号备注（霰弹、光、火焰、枪击等）只是特效标签，技能栏统一改为【单体伤害】
+        // 括号备注（光、火焰、枪击等）只是特效标签，技能栏统一改为【单体伤害】
         displayLabel = '单体伤害';
       } else if (/^穿透(?:\([^)]+\))?/i.test(mainPart)) {
         displayLabel = '单体穿透';
@@ -1469,13 +1608,41 @@
         displayVal += ` (${extraTurns}T)`;
       }
 
+      // 关联机制 key 用于胶囊悬停聚焦
+      let targetMechKey = null;
+      if (displayLabel.includes('散射')) targetMechKey = '散射';
+      else if (displayLabel.includes('转火')) targetMechKey = '转火';
+      else if (displayLabel.includes('肃正')) targetMechKey = '肃正';
+      else if (displayLabel.includes('免伤')) targetMechKey = '免伤';
+      else if (displayLabel.includes('回避')) targetMechKey = '回避';
+      else if (displayLabel.includes('穿透')) targetMechKey = '穿透';
+      else if (displayLabel.includes('再动')) targetMechKey = '再动';
+      else if (displayLabel.includes('蓄力')) targetMechKey = '延迟';
+      else if (displayLabel.includes('加速')) targetMechKey = '加速';
+      else if (displayLabel.includes('麻痹')) targetMechKey = '麻痹';
+      else if (displayLabel.includes('中毒')) targetMechKey = '中毒';
+      else if (displayLabel.includes('燃烧')) targetMechKey = '燃烧';
+      else if (displayLabel.includes('降防')) targetMechKey = '目标降防';
+      else if (displayLabel.includes('降攻')) targetMechKey = '目标降攻';
+      else if (displayLabel.includes('致盲')) targetMechKey = '目标致盲';
+      else if (displayLabel.includes('自盲')) targetMechKey = '自身致盲';
+      else if (displayLabel.includes('缓速')) targetMechKey = '单缓';
+      else if (displayLabel.includes('降避')) targetMechKey = '单滞';
+      else if (displayLabel.includes('他人')) targetMechKey = '他人';
+      else if (displayLabel.includes('净化')) targetMechKey = '驱散';
+      else if (displayLabel.includes('反击')) targetMechKey = '反击';
+      else if (displayLabel.includes('暴击')) targetMechKey = '暴击';
+      else if (displayLabel.includes('必中')) targetMechKey = '必中';
+
+      const mechFocusAttr = targetMechKey ? `data-mech-focus="${targetMechKey}"` : '';
+
       // 属性语义分类（方案 B：战术全息透镜 · 毛玻璃微晶）
       let cat = 'buff';
       if (displayLabel === '他人' || displayLabel === '友方' || displayLabel === '持续' || displayLabel === '限用' || displayLabel === '蓄力') {
         cat = 'aux';
       } else if (displayLabel.includes('回复') || displayLabel.includes('回蓝') || displayLabel.includes('充能') || displayLabel.includes('净化') || displayLabel.includes('抽取') || displayLabel.includes('驱散')) {
         cat = 'heal';
-      } else if (displayLabel.includes('伤害') || displayLabel.includes('穿透') || displayLabel.includes('枪击') || displayLabel.includes('霰弹') || displayLabel.includes('光')) {
+      } else if (displayLabel.includes('伤害') || displayLabel.includes('穿透') || displayLabel.includes('枪击') || displayLabel.includes('散射') || displayLabel.includes('光')) {
         cat = 'damage';
       } else if (displayLabel.includes('护盾') || displayLabel.includes('加防') || displayLabel.includes('闪避') || displayLabel.includes('免伤') || displayLabel.includes('回避') || displayLabel.includes('舍身') || displayLabel.includes('肃正')) {
         cat = 'defense';
@@ -1488,7 +1655,7 @@
       if (cat === 'aux') {
         // 辅助属性（他人、持续、限用、蓄力）：紧凑浅灰半透微标，无呼吸光点，低调不抢视线
         pills.push(`
-          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none">
+          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none">
             <span>${displayLabel}</span>
             ${displayVal != null ? `<span class="font-bold font-mono text-white/60 ml-0.5">${displayVal}</span>` : ''}
           </span>
@@ -1502,7 +1669,7 @@
         else if (cat === 'debuff') dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
 
         pills.push(`
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
             <span class="tracking-wide">${displayLabel}</span>
             ${displayVal != null ? `<span class="font-bold text-amber-200 font-mono ml-0.5">${displayVal}</span>` : ''}
@@ -1652,7 +1819,7 @@
       : '';
 
     return `
-      <div class="skill-slot-chip ${chipClass} ${tierClass}" style="--slot-idx:${slotIdx};">
+      <div class="skill-slot-chip ${chipClass} ${tierClass}" style="--slot-idx:${slotIdx};" data-skill-name="${s.name}" data-skill-raw="${s.rawText ? s.rawText.replace(/"/g, '&quot;') : ''}">
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
           <div class="w-7 h-7 rounded ${badgeBoxClass} border flex items-center justify-center shrink-0">
             ${badgeContent}
@@ -2090,7 +2257,7 @@
       const isSelected = state.hero3.skills.includes(s.name);
       const reactText = getReactionBadgeText(s);
       return `
-        <div class="skill-pick-card ${isSelected ? 'selected' : ''}" data-skill-card="${s.name}" onclick="window.demoActions.toggleSkill('${s.name}')">
+        <div class="skill-pick-card ${isSelected ? 'selected' : ''}" data-skill-card="${s.name}" data-skill-name="${s.name}" data-skill-raw="${s.rawText ? s.rawText.replace(/"/g, '&quot;') : ''}" onclick="window.demoActions.toggleSkill('${s.name}')">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-sm text-[var(--text-main)]">${s.name}</span>
             <span class="font-mono text-xs font-bold text-[var(--accent)]">${s.shopCost} 点</span>
@@ -2361,9 +2528,186 @@
     });
   }
 
+  /* =========================================================================
+     纯悬浮窗交互引擎 (智能定位、防视口溢出、专业游戏词条展示)
+     ========================================================================= */
+  let activeTooltipTimer = null;
+
+  function showTooltipForSkillData(skillName, rawText, targetRect, focusMechKey = null) {
+    const tooltipContainer = document.getElementById('skill-tooltip-container');
+    const ttName = document.getElementById('tt-skill-name');
+    const ttIcon = document.getElementById('tt-type-icon');
+    const ttBadges = document.getElementById('tt-header-badges');
+    const ttBody = document.getElementById('tt-mechanics-body');
+
+    if (!tooltipContainer) return;
+
+    // 1. 设置头部概要
+    if (ttName) ttName.textContent = skillName || '技能';
+    
+    // 从 rawText 推断类型图标与阶位标签
+    let typeIcon = '⚔️';
+    if (rawText && rawText.includes('远程')) typeIcon = '🏹';
+    else if (rawText && rawText.includes('法术')) typeIcon = '🔮';
+    else if (rawText && rawText.includes('反应')) typeIcon = '⚡';
+    if (ttIcon) ttIcon.textContent = typeIcon;
+
+    const badges = [];
+    if (rawText && rawText.includes('传奇')) {
+      badges.push('<span class="text-red-300 border border-red-500/50 bg-red-950/40 px-1.5 py-0.2 rounded">传奇</span>');
+    } else if (rawText && rawText.includes('高阶')) {
+      badges.push('<span class="text-amber-300 border border-amber-500/50 bg-amber-950/40 px-1.5 py-0.2 rounded">高阶</span>');
+    }
+    if (rawText && rawText.includes('限定')) {
+      badges.push('<span class="text-amber-200/70 border border-amber-500/30 bg-black/40 px-1.5 py-0.2 rounded">限定</span>');
+    } else if (rawText && rawText.includes('通用')) {
+      badges.push('<span class="text-purple-200/70 border border-purple-500/30 bg-black/40 px-1.5 py-0.2 rounded">通用</span>');
+    }
+    if (ttBadges) ttBadges.innerHTML = badges.join('');
+
+    // 2. 提取并渲染关联机制 (按需高亮聚焦机制)
+    const mechKeys = extractMechanicsKeys(rawText);
+    let displayKeys = mechKeys;
+    if (focusMechKey && mechKeys.includes(focusMechKey)) {
+      displayKeys = [focusMechKey, ...mechKeys.filter(k => k !== focusMechKey)];
+    }
+
+    if (ttBody) {
+      if (displayKeys.length === 0) {
+        ttBody.innerHTML = `
+          <div class="text-[0.72rem] text-white/45 py-2 font-mono text-center">基础物理攻防技能，无特殊扩展机制</div>
+        `;
+      } else {
+        ttBody.innerHTML = displayKeys.map(key => {
+          const item = MECHANICS_REGISTRY[key] || { title: key, icon: '✦', desc: '按标准规则结算生效。' };
+          const isFocused = focusMechKey === key;
+          const borderHighlight = isFocused ? 'border-amber-400/80 bg-amber-500/10' : 'border-white/5 bg-white/[0.02]';
+
+          return `
+            <div class="tooltip-mech-entry ${borderHighlight} rounded-lg px-2 py-1.5 transition-all">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-[var(--accent)] mb-0.5">
+                <span>${item.icon}</span>
+                <span class="tracking-wide">【${item.title}】</span>
+                ${isFocused ? '<span class="text-[0.58rem] text-amber-300 font-mono font-normal ml-auto">聚焦机制</span>' : ''}
+              </div>
+              <div class="text-[0.72rem] text-white/80 leading-relaxed font-sans pl-5">
+                ${item.desc}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 3. 智能定位与防视口溢出计算
+    tooltipContainer.classList.add('visible');
+    const ttWidth = tooltipContainer.offsetWidth || 320;
+    const ttHeight = tooltipContainer.offsetHeight || 180;
+    const padding = 12;
+
+    let posX = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
+    let posY = targetRect.top - ttHeight - 8; // 默认在卡片正上方
+
+    // 上边界溢出检测：如果上方放不下，放下方
+    if (posY < padding) {
+      posY = targetRect.bottom + 8;
+    }
+    // 左边界溢出检测
+    if (posX < padding) {
+      posX = padding;
+    }
+    // 右边界溢出检测
+    if (posX + ttWidth > window.innerWidth - padding) {
+      posX = window.innerWidth - ttWidth - padding;
+    }
+
+    tooltipContainer.style.left = `${Math.round(posX)}px`;
+    tooltipContainer.style.top = `${Math.round(posY)}px`;
+  }
+
+  function hideTooltip() {
+    const tooltipContainer = document.getElementById('skill-tooltip-container');
+    if (!tooltipContainer) return;
+    tooltipContainer.classList.remove('visible');
+  }
+
+  /* 全局事件委托：监听技能插槽与胶囊悬停，自适应动态重绘 */
+  function initTooltipGlobalEvents() {
+    const tooltipContainer = document.getElementById('skill-tooltip-container');
+    let currentTrigger = null;
+
+    document.addEventListener('mouseover', (e) => {
+      // 避免在卸下按钮或悬浮窗本身上触发/闪烁
+      if (e.target.closest('#skill-tooltip-container') || e.target.closest('.slot-remove-btn')) {
+        return;
+      }
+
+      // 1. 优先检测是否悬停在特定的机制胶囊上
+      const pill = e.target.closest('[data-mech-focus]');
+      if (pill) {
+        const card = pill.closest('[data-skill-name]');
+        if (card) {
+          currentTrigger = pill;
+          clearTimeout(activeTooltipTimer);
+          const skillName = card.getAttribute('data-skill-name');
+          const rawText = card.getAttribute('data-skill-raw');
+          const mechKey = pill.getAttribute('data-mech-focus');
+          const pillRect = pill.getBoundingClientRect();
+          activeTooltipTimer = setTimeout(() => {
+            showTooltipForSkillData(skillName, rawText, pillRect, mechKey);
+          }, 35);
+          return;
+        }
+      }
+
+      // 2. 检测是否悬停在技能插槽卡片或备选卡片上
+      const card = e.target.closest('[data-skill-name]');
+      if (card) {
+        if (currentTrigger === card) return;
+        currentTrigger = card;
+        clearTimeout(activeTooltipTimer);
+        const skillName = card.getAttribute('data-skill-name');
+        const rawText = card.getAttribute('data-skill-raw');
+        const cardRect = card.getBoundingClientRect();
+        activeTooltipTimer = setTimeout(() => {
+          showTooltipForSkillData(skillName, rawText, cardRect, null);
+        }, 65);
+        return;
+      }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      const card = e.target.closest('[data-skill-name]');
+      if (card) {
+        const related = e.relatedTarget;
+        if (related && card.contains(related)) return;
+        if (related && tooltipContainer && tooltipContainer.contains(related)) return;
+
+        currentTrigger = null;
+        clearTimeout(activeTooltipTimer);
+        hideTooltip();
+      }
+    });
+
+    // 点击空白处收起
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#skill-tooltip-container')) {
+        clearTimeout(activeTooltipTimer);
+        hideTooltip();
+      }
+    });
+
+    // 页面滚动时隐藏，防止悬浮窗悬空
+    window.addEventListener('scroll', () => {
+      clearTimeout(activeTooltipTimer);
+      hideTooltip();
+    }, { passive: true });
+  }
+
   /* 初始化启动 */
   parseCombatBlock();
   initDockEvents();
+  initTooltipGlobalEvents();
   // 默认启动进入威廉阶段，绑定密教金辉主题
   document.body.className = 'theme-arcane';
   renderStage(true);
@@ -2371,5 +2715,27 @@
 
 })();
 </script>
+
+<!-- ========================================================================= -->
+<!-- 核心纯悬浮窗容器 (挂载于全局 body，智能防溢出定位)                          -->
+<!-- ========================================================================= -->
+<div id="skill-tooltip-container" aria-hidden="true">
+  <div class="tooltip-glass-card">
+    <!-- 悬浮窗技能头部概要 -->
+    <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
+      <div class="flex items-center gap-2 min-w-0">
+        <span id="tt-type-icon" class="text-sm shrink-0">✦</span>
+        <span id="tt-skill-name" class="font-bold text-xs sm:text-sm text-[var(--text-main)] truncate font-serif">技能名称</span>
+      </div>
+      <div id="tt-header-badges" class="flex items-center gap-1 shrink-0 font-mono text-[0.62rem]"></div>
+    </div>
+
+    <!-- 关联机制条目列表 (仅说明【怎么用/怎么生效】) -->
+    <div id="tt-mechanics-body" class="space-y-1">
+      <!-- 动态注入机制词条 -->
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
