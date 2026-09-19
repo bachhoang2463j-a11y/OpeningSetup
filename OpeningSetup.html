@@ -86,8 +86,8 @@
   }
 
   /* ---- 背景层：视频 / CSS 雾夜兜底 / 胶片颗粒 / 暗角 ---- */
-  #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: var(--vid-op, 0.6); filter: blur(var(--vid-blur, 0px)); transform: scale(1.1); }
-  #bg-fallback { position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: var(--vid-op, 0.6); filter: blur(var(--vid-blur, 0px)); transform: scale(1.1); transition: opacity 900ms ease, filter 900ms ease; }
+  #bg-fallback { position: fixed; inset: 0; z-index: 0; overflow: hidden; opacity: 1; transition: opacity 900ms ease;
     background: radial-gradient(120% 90% at 50% 110%, #101623 0%, #070a12 55%, #05070c 100%); }
   .fog { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: 0.5; will-change: transform; }
   .fog-a { width: 60vw; height: 34vh; left: -10vw; bottom: -8vh;
@@ -734,8 +734,8 @@
       // 注意：网易云 m*.music.126.net 带 14 位时间戳签名的直链有时效（过期 403），不可直接发布。
       storyUrl: "http://127.0.0.1:8766/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
       selectUrl: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
-      url: "http://127.0.0.1:8766/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
-      title: "I Don't Want to Set the World on Fire / The Ecstasy Of Gold",
+      url: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
+      title: "The Ecstasy Of Gold - Ennio Morricone",
     },
     bgVideo: { url: 'https://cdn.pixabay.com/video/2026/07/24/366249_large.mp4', opacity: 0.6, blur: 10 },
 
@@ -1127,6 +1127,16 @@
   }
 
   let bgmFadeTimer = null;
+  /* 背景层按阶段交叉淡化：威廉/冯界面隐藏雨夜视频、露出雾夜兜底；其余阶段显示视频。
+     常驻渲染盒 + opacity 过渡，换段不闪跳 */
+  const VIDEO_STAGES = ['title', 'story', 'loading', 'done', 'c3id', 'c3class', 'c3skill', 'c3item', 'confirm'];
+  function updateBgLayers(stage) {
+    if (!OPENING_DATA.bgVideo.url) return; /* 未配置视频：雾夜兜底常驻 */
+    const wantVideo = VIDEO_STAGES.indexOf(stage) >= 0;
+    bgVideo.style.opacity = wantVideo ? '' : '0';     /* '' 恢复 --vid-op；'0' 渐隐 */
+    bgVideo.style.filter = wantVideo ? '' : 'blur(26px)'; /* 隐藏段额外加深模糊 */
+    bgFallback.style.opacity = wantVideo ? '0' : '1';
+  }
   function updateBgmForStage(targetStage) {
     const targetUrl = getBgmUrlForStage(targetStage);
     if (!targetUrl || !bgm) return;
@@ -2162,6 +2172,7 @@
       else voiceAudio.pause();
     }
     updateBgmForStage(state.stage);
+    updateBgLayers(state.stage);
   }
 
   function renderLoading() {
@@ -3224,7 +3235,7 @@
     fog:   { close: 1050, hold: 260, open: 1150 }
   };
   /* 方向键映射：「来源>目标」命中才走幕布；反向返回（如 c2>c1 返回威廉）保持淡入淡出 */
-  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog' };
+  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog', 'c2>c3id': 'fog' };
 
   function gotoStageWithCrossfade(st) {
     if (isStageTransitioning) return;
@@ -4246,7 +4257,6 @@ ${sectionBlocks}
       bgVideo.classList.remove('hidden');
       bgVideo.style.setProperty('--vid-op', String(OPENING_DATA.bgVideo.opacity || 0.6));
       bgVideo.style.setProperty('--vid-blur', String(OPENING_DATA.bgVideo.blur || 0) + 'px');
-      bgFallback.style.display = 'none';
     }
 
     // 幂等检查：本聊天已初始化 → 归档摘要，不再进向导
