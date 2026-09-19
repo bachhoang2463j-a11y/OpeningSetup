@@ -732,7 +732,7 @@
       // 本地测试直链（8766 服务器 root=D:\Project\my_assets，无需路径前缀）；
       // 发布前必须换成图床永久直链（推荐 catbox.moe，支持音频）。
       // 注意：网易云 m*.music.126.net 带 14 位时间戳签名的直链有时效（过期 403），不可直接发布。
-      storyUrl: "http://127.0.0.1:8766/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
+      storyUrl: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
       selectUrl: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
       url: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
       title: "The Ecstasy Of Gold - Ennio Morricone",
@@ -3235,7 +3235,7 @@
     fog:   { close: 1050, hold: 260, open: 1150 }
   };
   /* 方向键映射：「来源>目标」命中才走幕布；反向返回（如 c2>c1 返回威廉）保持淡入淡出 */
-  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog', 'c2>c3id': 'fog' };
+  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog', 'c2>c3id': 'blind' };
 
   function gotoStageWithCrossfade(st) {
     if (isStageTransitioning) return;
