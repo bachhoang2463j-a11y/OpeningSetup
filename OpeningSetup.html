@@ -163,7 +163,7 @@
     mask-image: linear-gradient(to bottom, black 84%, transparent 100%);
     transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .portrait-img.hero-swap-in { animation: hero-swap 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .hero-swap-in { animation: hero-swap 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
   @keyframes hero-swap {
     0% { opacity: 0; transform: scale(0.96) translateY(14px); filter: brightness(1.4) blur(4px); }
     100% { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1) blur(0); }
@@ -447,37 +447,46 @@
   .tooltip-mech-entry:last-child { border-bottom: none; padding-bottom: 2px; }
   .tooltip-mech-entry:first-child { padding-top: 2px; }
 
-  /* ===== demo 移植：战斗规则速查弹窗（半透磨砂 + 鎏金细滚动条 + 机制卡 hover GIF） ===== */
+  /* ===== demo 移植：战斗规则速查弹窗（半透磨砂 + 鎏金细滚动条 + 8大卡片可切换） ===== */
   .rules-modal-card {
     background: rgba(13, 18, 28, 0.78); backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
     border: 1px solid rgba(217, 180, 92, 0.35);
     box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.9), 0 0 32px rgba(217, 180, 92, 0.2);
   }
-  .rules-item-card {
-    position: relative; background: rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(12px); overflow: hidden;
-  }
-  .rules-item-card:hover {
-    background: rgba(255, 255, 255, 0.05); border-color: rgba(217, 180, 92, 0.45);
-    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 16px rgba(217, 180, 92, 0.15);
-  }
   .rules-scrollbar::-webkit-scrollbar { width: 5px; }
   .rules-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); border-radius: 9999px; }
   .rules-scrollbar::-webkit-scrollbar-thumb { background: rgba(217, 180, 92, 0.38); border-radius: 9999px; transition: background 0.2s ease; }
   .rules-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(217, 180, 92, 0.8); }
   .rules-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(217, 180, 92, 0.38) rgba(0, 0, 0, 0.25); }
-  .rules-hover-gif-box {
-    position: absolute; top: 10px; right: 10px; width: 128px; height: 72px;
-    pointer-events: none; opacity: 0; z-index: 20; transform: scale(0.9) translateY(4px);
-    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-    -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 95%);
-    mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 95%);
-    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.9));
+  /* 8大卡片切换 Tab 与内容卡片专属样式 */
+  .rule-tab-pill {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    user-select: none;
   }
-  .rules-item-card:hover .rules-hover-gif-box { opacity: 1; transform: scale(1) translateY(0); }
-  .rules-hover-gif-img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+  .rule-tab-pill.active {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.32), rgba(217, 119, 6, 0.18)) !important;
+    border-color: rgba(251, 191, 36, 0.95) !important;
+    color: #fef3c7 !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.35), inset 0 0 10px rgba(245, 158, 11, 0.2) !important;
+    transform: translateY(-1px);
+  }
+  .rule-img-box {
+    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.85) 0%, rgba(3, 7, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.85), 0 8px 24px -6px rgba(0, 0, 0, 0.7);
+  }
+  .rule-section-block {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 10px 12px;
+    transition: border-color 0.2s;
+  }
+  .rule-section-block:hover {
+    border-color: rgba(217, 180, 92, 0.3);
+  }
 </style>
 </head>
 <body class="theme-arcane">
@@ -505,7 +514,7 @@
     <button id="top-rules-btn" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-black/75 backdrop-blur-md text-amber-300 hover:text-amber-100 hover:border-amber-300 hover:bg-black/90 shadow-[0_0_16px_rgba(217,180,92,0.25)] transition-all cursor-pointer font-serif text-xs">
       <span class="text-sm">📖</span>
       <span class="tracking-wider font-bold">战斗规则速查</span>
-      <span class="text-[0.6rem] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">6大专有机制</span>
+      <span class="text-[0.6rem] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">8大专有机制与界面速查</span>
     </button>
   </div>
 
@@ -3348,6 +3357,352 @@
     });
   }
 
+  /* ===== demo 移植：战斗界面与核心规则速查（8大卡片数据驱动可切换；layout:'wide'=单栏全宽拆图，默认=左右双栏） ===== */
+  const RULE_CARDS = [
+    {
+      id: 1,
+      tag: 'CTB 动态时间轴',
+      title: '行动时序与排轴',
+      subTitle: 'ACTION TIMELINE & SPEED',
+      img: 'http://127.0.0.1:8766/OS/拆图_1_行动时序条.png',
+      imgAlt: '行动时序条 界面拆图',
+      imgCaption: '左侧绿色方框 · 纵向行动时间轴',
+      desc: '谁先动、谁后动，完全由角色当前「速度（Speed）」动态决定。',
+      uiPoints: [
+        '轴上线段串联着所有存活单位（友方蓝圈、敌方红圈）。',
+        '顶部最大的金色高亮头像（标号 ①）代表「当前正在行动的单位」。',
+        '下方依次排列的标号 ②~⑦ 代表后续行动顺序。'
+      ],
+      mechanics: [
+        '<strong>速度动态判定</strong>：每轮行动结束后，依据全员即时速度重新排定后续序列。',
+        '<strong>时序干扰</strong>：施放 [单速/缓速] 会实时推迟目标顺位；施放 [再动] 立即插至轴顶；造成 [眩晕] 剥夺当次行动；造成 [麻痹] 概率产生僵直。',
+        '<strong>多动单位衰减</strong>：若 Boss 具备多次行动能力（Act > 1），其后续行动速度按每动递减，串行插入时间轴。'
+      ],
+      tips: [
+        '随时观察左侧行动轴，预判敌我行动次序。',
+        '在敌方关键大招出手前，优先击杀或通过控制技能改变行动顺序。'
+      ]
+    },
+    {
+      id: 2,
+      tag: '空间站位制约',
+      title: '战场阵型与空间制约',
+      subTitle: 'FORMATION & COVER MECHANICS',
+      img: 'http://127.0.0.1:8766/OS/拆图_2_敌方站位区.png',
+      imgAlt: '敌方站位区 界面拆图',
+      imgCaption: '上方黄色大方框 · 敌方战斗阵营',
+      desc: '敌我双方分为「前排」与「后排」，站位直接决定攻防合法性与命中率。',
+      uiPoints: [
+        '顶部远离队伍的 3 个单位为「后排」（两侧小鱼、中央雪花怪）。',
+        '底部靠近队伍的 3 个单位为「前排」（两侧幽灵、中央星系旋涡）。',
+        '敌人血条下方的金色菱形代表其蓄力技能的进展，每次行动填充一格，充满时将在下一次行动使用高威力大招；头顶标签（如 ⚔️+50）代表攻击/增益状态。'
+      ],
+      mechanics: [
+        '<strong>前排掩护（近战锁定）</strong>：敌方前排存活时，近战单体技能无法触及后排目标。',
+        '<strong>后排干扰（远程折损）</strong>：敌方后排存活时，对前排进行远程或法术攻击命中率削减 30%。'
+      ],
+      tips: [
+        '近战职业优先清理前排杂兵；后排高威胁法师/射手需用远程或法术进行狙杀。'
+      ]
+    },
+    {
+      id: 3,
+      tag: '轮次高亮与保命',
+      title: '当前行动与仇恨索敌',
+      subTitle: 'TURN ACTIVE & THREAT AGGRO',
+      img: 'http://127.0.0.1:8766/OS/拆图_3_当前行动角色.png',
+      imgAlt: '当前行动角色 界面拆图',
+      imgCaption: '中下部黄色中方框 · 当前行动角色卡（玛德琳）',
+      desc: '轮到行动的角色获得金色光框；角色的职能决定了被敌人集火的概率与保命特质。',
+      uiPoints: [
+        '黄色高亮边框：清晰指示当前正在做决策的友方角色（当前为玛德琳）。',
+        '状态标识：右上角显示当前常驻/临时被动状态（如「隐匿 -60」）。',
+        '角色三维槽：清晰显示当前角色的 HP（生命）、MP（法力）与 TP（战技点）。'
+      ],
+      mechanics: [
+        '<strong>仇恨索敌轮盘</strong>：敌人攻击目标依据仇恨权重抽取——防守者 200 / 常规 100 / 隐匿者 50。附加 [嘲讽] 可强制拉取仇恨；具备 [智慧] 特质的高阶敌人则会无视仇恨优先斩杀残血。',
+        '<strong>绝境留存（保命机制）</strong>：受到致命伤害时，防守者/狂战士触发【毅力留存】锁定 1 HP 不死；隐匿者/风行者触发【回避致命】完全免疫致死伤（每场战斗各限 1 次）。'
+      ],
+      tips: [
+        '轮到该角色时，根据其职能（如防守者吸引仇恨、隐匿者降低存在感）选择最优战术。'
+      ]
+    },
+    {
+      id: 4,
+      layout: 'wide',
+      tag: '能量流转与爆发',
+      title: '战技点 (TP) 循环与极限爆发',
+      subTitle: 'TP ENERGY SYSTEM & LIMIT BREAK',
+      img: 'http://127.0.0.1:8766/OS/拆图_4_友方状态栏.png',
+      imgAlt: '友方状态栏 界面拆图',
+      imgCaption: '底部蓝色横向方框 · 友方全体状态与 TP 槽',
+      desc: 'TP（战技点）是驱动高阶战技与极限爆发的核心动态资源，上限 100 点。',
+      uiPoints: [
+        '贯穿底部的绿色能量条即为 TP 槽（当前索恩积蓄了 25 点 TP）。',
+        'HP（黄色/橙色）：生命值，归零陷入濒死。',
+        'MP（青蓝色）：法力值，施放法术与高阶技能的消耗源。'
+      ],
+      mechanics: [
+        '<strong>TP 获取机制</strong>：角色主动施法或成功闪避各获得 +5 TP；承受伤害获得 +10 TP；特定技能携带 [充能] 标签可定向补充战技点。',
+        '<strong>极限爆发 (Limit Break)</strong>：当 TP 达到 100 时头像高亮闪烁，点击头像激活爆发模式！下一击所有数值（伤害/治疗/护盾/持续）全额翻倍 (+100%) 且获得绝对必中！施放后清空 TP。',
+        '<strong>职业专属特化</strong>：圣职者满 TP 可赋予全队连携再动；风行者 TP 按 1:1 永久恒定转化为闪避率。'
+      ],
+      tips: [
+        '通过普攻、施法、受击积累 TP，满 100 点时角色头像将出现金色光晕，点击可激活「极限爆发」。'
+      ]
+    },
+    {
+      id: 5,
+      tag: '四大指令与非致命',
+      title: '行动决策与指令操作',
+      subTitle: 'COMMAND SELECTION & NON-LETHAL',
+      img: 'http://127.0.0.1:8766/OS/拆图_5_行动指令面板.png',
+      imgAlt: '行动指令面板 界面拆图',
+      imgCaption: '右下角红色方框 · 行动指令操作面板',
+      desc: '右下角清晰聚合角色当前可执行的一切指令，并提供「非致命」开关。',
+      uiPoints: [
+        '面板顶栏提示：【XX 的回合】，明确当前决策归属。',
+        '📦 基础行动：包含普通攻击（单体近战）、防御姿态（下回合50%减伤并依设置回MP/TP）、尝试撤离（双方平均速度Roll点，重伤影响成功率）。',
+        '⚔️ 攻击技能 / ✨ 辅助技能 / 🎒 物品道具：单体/群攻/治疗/护盾/消耗品分类展开。',
+        '⛓️ 非致命开关（左下角）：点击可切换「致死攻击」与「非致命制服」模式。'
+      ],
+      mechanics: [
+        '<strong>资源与冷却结算</strong>：选择技能时若 MP/TP 或道具耗尽，选项变灰禁用。',
+        '<strong>反应技挂载</strong>：[反应][舍身][看破] 技能属于被动，不会在技能栏中显示，在不同时机自动弹出拦截窗口。',
+        '<strong>非致命制服</strong>：开启后敌方 HP 归零时保留 1 点生命并陷入昏迷，直接影响战后剧情与酒馆对话走向。'
+      ],
+      tips: [
+        '根据当前战局在 4 个分类中展开对应菜单选择具体招式；若剧情需要抓活口，开启「非致命」。',
+        '「非致命」无法阻止复活。需要通过速度判定才能阻止敌方自爆。'
+      ]
+    },
+    {
+      id: 6,
+      layout: 'wide',
+      tag: '系统导航与跨场接续',
+      title: '战局控制与继续机制',
+      subTitle: 'TOP BAR NAVIGATION & PERSISTENCE',
+      img: 'http://127.0.0.1:8766/OS/拆图_6_顶部功能栏.png',
+      imgAlt: '顶部功能栏 界面拆图',
+      imgCaption: '顶部圆圈 1~6 按钮组 · 系统导航与战局交互',
+      desc: '提供全方位的战局辅助工具，以及贯穿战前、战中、战后的无缝「继续推进」机制。',
+      uiPoints: [
+        '① 世界书：实时调阅当前登场敌人与友方的世界书设定档案与变种特质。',
+        '② 记录：查看战斗全量回合日志与角色实时台词。',
+        '③ 全屏：一键切换网页全屏沉浸视窗，规避酒馆外部元素干扰。',
+        '④ 对话：实时对话与敌人生成 LLM 的人格和 API 设置。',
+        '⑤ 设置：本系统的 GM 后台，附带完整的技能编辑器，用于定制与 Debug。',
+        '⑥ 重置：回退战斗为初始状态，直白地说就是 SL。'
+      ],
+      mechanics: [
+        '<strong>⏳ 蓄力继续（战斗内）</strong>：施放带 [延迟:N] 蓄力技能的角色，在后续回合面板切换为【继续蓄力 / 终止蓄力】，选择继续蓄力推进 1 回合进度，期间仍保留被动反制权；蓄力完成后自动转为【释放蓄力】。',
+        '<strong>🛡️ 反制接续（事件打断）</strong>：敌方宣告技能时触发【看破/舍身/反应】窗口冻结时序，玩家决策完成后时间轴自动解冻，流程无缝接续。',
+        '<strong>🔄 战后与酒馆接续（跨场闭环）</strong>：战后系统将最终 HP/MP 及物品剩余量直连写入聊天变量 $rpg_combat_result，同步至 MiniMapStatus 状态栏，并激活合并层硬锁防止剧情二次扣血；自动生成 &lt;战报摘要&gt; 供酒馆 LLM 顺滑续写；下一场战斗开局勾选「状态栏传入」，战役冒险永久接续！'
+      ],
+      tips: [
+        '遇意外卡死或网络超时，可善用 ⑥重置 快速回退，或在 ⑤设置 中微调战斗参数。'
+      ]
+    },
+    {
+      id: 7,
+      layout: 'wide',
+      tag: '目标侦测与20种变种',
+      title: '目标侦测与变种特质',
+      subTitle: 'TARGET INSPECT & 20 MUTATION TRAITS',
+      img: 'http://127.0.0.1:8766/OS/拆图_敌方目标面板.png',
+      imgAlt: '敌方目标面板 界面拆图',
+      imgCaption: '点击战场任意敌人弹出的全信息微晶面板',
+      desc: '战场信息完全透明化，点击即可实时洞悉敌方的属性、特质、站位规则与技能库。',
+      uiPoints: [
+        '<strong>唤起方式（核心操作）</strong>：战斗进行中，<strong>直接点击战场上的任意敌人单位</strong>，即可随时弹出该敌人的全信息微晶拟态面板；点击背景或右上角 ✕ 即可关闭返回战场。',
+        '<strong>顶栏标签区</strong>：显示单位名称、种族图标、站位（前排/后排）以及 [首领] 等阶位。',
+        '<strong>左侧信息栏</strong>：显示生命上限 (HP)、法力储备 (MP)、变种特质被动以及世界书图鉴档案 (LORE ENTRY)。'
+      ],
+      mechanics: [
+        '<strong>全员概率随机变种（共 20 种标签）</strong>：默认每场战斗开始时，每个敌人均有概率随机觉醒获得变种标签。即使是同一种怪物，每场战斗的特性也可能截然不同！',
+        '<strong>智慧索敌质变 ([智慧单位])</strong>：普通敌人依据仇恨轮盘随机抽选目标；带有 [智慧单位] 标签的敌人会彻底无视仇恨，优先集火我方防御薄弱的角色，或对我方濒死残血单位进行精准斩杀。',
+        '<strong>其余 19 种变种标签</strong>：涵盖伤害抗性（如 [流体] 减免 50% 远程、[虚形] 减免 50% 近战、[破法] 减免 50% 法术）、时序干扰、残血 [连动]、死亡特异（如 [自爆]、[复活]）等多种质变维度。',
+        '<strong>空间站位制约</strong>：前排存活时近战无法突进后排；后排存活时我方远程/法术攻前排命中率削减该后排敏捷的 30%。'
+      ],
+      tips: [
+        '⚠️【开局第一准则】：由于每个敌人在每场战斗开始时均有概率随机获得变种标签（除 [智慧] 外共另有 19 种标签），开局务必点击每个敌人打开面板核对特质与技能，避免因抗性减免（如流体/虚形/破法）或死亡自爆导致战术崩盘！'
+      ]
+    },
+    {
+      id: 8,
+      layout: 'wide',
+      tag: '战力洞察与充能大招',
+      title: '敌方战力与大招预警',
+      subTitle: 'ENEMY STATS & SKILL CHARGE ALERT',
+      img: 'http://127.0.0.1:8766/OS/拆图_敌方目标面板.png',
+      imgAlt: '敌方目标面板 界面拆图',
+      imgCaption: '右侧核心三维、4大技能槽与底栏继续反应按钮',
+      desc: '知己知彼，百战不殆：提前侦测敌方四维战力与技能库，预判敌方大招时机。',
+      uiPoints: [
+        '<strong>核心三维属性</strong>：⚔️ ATK（基础攻击力）、🛡️ DEF（物理硬减伤防御）、⚡ SPD（即时速度，决定行动轴顺位与出手频率）。',
+        '<strong>技能装备列表（4 槽）</strong>：展示敌人已装备的所有主动技能、法术、固有被动与反应反制技。',
+        '<strong>底栏交互</strong>：【继续反应】按钮在反制/打断窗口中用于推进后续结算；【战术目镜】标识当前情报洞察精度。'
+      ],
+      mechanics: [
+        '<strong>充能大招蓄力 ([充能:N])</strong>：技能带有 [充能:N] 标签时，在战场敌人血条下方会显示对应数量的<strong>金色菱形</strong>；敌人每次行动填充一格，充满时将在下一轮行动释放毁灭性大招！',
+        '<strong>法力制约 (MP 耗尽)</strong>：敌人的高阶法术与专属回避反应技均需消耗 MP；通过战术消耗抽干敌人 MP 可有效封印其强力技能与高额闪避。',
+        '<strong>被动回避反应技</strong>：敌方携带如 [回避:200] 等反应技时，受到攻击会消耗 MP 自动插队判定高额闪避，常规物理攻击极易落空。'
+      ],
+      tips: [
+        '敌方蓄力菱形快满时，全员务必开启【防御姿态】减伤，或利用控制技能（眩晕/推条）延缓其出手。',
+        '面对高回避敌人，优先使用【极限爆发】（附带绝对必中）或法术伤害进行致命克制。'
+      ]
+    }
+  ];
+
+  let currentRuleIndex = 0;
+
+  function renderRuleTabs() {
+    const bar = document.getElementById('rule-tabs-bar');
+    if (!bar) return;
+    const titles = ['时序', '阵型', '行动', 'TP', '指令', '控制', '侦测', '战力'];
+    bar.innerHTML = RULE_CARDS.map(function (card, idx) {
+      const stateCls = idx === currentRuleIndex ? 'active' : 'text-white/60 hover:text-white hover:bg-white/5';
+      return `
+      <button data-rule-index="${idx}"
+              class="rule-tab-pill px-2.5 py-1 rounded-lg text-xs font-mono flex items-center gap-1 ${stateCls}"
+              title="${card.title}">
+        <span class="font-bold">${String(idx + 1).padStart(2, '0')}</span>
+        <span class="hidden md:inline text-[0.68rem] opacity-80">${titles[idx]}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function renderRuleCard() {
+    const stage = document.getElementById('rule-card-stage');
+    const pageInd = document.getElementById('rule-page-indicator');
+    const prevBtn = document.getElementById('rule-prev-btn');
+    const nextBtn = document.getElementById('rule-next-btn');
+    if (!stage) return;
+
+    const card = RULE_CARDS[currentRuleIndex];
+    if (!card) return;
+
+    // 更新 Tab 索引条
+    renderRuleTabs();
+
+    // 更新页码指示与上一项/下一项按钮态
+    if (pageInd) pageInd.textContent = `${currentRuleIndex + 1} / ${RULE_CARDS.length}`;
+    if (prevBtn) {
+      prevBtn.disabled = currentRuleIndex === 0;
+      prevBtn.style.opacity = currentRuleIndex === 0 ? '0.4' : '1';
+      prevBtn.style.pointerEvents = currentRuleIndex === 0 ? 'none' : 'auto';
+    }
+    if (nextBtn) {
+      if (currentRuleIndex === RULE_CARDS.length - 1) {
+        nextBtn.innerHTML = '<span>完成阅读 · 返回战场 ✓</span>';
+        nextBtn.className = 'px-4 py-1.5 rounded-lg border border-emerald-500/60 bg-emerald-500/25 hover:bg-emerald-500/40 text-emerald-200 hover:text-white transition-all cursor-pointer flex items-center gap-1 text-xs font-bold shadow-[0_0_16px_rgba(16,185,129,0.35)]';
+      } else {
+        nextBtn.innerHTML = '<span>下一项</span><span>▶</span>';
+        nextBtn.className = 'px-4 py-1.5 rounded-lg border border-amber-500/50 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 hover:text-amber-100 transition-all cursor-pointer flex items-center gap-1 text-xs font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)]';
+      }
+    }
+
+    const headerBlock = `
+          <!-- 头部标题 -->
+          <div class="pb-2 border-b border-white/10">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">卡片 ${String(card.id).padStart(2, '0')}</span>
+                <span class="text-xs font-mono text-white/50">${card.tag}</span>
+              </div>
+              <span class="text-[0.65rem] font-mono text-white/40 tracking-wider">${card.subTitle}</span>
+            </div>
+            <h2 class="text-lg sm:text-xl font-bold text-amber-200 font-serif tracking-wide">${card.title}</h2>
+            <p class="text-xs text-amber-100/80 mt-1 leading-relaxed bg-black/35 p-2 rounded-lg border-l-2 border-amber-400/80">
+              ${card.desc}
+            </p>
+          </div>`;
+
+    // 拆图上限用 px（酒馆 iframe 流式 vh 回归）；wide=单栏全宽大图，默认=双栏窄列图
+    const imgTag = `
+              <img src="${card.img}"
+                   alt="${card.imgAlt}"
+                   class="${card.layout === 'wide' ? 'max-w-full max-h-[340px] w-auto mx-auto' : 'max-h-[320px] w-auto'} object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] shadow-lg"
+                   onerror="this.style.display='none'">`;
+
+    const captionBar = `
+            <div class="flex items-center justify-between px-2.5 text-[0.72rem] font-mono text-amber-300/85 bg-amber-950/20 border border-amber-500/25 rounded-lg py-1.5">
+              <span class="flex items-center gap-1.5">
+                <span class="text-amber-400 text-xs">🎯</span>
+                <span>${card.imgCaption}</span>
+              </span>
+              <span class="text-[0.62rem] text-white/40">高精度实机截取</span>
+            </div>`;
+
+    const sectionBlocks = `
+          <!-- 界面说明 -->
+          <div class="rule-section-block">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-sky-300 font-serif mb-1.5">
+              <span>🔍</span><span>【界面说明】</span>
+            </div>
+            <ul class="space-y-1 text-xs text-white/80 leading-relaxed list-disc list-inside">
+              ${card.uiPoints.map(p => `<li>${p}</li>`).join('')}
+            </ul>
+          </div>
+
+          <!-- 具体机制 -->
+          <div class="rule-section-block">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-amber-300 font-serif mb-1.5">
+              <span>⚙️</span><span>【具体机制】</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-white/80 leading-relaxed list-disc list-inside">
+              ${card.mechanics.map(m => `<li>${m}</li>`).join('')}
+            </ul>
+          </div>
+
+          <!-- 实战提示 -->
+          <div class="rounded-xl p-3 bg-emerald-950/30 border border-emerald-500/35 text-xs text-emerald-100 leading-relaxed shadow-sm">
+            <div class="flex items-center gap-1.5 font-bold text-emerald-300 font-serif mb-1">
+              <span>💡</span><span>【实战提示】</span>
+            </div>
+            <div class="space-y-1 text-emerald-100/90 text-xs">
+              ${card.tips.map(t => `<div>${t}</div>`).join('')}
+            </div>
+          </div>`;
+
+    // hero-swap-in 与角色切换同一动效，随重渲染重放
+    stage.innerHTML = card.layout === 'wide' ? `
+      <div class="hero-swap-in flex flex-col gap-3.5">
+${headerBlock}
+
+          <!-- 拆图图解区：全宽自适应原始比例，杜绝定高空白 -->
+          <div class="flex flex-col gap-2">
+            <div class="rule-img-box rounded-xl p-2 flex items-center justify-center overflow-hidden group relative w-fit min-w-[260px] max-w-full mx-auto">${imgTag}
+            </div>
+${captionBar}
+          </div>
+${sectionBlocks}
+      </div>
+    ` : `
+      <div class="hero-swap-in grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- 左栏：拆图图解区 -->
+        <div class="lg:col-span-5 flex flex-col gap-2.5">
+          <div class="rule-img-box rounded-xl p-3 flex flex-col items-center justify-center overflow-hidden group relative">${imgTag}
+          </div>
+${captionBar}
+        </div>
+
+        <!-- 右栏：机制详解与操作提示 -->
+        <div class="lg:col-span-7 flex flex-col gap-3.5 font-sans">
+${headerBlock}
+${sectionBlocks}
+        </div>
+      </div>
+    `;
+  }
+
+  function switchRuleCard(idx) {
+    if (idx < 0 || idx >= RULE_CARDS.length) return;
+    currentRuleIndex = idx;
+    renderRuleCard();
+  }
+
   /* 战斗规则速查弹窗交互 */
   function toggleBattleRulesModal(forceState) {
     const modal = document.getElementById('battle-rules-modal');
@@ -3361,6 +3716,7 @@
       modal.style.opacity = '1';
       modal.style.pointerEvents = 'auto';
       if (card) card.style.transform = 'scale(1)';
+      renderRuleCard(); // 打开时渲染当前卡片
     } else {
       modal.style.opacity = '0';
       modal.style.pointerEvents = 'none';
@@ -3376,6 +3732,30 @@
     });
     window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') toggleBattleRulesModal(false);
+    });
+
+    // 8大卡片：Tab 索引条点击切换（事件委托，Tab 随重渲染重建）
+    const tabsBar = document.getElementById('rule-tabs-bar');
+    if (tabsBar) tabsBar.addEventListener('click', function (ev) {
+      const pill = ev.target.closest('[data-rule-index]');
+      if (pill) switchRuleCard(parseInt(pill.getAttribute('data-rule-index'), 10) || 0);
+    });
+
+    // 底栏上一项/下一项（末页变「完成阅读 · 返回战场」）
+    const prevBtn = document.getElementById('rule-prev-btn');
+    if (prevBtn) prevBtn.addEventListener('click', function () { switchRuleCard(currentRuleIndex - 1); });
+    const nextBtn = document.getElementById('rule-next-btn');
+    if (nextBtn) nextBtn.addEventListener('click', function () {
+      if (currentRuleIndex < RULE_CARDS.length - 1) switchRuleCard(currentRuleIndex + 1);
+      else toggleBattleRulesModal(false);
+    });
+
+    // 键盘 ←/→ 切换卡片（仅弹窗可见时接管）
+    window.addEventListener('keydown', function (e) {
+      const m = document.getElementById('battle-rules-modal');
+      if (!m || !m.classList.contains('visible')) return;
+      if (e.key === 'ArrowLeft') switchRuleCard(currentRuleIndex - 1);
+      else if (e.key === 'ArrowRight') switchRuleCard(currentRuleIndex + 1);
     });
 
     // 右上角规则胶囊与 BGM 胶囊
@@ -3688,184 +4068,56 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- demo 移植：6大核心战斗专有机制速查战术弹窗                                 -->
+<!-- demo 移植：战斗界面与核心规则速查（8大卡片可切换 · 图文并茂）               -->
 <!-- ========================================================================= -->
 <div id="battle-rules-modal" class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-6 opacity-0 pointer-events-none transition-all duration-200 ease-out" aria-hidden="true">
   <!-- 半透明通透全息磨砂背景遮罩 -->
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" data-rules-close></div>
 
   <!-- 弹窗主体容器：半透明微晶玻璃拟态（高度上限用 px，规避酒馆 iframe 流式 vh 回归） -->
-  <div class="rules-modal-card relative z-10 w-full max-w-4xl max-h-[560px] flex flex-col rounded-2xl overflow-hidden transform scale-95 transition-transform duration-200 ease-out">
+  <div class="rules-modal-card relative z-10 w-full max-w-5xl max-h-[560px] flex flex-col rounded-2xl overflow-hidden transform scale-95 transition-transform duration-200 ease-out">
     <!-- 顶部鎏金流光细线 -->
     <div class="h-1 w-full bg-gradient-to-r from-transparent via-amber-400/85 to-transparent"></div>
 
-    <!-- 弹窗顶栏 -->
-    <div class="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-white/[0.02]">
+    <!-- 弹窗顶栏：标题 + 8大卡片切换索引器 + 关闭按钮 -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-white/10 bg-white/[0.02]">
       <div class="flex items-center gap-2.5">
         <span class="text-xl">📖</span>
         <div>
           <div class="flex items-center gap-2">
-            <h3 class="text-base sm:text-lg font-bold text-[var(--text-main)] font-serif tracking-wider">核心战斗专有机制速查</h3>
-            <span class="text-[0.62rem] font-mono px-2 py-0.5 rounded border border-amber-500/40 bg-amber-950/40 text-amber-200">6 CORE MECHANICS</span>
+            <h3 class="text-base sm:text-lg font-bold text-amber-100 font-serif tracking-wider">战斗界面与核心规则速查</h3>
+            <span class="text-[0.62rem] font-mono px-2 py-0.5 rounded border border-amber-500/40 bg-amber-950/40 text-amber-200">8 CORE MECHANICS</span>
           </div>
-          <p class="text-[0.68rem] text-white/45 font-mono">底层规则与时序结算速查 · 仅说明【怎么用 / 怎么生效】</p>
+          <p class="text-[0.66rem] text-white/45 font-mono">现代游戏多卡片可切换架构 · 图文并茂避免信息过载</p>
         </div>
       </div>
+
+      <!-- 8大卡片切换器 (Tab Pills，由 JS 渲染 01~08) -->
+      <div id="rule-tabs-bar" class="flex items-center gap-1.5 bg-black/50 p-1 rounded-xl border border-white/10"></div>
+
+      <!-- 关闭按钮 -->
       <button data-rules-close class="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors text-base font-mono cursor-pointer" title="关闭 (ESC)">✕</button>
     </div>
 
-    <!-- 6大机制内容卡片网格 (采用专属 rules-scrollbar 美化细滚动条) -->
-    <div class="p-4 sm:p-5 overflow-y-auto rules-scrollbar grid grid-cols-1 md:grid-cols-2 gap-3.5">
-      <!-- 1. 极限爆发 -->
-      <div class="rules-item-card">
-        <!-- 机制卡悬停实机战斗 GIF 预留窗口 (四周径向羽化；资源未配置时由 onerror 占位图兜底) -->
-        <div class="rules-hover-gif-box">
-          <img src="http://127.0.0.1:8766/OS/gif/机制_极限爆发.gif" alt="极限爆发 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
-        </div>
+    <!-- 卡片主体展示区：wide 卡单栏全宽拆图，其余左右双栏，由 JS 按卡片 layout 渲染 -->
+    <div id="rule-card-stage" class="flex-1 overflow-y-auto rules-scrollbar p-4 sm:p-6"></div>
 
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
-          <span class="font-bold text-sm text-amber-300 font-serif flex items-center gap-1.5">
-            <span>💥</span><span>极限爆发 (Limit Break)</span>
-          </span>
-          <span class="text-[0.6rem] font-mono text-amber-200/80 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/30">100 TP 全额</span>
-        </div>
-        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
-          <div>
-            <span class="text-[var(--accent)] font-bold font-mono">【怎么用】</span>
-            <span>TP 达 100 时头像高亮闪烁，点击头像激活爆发（再点取消）；施放技能后全额扣除 100 TP。</span>
-          </div>
-          <div>
-            <span class="text-[var(--accent)] font-bold font-mono">【怎么生效】</span>
-            <span>技能所有数值槽（伤害/治疗/护盾/持续）<strong class="text-amber-200">翻倍 (+100%)</strong> 并<strong class="text-amber-200">附加必中</strong>（仍受反应/看破化解）；激活期间自带 TP 技能禁用；与暴击互斥。</span>
-          </div>
-        </div>
+    <!-- 弹窗底栏：左右切换按钮与辅助操作 -->
+    <div class="px-5 py-3 border-t border-white/10 bg-black/50 flex items-center justify-between text-xs font-mono">
+      <div class="flex items-center gap-3 text-white/45 text-[0.7rem]">
+        <span>💡 键盘 <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-amber-200 border border-white/15">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-amber-200 border border-white/15">→</kbd> 方向键切换</span>
+        <span class="hidden sm:inline">·</span>
+        <span class="hidden sm:inline"><kbd class="px-1.5 py-0.5 rounded bg-white/10 text-white/70 border border-white/15">ESC</kbd> 退出</span>
       </div>
-
-      <!-- 2. 战技点循环 -->
-      <div class="rules-item-card">
-        <div class="rules-hover-gif-box">
-          <img src="http://127.0.0.1:8766/OS/gif/机制_战技点循环.gif" alt="TP循环 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
-        </div>
-
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
-          <span class="font-bold text-sm text-sky-300 font-serif flex items-center gap-1.5">
-            <span>⚡</span><span>战技点 (TP) 循环</span>
-          </span>
-          <span class="text-[0.6rem] font-mono text-sky-200/80 px-1.5 py-0.5 rounded bg-sky-950/40 border border-sky-500/30">上限 100 点</span>
-        </div>
-        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
-          <div>
-            <span class="text-sky-400 font-bold font-mono">【怎么用】</span>
-            <span>全角色通用战斗能量（上限 100），驱动高阶技能施放与极限爆发激活。</span>
-          </div>
-          <div>
-            <span class="text-sky-400 font-bold font-mono">【怎么生效】</span>
-            <span>施法/闪避各 +5，受击 +10，技能 <code class="text-amber-200 font-mono">[充能]</code> 定向补充；圣职者满 TP 可赋予队友再动，风行者 TP 1:1 恒定转化为闪避率。</span>
-          </div>
-        </div>
+      <div class="flex items-center gap-2">
+        <button id="rule-prev-btn" class="px-3.5 py-1.5 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white/80 transition-all cursor-pointer flex items-center gap-1 text-xs">
+          <span>◀</span><span>上一项</span>
+        </button>
+        <span id="rule-page-indicator" class="px-2 text-amber-300/80 font-mono text-xs">1 / 8</span>
+        <button id="rule-next-btn" class="px-4 py-1.5 rounded-lg border border-amber-500/50 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 hover:text-amber-100 transition-all cursor-pointer flex items-center gap-1 text-xs font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+          <span>下一项</span><span>▶</span>
+        </button>
       </div>
-
-      <!-- 3. 行动时序与排轴 -->
-      <div class="rules-item-card">
-        <div class="rules-hover-gif-box">
-          <img src="http://127.0.0.1:8766/OS/gif/机制_行动时序.gif" alt="CTB时序 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
-        </div>
-
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
-          <span class="font-bold text-sm text-emerald-300 font-serif flex items-center gap-1.5">
-            <span>⏱️</span><span>行动时序与排轴 (CTB)</span>
-          </span>
-          <span class="text-[0.6rem] font-mono text-emerald-200/80 px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">速度判定</span>
-        </div>
-        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
-          <div>
-            <span class="text-emerald-400 font-bold font-mono">【怎么用】</span>
-            <span>每回合依全员即时速度（Speed）从高到低动态排定行动次序。</span>
-          </div>
-          <div>
-            <span class="text-emerald-400 font-bold font-mono">【怎么生效】</span>
-            <span>多动单位后续行动按每动 -10 速度递减；<code class="text-amber-200 font-mono">[单速/缓速]</code> 即时重排队列；<code class="text-amber-200 font-mono">[再动]</code> 立即插顶；<code class="text-amber-200 font-mono">[眩晕]</code> 剥夺当次行动；<code class="text-amber-200 font-mono">[麻痹]</code> 概率僵直。</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. 战术防守反制链条 -->
-      <div class="rules-item-card">
-        <div class="rules-hover-gif-box">
-          <img src="http://127.0.0.1:8766/OS/gif/机制_防守反制.gif" alt="反制链条 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
-        </div>
-
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
-          <span class="font-bold text-sm text-rose-300 font-serif flex items-center gap-1.5">
-            <span>🛡️</span><span>防守反制链条 (看破·舍身·反应)</span>
-          </span>
-          <span class="text-[0.6rem] font-mono text-rose-200/80 px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-500/30">三道窗口</span>
-        </div>
-        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
-          <div>
-            <span class="text-rose-400 font-bold font-mono">【怎么用】</span>
-            <span>敌方宣告攻击时冻结时序，依次触发三道反制窗口。</span>
-          </div>
-          <div>
-            <span class="text-rose-400 font-bold font-mono">【怎么生效】</span>
-            <span><strong class="text-white">①看破</strong>：敌方施法时消耗资源强制中断并完全落空；<strong class="text-white">②舍身</strong>：队友闪避失败受创时代替承受；<strong class="text-white">③反应</strong>：自身受创前插队重新闪避或减免伤害。</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5. 空间阵型与属性对抗 -->
-      <div class="rules-item-card">
-        <div class="rules-hover-gif-box">
-          <img src="http://127.0.0.1:8766/OS/gif/机制_阵型对抗.gif" alt="阵型对抗 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
-        </div>
-
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
-          <span class="font-bold text-sm text-amber-200 font-serif flex items-center gap-1.5">
-            <span>🎯</span><span>空间阵型与属性对抗</span>
-          </span>
-          <span class="text-[0.6rem] font-mono text-amber-200/80 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/30">站位制约</span>
-        </div>
-        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
-          <div>
-            <span class="text-amber-400 font-bold font-mono">【怎么用】</span>
-            <span>近战、远程、法术三系攻防，受战场站位与变种抗性制约。</span>
-          </div>
-          <div>
-            <span class="text-amber-400 font-bold font-mono">【怎么生效】</span>
-            <span>前排存活时近战单体无法攻击后排；后排存活时攻前排远程/法术命中率削减 30%；变种抗性 <code class="text-amber-200 font-mono">[流体]</code> 减免 50% 远程，<code class="text-amber-200 font-mono">[虚形]</code> 减免 50% 近战，<code class="text-amber-200 font-mono">[破法]</code> 减免 50% 法术。</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 6. 仇恨索敌与绝境留存 -->
-      <div class="rules-item-card">
-        <div class="rules-hover-gif-box">
-          <img src="http://127.0.0.1:8766/OS/gif/机制_仇恨留存.gif" alt="仇恨留存 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
-        </div>
-
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
-          <span class="font-bold text-sm text-purple-300 font-serif flex items-center gap-1.5">
-            <span>🩸</span><span>仇恨索敌与绝境留存</span>
-          </span>
-          <span class="text-[0.6rem] font-mono text-purple-200/80 px-1.5 py-0.5 rounded bg-purple-950/40 border border-purple-500/30">轮盘 & 保命</span>
-        </div>
-        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
-          <div>
-            <span class="text-purple-400 font-bold font-mono">【怎么用】</span>
-            <span>敌方依据仇恨权重抽取攻击目标；濒死承受致命伤时自动保命。</span>
-          </div>
-          <div>
-            <span class="text-purple-400 font-bold font-mono">【怎么生效】</span>
-            <span>基础权重：防守者 200 / 常规 100 / 隐匿者 50，<code class="text-amber-200 font-mono">[嘲讽]</code> 调整权重，<code class="text-amber-200 font-mono">[智慧]</code> 优先斩杀残血；受致命伤时，防守者/狂战触发【毅力留存】保底 1 HP，隐匿者/风行者触发【回避致命】免疫伤害（每场限 1 次）。</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 弹窗底栏 -->
-    <div class="px-5 py-2.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-[0.68rem] font-mono text-white/40">
-      <span>⚡ 提示：技能栏中所有带特性的效果标签，鼠标悬停均可查阅即时生效说明</span>
-      <button data-rules-close class="px-3.5 py-1 rounded border border-white/15 bg-white/5 hover:bg-white/10 text-white/80 transition-colors cursor-pointer text-xs">我知道了</button>
     </div>
   </div>
 </div>
