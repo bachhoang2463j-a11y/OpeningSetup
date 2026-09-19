@@ -33,9 +33,6 @@
     --slot-bg: rgba(9, 12, 18, 0.82);
     --slot-border: rgba(198, 161, 84, 0.25);
     --slot-glow: 0 0 15px rgba(217, 180, 92, 0.22);
-    --badge-limited: rgba(217, 180, 92, 0.95);
-    --badge-generic: rgba(120, 200, 150, 0.95);
-    --badge-reaction: rgba(235, 110, 110, 0.95);
     --card-hover: rgba(26, 34, 48, 0.75);
     --btn-bg: linear-gradient(135deg, rgba(198, 161, 84, 0.24), rgba(198, 161, 84, 0.06));
     --btn-border: rgba(198, 161, 84, 0.5);
@@ -64,9 +61,6 @@
     --slot-bg: rgba(18, 11, 30, 0.88);
     --slot-border: rgba(216, 180, 254, 0.32);
     --slot-glow: 0 0 20px rgba(192, 132, 252, 0.32);
-    --badge-limited: rgba(245, 158, 11, 0.95);
-    --badge-generic: rgba(192, 132, 252, 0.95);
-    --badge-reaction: rgba(244, 63, 94, 0.95);
     --card-hover: rgba(45, 28, 72, 0.78);
     --btn-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(192, 132, 252, 0.16));
     --btn-border: rgba(245, 158, 11, 0.6);
@@ -187,23 +181,98 @@
   @keyframes wave-bar { 0% { transform: scaleY(0.25); } 100% { transform: scaleY(1); } }
   .voice-wave.paused .voice-bar { animation-play-state: paused; transform: scaleY(0.3); }
 
-  /* 技能插槽阶梯式滑入芯片 */
+  /* 技能插槽阶梯式滑入芯片（demo 移植：现代过渡动效 + 主题化样式） */
   .skill-slot-chip {
     background: var(--slot-bg); border: 1px solid var(--slot-border);
-    border-radius: 8px; padding: 10px 14px; display: flex; align-items: center;
-    justify-content: space-between; gap: 10px; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative; overflow: hidden; animation: slot-slide-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+    border-radius: 8px; padding: 6px 12px; display: flex; align-items: center;
+    justify-content: space-between; gap: 10px; transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative; overflow: hidden; animation: slot-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-delay: calc(var(--slot-idx, 0) * 0.04s);
   }
-  @keyframes slot-slide-in { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+  @keyframes slot-slide-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+  /* 技能列表按各职业最坏高度预留：切换职业时右栏外框高度恒定不跳动 */
+  #hero-skill-chips-container { min-height: 335px; }
   .skill-slot-chip:before {
-    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
-    background: var(--slot-border); transition: background 0.3s ease;
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+    background: var(--slot-border); transition: background 0.25s ease;
   }
-  .skill-slot-chip.type-limited:before { background: var(--badge-limited); }
-  .skill-slot-chip.type-generic:before { background: var(--badge-generic); }
-  .skill-slot-chip.is-reaction:before { background: var(--badge-reaction); }
-  .skill-slot-chip:hover { border-color: var(--panel-border-bright); box-shadow: var(--slot-glow); background: var(--card-hover); transform: translateX(2px); }
+  .skill-slot-chip.type-generic:before { background: #c084fc; box-shadow: 0 0 10px rgba(192, 132, 252, 0.5); }
+  /* 威廉专属技能芯片：纯金流光镶边 + 密教金辉全光晕 (Gilded Arcane) */
+  .skill-slot-chip.theme-gold:before,
+  .skill-slot-chip.type-limited:before {
+    background: linear-gradient(to bottom, #fbbf24 0%, #d9b45c 50%, #92400e 100%);
+    box-shadow: 0 0 12px rgba(217, 180, 92, 0.75), 0 0 6px rgba(251, 191, 36, 0.5);
+  }
+  .skill-slot-chip.theme-gold {
+    border-color: rgba(217, 180, 92, 0.32);
+    background: linear-gradient(90deg, rgba(217, 180, 92, 0.06) 0%, rgba(26, 20, 14, 0.55) 22%, rgba(15, 12, 10, 0.78) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55), 0 0 10px rgba(217, 180, 92, 0.12);
+  }
+  .skill-slot-chip.theme-gold:hover {
+    border-color: rgba(217, 180, 92, 0.75);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 16px rgba(217, 180, 92, 0.35);
+  }
+  /* 冯专属技能芯片：金色点缀流光镶边 + 炼金深紫底色 (Alchemy Gilded) */
+  .skill-slot-chip.theme-purple:before {
+    background: linear-gradient(to bottom, #f59e0b 0%, #d9b45c 40%, #c084fc 100%);
+    box-shadow: 0 0 10px rgba(217, 180, 92, 0.65), 0 0 6px rgba(192, 132, 252, 0.4);
+  }
+  .skill-slot-chip.theme-purple {
+    border-color: rgba(217, 180, 92, 0.28);
+    background: linear-gradient(90deg, rgba(217, 180, 92, 0.05) 0%, rgba(28, 18, 45, 0.55) 22%, rgba(16, 12, 28, 0.75) 100%);
+  }
+  .skill-slot-chip.theme-purple:hover {
+    border-color: rgba(217, 180, 92, 0.65);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(217, 180, 92, 0.25);
+  }
+  /* 高阶技能 (Tier 2)：金色跑马流光与璀璨耀芒横扫动效 */
+  .skill-slot-chip.tier-advanced {
+    border-color: rgba(251, 191, 36, 0.7);
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.16) 0%, rgba(38, 26, 12, 0.72) 32%, rgba(18, 14, 8, 0.88) 100%);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.75), 0 0 20px rgba(245, 158, 11, 0.35);
+    position: relative;
+    overflow: hidden;
+    animation: tier-adv-glow 2.8s ease-in-out infinite alternate;
+  }
+  @keyframes tier-adv-glow {
+    0% { border-color: rgba(245, 158, 11, 0.55); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(245, 158, 11, 0.25); }
+    100% { border-color: rgba(251, 191, 36, 0.95); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(251, 191, 36, 0.55); }
+  }
+  .skill-slot-chip.tier-advanced:before {
+    background: linear-gradient(to bottom, #fffbeb 0%, #fbbf24 45%, #d97706 100%);
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.95), 0 0 8px #fff;
+    width: 3.5px;
+  }
+  .skill-slot-chip.tier-advanced:after {
+    content: ''; position: absolute; top: 0; left: -120%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.18) 50%, rgba(251, 191, 36, 0.3) 65%, transparent 100%);
+    transform: skewX(-24deg); animation: advanced-shimmer 4.4s ease-in-out infinite; pointer-events: none;
+  }
+  @keyframes advanced-shimmer { 0% { left: -120%; } 30% { left: 180%; } 100% { left: 180%; } }
+  /* 传奇技能 (Tier 3)：赤红传说炽烈光焰与猩红烈焰横扫动效 */
+  .skill-slot-chip.tier-legendary {
+    border-color: rgba(239, 68, 68, 0.8);
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(48, 12, 16, 0.78) 32%, rgba(24, 8, 10, 0.92) 100%);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(239, 68, 68, 0.45);
+    position: relative;
+    overflow: hidden;
+    animation: tier-legend-red-glow 2.6s ease-in-out infinite alternate;
+  }
+  @keyframes tier-legend-red-glow {
+    0% { border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 16px rgba(239, 68, 68, 0.3); }
+    100% { border-color: rgba(248, 113, 113, 0.98); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 28px rgba(239, 68, 68, 0.75); }
+  }
+  .skill-slot-chip.tier-legendary:before {
+    background: linear-gradient(to bottom, #fee2e2 0%, #ef4444 45%, #991b1b 100%);
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.95), 0 0 8px #fff;
+    width: 3.5px;
+  }
+  .skill-slot-chip.tier-legendary:after {
+    content: ''; position: absolute; top: 0; left: -120%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, rgba(239, 68, 68, 0.45) 65%, transparent 100%);
+    transform: skewX(-24deg); animation: legendary-red-shimmer 4.0s ease-in-out infinite; pointer-events: none;
+  }
+  @keyframes legendary-red-shimmer { 0% { left: -120%; } 30% { left: 180%; } 100% { left: 180%; } }
 
   /* 职业选项卡卡片 */
   .class-tab-card {
@@ -408,6 +477,24 @@
   }
   .rules-item-card:hover .rules-hover-gif-box { opacity: 1; transform: scale(1) translateY(0); }
   .rules-hover-gif-img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+
+  /* ===== demo 移植：右侧竖列极简悬浮 Dock（规则速查与 BGM 控制） ===== */
+  .switch-dock {
+    position: fixed; right: 18px; top: 50%; transform: translateY(-50%); z-index: 9990;
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 6px;
+    border-radius: 24px; background: rgba(10, 14, 22, 0.9);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 10px 36px rgba(0, 0, 0, 0.75);
+  }
+  .dock-btn {
+    font-size: 0.75rem; padding: 6px 10px; border-radius: 12px; cursor: pointer;
+    transition: all 0.25s ease; color: rgba(255, 255, 255, 0.68); background: transparent; border: none;
+    font-family: 'Special Elite', 'Courier New', monospace; letter-spacing: 0.05em;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 44px; text-align: center; line-height: 1.2;
+  }
+  .dock-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+  .dock-sep { width: 22px; height: 1px; background: rgba(255, 255, 255, 0.18); margin: 2px 0; }
 </style>
 </head>
 <body class="theme-arcane">
@@ -425,6 +512,28 @@
     <svg id="fs-icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
     <svg id="fs-icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
   </button>
+
+  <!-- demo 移植：右上角固定战斗规则速查胶囊（置于全屏按钮下方避让） -->
+  <div class="fixed top-[68px] right-4 z-[9990] flex items-center gap-2">
+    <button id="top-rules-btn" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-black/75 backdrop-blur-md text-amber-300 hover:text-amber-100 hover:border-amber-300 hover:bg-black/90 shadow-[0_0_16px_rgba(217,180,92,0.25)] transition-all cursor-pointer font-serif text-xs">
+      <span class="text-sm">📖</span>
+      <span class="tracking-wider font-bold">战斗规则速查</span>
+      <span class="text-[0.6rem] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">6大专有机制</span>
+    </button>
+  </div>
+
+  <!-- demo 移植：右侧竖列极简悬浮 Dock（规则速查与 BGM 控制，精简版无阶段跳转） -->
+  <div class="switch-dock">
+    <button id="rules-dock-btn" class="dock-btn" title="战斗机制与系统规则速查">
+      <span class="text-xs">📖</span>
+      <span class="text-[0.58rem] mt-0.5">规则</span>
+    </button>
+    <button id="bgm-toggle-btn" class="dock-btn" title="开启 / 关闭背景音乐与音效">
+      <span id="bgm-icon">🎵</span>
+      <span id="bgm-label" class="text-[0.58rem] mt-0.5">BGM</span>
+    </button>
+  </div>
+
   <div id="app" class="relative z-10"></div>
 
 <!-- ====================================================================
@@ -624,13 +733,13 @@
 
     // 职业介绍（选择职业时展示；被动摘要对应 RpgCombat CLASS_PASSIVES 的实际效果）
     classIntro: {
-      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_隐匿者.gif' },
-      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留住最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_狂战士.gif' },
-      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_防守者.gif' },
-      '风行者': { intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。', passive: '闪避成长 · 多重施法 · 回避致命', gifUrl: 'http://127.0.0.1:8766/OS/gif/主角_风行者.gif' },
-      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_施法者.gif' },
-      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_圣职者.gif' },
-      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_灾厄使.gif' },
+      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', role: '敏捷 / 刺客', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_隐匿者.gif' },
+      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留住最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', role: '强攻 / 绝地', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_狂战士.gif' },
+      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', role: '防御 / 坚壁', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_防守者.gif' },
+      '风行者': { intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。', passive: '闪避成长 · 多重施法 · 回避致命', role: '极速 / 连击', gifUrl: 'http://127.0.0.1:8766/OS/gif/主角_风行者.gif' },
+      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', role: '爆发 / 护盾', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_施法者.gif' },
+      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', role: '支援 / 圣佑', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_圣职者.gif' },
+      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', role: '减益 / 持续伤害', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_灾厄使.gif' },
     },
 
     identity: {
@@ -1845,6 +1954,7 @@
     app.innerHTML = html;
     afterRender();
     preheatCombatGifs(state.stage);
+    updateDockBgmUi();
     if (state.soundOn) {
       if (state.stage === 'c1') playHeroCurrentVoice('hero1');
       else if (state.stage === 'c2') playHeroCurrentVoice('hero2');
@@ -2039,62 +2149,153 @@
   }
 
   /* 技能插槽芯片渲染（支持低饱和微透胶囊流） */
-  function renderSkillSlotChip(s, isSlotEmpty, slotIdx, canRemove) {
+  /* ===== demo 移植：技能芯片美化全套（类型 emoji / 命中率 / 反应徽章 / 主题化芯片） ===== */
+  /* 技能类型判定：近战(⚔️)、远程(🏹)、法术(🔮)、战术(♟️) */
+  function getSkillTypeEmoji(s) {
+    if (!s) return '✦';
+    const text = (s.rawText || '') + ' ' + ((s.data && s.data.name) || '');
+    if (text.includes('法术')) return '🔮';
+    if (text.includes('近战')) return '⚔️';
+    if (text.includes('远程')) return '🏹';
+    return '♟️';
+  }
+  function getSkillTypeTitle(s) {
+    if (!s) return '战技';
+    const text = (s.rawText || '') + ' ' + ((s.data && s.data.name) || '');
+    if (text.includes('法术')) return '法术';
+    if (text.includes('近战')) return '近战';
+    if (text.includes('远程')) return '远程';
+    return '战术';
+  }
+  /* 命中率判定（源数据已解析 data.hit/guaranteedHit，"自身"类增益沿用 demo 的 rawText 判定） */
+  function getSkillAimText(s) {
+    if (!s) return '100%';
+    const d = s.data || {};
+    const text = (s.rawText || '') + ' ' + (d.name || '');
+    if (d.guaranteedHit || text.includes('必中')) return '必中';
+    if (d.hit && d.hit !== 100) return d.hit + '%';
+    if (text.includes('[单盾]') || text.includes('[群回]') || text.includes('[单回]') || text.includes('[回避]') || text.includes('[单避]') || text.includes('肃正') || text.includes('单盾') || text.includes('单防')) {
+      return '自身';
+    }
+    return '100%';
+  }
+  /* 特殊战术机制徽章文本（反应带⟲，舍身与看破独立显示如 舍身·近战、看破·法术） */
+  function getReactionBadgeText(s) {
+    if (!s) return null;
+    const text = (s.rawText || '') + ' ' + ((s.data && s.data.name) || '');
+    const m = text.match(/\[(反应|舍身|看破)(?::([^\]]+))?\]/);
+    if (!m && !(s.data && s.data.isReaction)) return null;
+    const act = m ? m[1] : '反应';
+    const limit = (m && m[2]) ? m[2].trim() : null;
+    if (act === '反应') {
+      return limit ? `⟲反应·${limit}` : '⟲反应';
+    }
+    return limit ? `${act}·${limit}` : act;
+  }
+
+  /* 渲染：技能芯片卡片（主题角标框 + 品阶动效 + 右侧消耗列与命中率展示） */
+  function renderSkillSlotChip(s, isSlotEmpty, slotIdx, canRemove, heroTheme) {
     if (isSlotEmpty || !s) {
-      return '<div class="skill-slot-chip border-dashed border-white/15 bg-white/5" style="--slot-idx:' + slotIdx + '">'
+      return '<div class="skill-slot-chip border-dashed border-opacity-40" style="--slot-idx:' + slotIdx + '; border-color:var(--slot-border); background:rgba(0,0,0,0.3);">'
         + '<div class="flex items-center gap-3">'
-        + '  <div class="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-tw text-[0.65rem] text-white/30">' + slotIdx + '</div>'
-        + '  <span class="text-xs text-white/30 font-tw">未装配技能芯片</span>'
+        + '  <span class="w-7 h-7 rounded bg-white/5 flex items-center justify-center font-mono text-xs text-white/40">✦</span>'
+        + '  <span class="text-xs tracking-wider text-white/35">空置通用插槽 · 待购点装配</span>'
         + '</div>'
-        + '<span class="text-[0.65rem] text-white/20 font-tw">EMPTY</span>'
+        + '<span class="font-mono text-[0.68rem] text-white/30">[SLOT OPEN]</span>'
         + '</div>';
     }
 
-    const isLim = s.scope === '限定';
-    const costBadge = isLim
-      ? '<span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-600/40 text-amber-300 font-tw">限定</span>'
-      : '<span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-600/40 text-emerald-300 font-tw">' + s.shopCost + '点</span>';
+    const d = s.data || {};
+    const skillName = d.name || s.id;
+    const typeEmoji = getSkillTypeEmoji(s);
+    const typeTitle = getSkillTypeTitle(s);
+    const aimText = getSkillAimText(s);
+    const aimDisplayText = aimText === '必中' ? '必中' : (aimText === '自身' ? '自身' : '命中 ' + aimText);
+    const tier = getSkillTier(s);
 
-    const mpBadge = s.data && s.data.cost
-      ? '<span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-sky-950/60 border border-sky-600/40 text-sky-300 font-tw">MP:' + s.data.cost + '</span>'
+    let tierClass = '';
+    let tierBadgeHtml = '';
+    if (tier === 3) {
+      tierClass = 'tier-legendary';
+      tierBadgeHtml = '<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>';
+    } else if (tier === 2) {
+      tierClass = 'tier-advanced';
+      tierBadgeHtml = '<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>';
+    }
+
+    let chipClass = '';
+    let badgeBoxClass = '';
+    let costRightText = '';
+
+    if (heroTheme === 'gold') {
+      // 威廉：专属金色主题（四角星 + 金色光晕，右侧显示命中率）
+      chipClass = 'theme-gold';
+      badgeBoxClass = 'border-amber-500/60 bg-amber-950/40 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]';
+      costRightText = '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
+    } else if (heroTheme === 'purple') {
+      // 冯：金紫交辉炼金秘术风格
+      chipClass = 'theme-purple';
+      badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
+      costRightText = '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
+    } else {
+      // 主角：技能插槽
+      chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
+      badgeBoxClass = s.scope === '限定'
+        ? 'border-amber-500/50 bg-amber-950/30 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.25)]'
+        : 'border-purple-500/50 bg-purple-950/30 text-purple-300 shadow-[0_0_6px_rgba(192,132,252,0.25)]';
+      costRightText = s.scope === '限定'
+        ? '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>'
+        : '<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1"><span class="text-purple-400 text-xs">✦</span> ' + aimDisplayText + ' · ' + s.shopCost + ' 点</span>';
+    }
+
+    const ammo = GLOBAL_AMMO_BINDINGS[skillName] || null;
+    const costs = [];
+    if (d.cost) costs.push(d.cost + ' MP');
+    if (d.hpCost) costs.push(d.hpCost + ' HP');
+    if (d.tpCost) costs.push(d.tpCost + ' TP');
+    if (ammo) costs.push(ammo.ammoName + '*' + ammo.count);
+    const costText = costs.length > 0 ? costs.join(' / ') : '无消耗';
+
+    // 反应类型限制徽章（如 [反应:近战] -> ⟲反应·近战）
+    const reactionBadgeText = getReactionBadgeText(s);
+    const reactionBadge = reactionBadgeText
+      ? '<span class="text-[0.58rem] px-1.5 py-0.5 rounded font-mono shrink-0 bg-amber-950/40 border border-amber-500/40 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.2)]">' + reactionBadgeText + '</span>'
       : '';
 
-    const reactionBadge = s.data && s.data.isReaction
-      ? '<span class="text-[0.62rem] px-1.5 py-0.5 rounded bg-rose-950/70 border border-rose-600/50 text-rose-300 font-tw">⟲反应</span>'
-      : '';
-
-    const damageBadge = s.data && s.data.damageType
-      ? '<span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-white/5 text-white/60 font-tw">' + esc(s.data.damageType) + '</span>'
+    // 技能类型角标（战术/远程等）：微晶半透样式
+    const typeTag = d.isReaction ? '反应' : (d.damageType || '战术');
+    const typeTagHtml = typeTag !== '反应'
+      ? '<span class="text-[0.6rem] px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.03] text-white/45 font-mono tracking-wider shrink-0">' + typeTag + '</span>'
       : '';
 
     const removeBtn = canRemove
-      ? '<button data-action="c3-skill-remove" data-skill="' + esc(s.data.name) + '" class="text-xs text-white/40 hover:text-rose-400 p-1 cursor-pointer transition-colors" title="卸下芯片">✕</button>'
+      ? '<button data-action="c3-skill-remove" data-skill="' + esc(skillName) + '" class="text-xs text-rose-400/80 hover:text-rose-300 p-1 rounded hover:bg-rose-950/40 transition-colors" title="卸下芯片">✕</button>'
       : '';
 
-    const tier = getSkillTier(s);
-    const tierBadgeHtml = tier === 3
-      ? '<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>'
-      : (tier === 2
-        ? '<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>'
-        : '');
-
-    const skillRawAttr = s.rawText ? esc(s.rawText) : '';
-
-    return '<div class="skill-slot-chip ' + (isLim ? 'type-limited' : 'type-generic') + ' ' + (s.data && s.data.isReaction ? 'is-reaction' : '') + '" style="--slot-idx:' + slotIdx + '" data-skill-name="' + esc(s.data.name) + '" data-skill-raw="' + skillRawAttr + '">'
-      + '<div class="flex items-center gap-3 min-w-0 flex-1">'
-      + '  <div class="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center font-tw text-[0.65rem] text-[var(--accent)] font-bold shrink-0">' + slotIdx + '</div>'
+    return '<div class="skill-slot-chip ' + chipClass + ' ' + tierClass + '" style="--slot-idx:' + slotIdx + '" data-skill-name="' + esc(skillName) + '" data-skill-raw="' + (s.rawText ? esc(s.rawText) : '') + '">'
+      + '<div class="flex items-center gap-2.5 min-w-0 flex-1">'
+      + '  <div class="w-7 h-7 rounded ' + badgeBoxClass + ' border flex items-center justify-center shrink-0">'
+      + '    <span class="text-xs select-none" title="' + typeTitle + '">' + typeEmoji + '</span>'
+      + '  </div>'
       + '  <div class="min-w-0 flex-1">'
-      + '    <div class="flex items-center gap-2 flex-wrap">'
-      + '      <span class="text-sm font-bold text-[var(--text-main)] truncate">' + esc(s.data ? s.data.name : s.id) + '</span>'
+      + '    <div class="flex items-center gap-1.5 truncate">'
+      + '      <span class="text-xs sm:text-sm font-bold tracking-wider text-[var(--text-main)] truncate">' + esc(skillName) + '</span>'
       + tierBadgeHtml
-      + costBadge + mpBadge + reactionBadge + damageBadge
+      + reactionBadge
+      + typeTagHtml
       + '    </div>'
-      + '    <div class="flex items-center gap-1.5 flex-wrap mt-1">'
-      + formatSkillEffectPills(s.rawText || s.data.name)
+      + '    <div class="flex items-center gap-1 flex-wrap mt-0.5">'
+      + formatSkillEffectPills(s.rawText || skillName)
       + '    </div>'
       + '  </div>'
       + '</div>'
+      + '<div class="flex items-center gap-2 shrink-0">'
+      + '  <div class="text-right">'
+      + '    <div class="font-mono text-[0.72rem] font-bold text-[var(--accent)] whitespace-nowrap">' + esc(costText) + '</div>'
+      + '    <div class="font-mono text-[0.62rem] text-white/40">' + costRightText + '</div>'
+      + '  </div>'
       + removeBtn
+      + '</div>'
       + '</div>';
   }
 
@@ -2151,37 +2352,39 @@
         + '</div>';
     }).join('');
 
-    const skillChips = skills.map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false); }).join('');
+    const skillChips = skills.map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false, 'gold'); }).join('');
 
-    return '<div class="min-h-[640px] max-w-6xl w-full mx-auto px-4 py-8 flex flex-col justify-center">'
-      + header('PARTY 1 / 3 · ' + hero.name, '选择职业与战技')
+    return '<div class="min-h-[720px] max-w-[1560px] w-full mx-auto pl-3 sm:pl-6 pr-14 sm:pr-18 py-2 flex flex-col justify-center">'
       + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
       + '  <div class="lg:col-span-5 flex flex-col h-full">' + renderHeroStage(hero, curCls) + '</div>'
-      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-6 h-full">'
+      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-4 sm:p-5 h-full">'
       + '    <div>'
-      + '      <div class="flex items-center justify-between pb-3 mb-4 border-b border-white/10">'
+      + '      <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">'
       + '        <div>'
-      + '          <span class="font-tw text-xs text-[var(--accent)] tracking-widest">CHARACTER DOSSIER // WILLIAM</span>'
+      + '          <div class="flex items-center gap-2">'
+      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 1 / 3</span>'
+      + '            <span class="font-tw text-xs text-white/35 tracking-widest">/ CHARACTER DOSSIER</span>'
+      + '          </div>'
       + '          <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>'
       + '        </div>'
       + '        <div class="text-right">'
-      + '          <span class="font-tw text-xs text-white/40">PARTY MEMBER</span>'
       + '          <div class="font-tw text-xs font-bold text-[var(--accent)]">WILLIAM TELL</div>'
+      + '          <div class="font-tw text-[0.65rem] text-white/40 mt-0.5">' + esc(hero.title || '') + '</div>'
       + '        </div>'
       + '      </div>'
-      + '      <div class="grid sm:grid-cols-3 gap-2.5 mb-5">' + classCards + '</div>'
-      + '      <div class="mt-4">'
-      + '        <div class="flex items-center justify-between mb-2">'
+      + '      <div class="grid sm:grid-cols-3 gap-2.5 mb-3">' + classCards + '</div>'
+      + '      <div class="mt-2">'
+      + '        <div class="flex items-center justify-between mb-1.5">'
       + '          <span class="font-tw text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>'
-      + '          <span class="font-tw text-xs text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>'
+      + '          <span class="font-tw text-xs text-[var(--accent)]">[ 6 CLASS COMBAT ARTS ]</span>'
       + '        </div>'
-      + '        <div class="flex flex-col gap-2 smooth-fade-transition" id="hero-skill-chips-container">' + skillChips + '</div>'
+      + '        <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">' + skillChips + '</div>'
       + '      </div>'
       + '    </div>'
       + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
-      + '    <div class="pt-5 mt-5 border-t border-white/10 flex items-center justify-between">'
-      + '      <div class="text-xs text-[var(--text-muted)] font-tw">整组 6 技能随职业自动上阵</div>'
-      + '      <button class="btn-noir" data-action="c1-done">确定 · 下一位 (冯)</button>'
+      + '    <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">'
+      + '      <div class="text-[0.7rem] text-[var(--text-muted)] font-mono">整组 6 技能随职业自动上阵</div>'
+      + '      <button class="btn-noir" data-action="c1-done">确认配置 · 下一位 (冯) <span class="ml-1">→</span></button>'
       + '    </div>'
       + '  </div>'
       + '</div>'
@@ -2213,37 +2416,39 @@
         + '</div>';
     }).join('');
 
-    const skillChips = skills.map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false); }).join('');
+    const skillChips = skills.map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false, 'purple'); }).join('');
 
-    return '<div class="min-h-[640px] max-w-6xl w-full mx-auto px-4 py-8 flex flex-col justify-center">'
-      + header('PARTY 2 / 3 · ' + hero.name, '选择职业与战技')
+    return '<div class="min-h-[720px] max-w-[1560px] w-full mx-auto pl-3 sm:pl-6 pr-14 sm:pr-18 py-2 flex flex-col justify-center">'
       + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
       + '  <div class="lg:col-span-5 flex flex-col h-full">' + renderHeroStage(hero, curCls) + '</div>'
-      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-6 h-full">'
+      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-4 sm:p-5 h-full">'
       + '    <div>'
-      + '      <div class="flex items-center justify-between pb-3 mb-4 border-b border-white/10">'
+      + '      <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">'
       + '        <div>'
-      + '          <span class="font-tw text-xs text-[var(--accent)] tracking-widest">CHARACTER DOSSIER // VON</span>'
+      + '          <div class="flex items-center gap-2">'
+      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 2 / 3</span>'
+      + '            <span class="font-tw text-xs text-white/35 tracking-widest">/ CHARACTER DOSSIER</span>'
+      + '          </div>'
       + '          <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>'
       + '        </div>'
       + '        <div class="text-right">'
-      + '          <span class="font-tw text-xs text-white/40">PARTY MEMBER</span>'
       + '          <div class="font-tw text-xs font-bold text-[var(--accent)]">VON HOHENHEIM</div>'
+      + '          <div class="font-tw text-[0.65rem] text-white/40 mt-0.5">' + esc(hero.title || '') + '</div>'
       + '        </div>'
       + '      </div>'
-      + '      <div class="grid sm:grid-cols-3 gap-2.5 mb-5">' + classCards + '</div>'
-      + '      <div class="mt-4">'
-      + '        <div class="flex items-center justify-between mb-2">'
+      + '      <div class="grid sm:grid-cols-3 gap-2.5 mb-3">' + classCards + '</div>'
+      + '      <div class="mt-2">'
+      + '        <div class="flex items-center justify-between mb-1.5">'
       + '          <span class="font-tw text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>'
-      + '          <span class="font-tw text-xs text-[var(--accent)]">[ 3 EXCLUSIVE + 3 TACTICAL ]</span>'
+      + '          <span class="font-tw text-xs text-[var(--accent)]">[ 6 CLASS COMBAT ARTS ]</span>'
       + '        </div>'
-      + '        <div class="flex flex-col gap-2 smooth-fade-transition" id="hero-skill-chips-container">' + skillChips + '</div>'
+      + '        <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">' + skillChips + '</div>'
       + '      </div>'
       + '    </div>'
       + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
-      + '    <div class="pt-5 mt-5 border-t border-white/10 flex items-center justify-between">'
+      + '    <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">'
       + '      <button class="btn-ghost" data-action="back-c1">← 返回威廉</button>'
-      + '      <button class="btn-noir" data-action="c2-done">确定 · 前往主角登记</button>'
+      + '      <button class="btn-noir" data-action="c2-done">确认配置 · 前往主角登记 <span class="ml-1">→</span></button>'
       + '    </div>'
       + '  </div>'
       + '</div>'
@@ -2304,11 +2509,12 @@
     // 4. 右侧 6 技能栏重新渲染并依次阶梯滑入
     const skillsContainer = document.getElementById('hero-skill-chips-container');
     if (skillsContainer && clsObj) {
+      const heroTheme = heroKey === 'hero2' ? 'purple' : 'gold';
       skillsContainer.style.opacity = '0';
       skillsContainer.style.transform = 'translateY(6px)';
       setTimeout(function () {
         skillsContainer.innerHTML = clsObj.skills.map(function (s, idx) {
-          return renderSkillSlotChip(s, false, idx + 1, false);
+          return renderSkillSlotChip(s, false, idx + 1, false, heroTheme);
         }).join('');
         skillsContainer.style.opacity = '1';
         skillsContainer.style.transform = 'translateY(0)';
@@ -3173,6 +3379,22 @@
     window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') toggleBattleRulesModal(false);
     });
+
+    // demo 移植：右上角规则胶囊与 dock 规则键（精简 dock 无阶段跳转）
+    const topRulesBtn = document.getElementById('top-rules-btn');
+    if (topRulesBtn) topRulesBtn.addEventListener('click', function () { toggleBattleRulesModal(true); });
+    const rulesDockBtn = document.getElementById('rules-dock-btn');
+    if (rulesDockBtn) rulesDockBtn.addEventListener('click', function () { toggleBattleRulesModal(true); });
+    const bgmBtn = document.getElementById('bgm-toggle-btn');
+    if (bgmBtn) bgmBtn.addEventListener('click', toggleSound);
+  }
+
+  /* dock 静音按钮图标随声音状态同步（dock 在 #app 外，不随 render 重建，需手动刷） */
+  function updateDockBgmUi() {
+    const icon = document.getElementById('bgm-icon');
+    const label = document.getElementById('bgm-label');
+    if (icon) icon.textContent = state.soundOn ? '🎵' : '🔇';
+    if (label) label.textContent = state.soundOn ? 'BGM' : '静音';
   }
 
   /* 纯悬浮窗（Floating Tooltip）：技能卡与机制胶囊悬停说明 */
