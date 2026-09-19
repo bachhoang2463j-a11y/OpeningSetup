@@ -334,14 +334,14 @@
     transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
-  /* ===== 幕布式转场覆盖层（源自 demo-transition-preview.html）：百叶快落 / 浓雾涌漫 ===== */
+  /* ===== 幕布式转场覆盖层（源自 demo-transition-preview.html）：百叶慢抬 / 浓雾涌漫 ===== */
   /* 时序由 JS 状态机驱动：is-closing（合拢）→ is-closed（全闭钉住，换内容）→ is-opening（散开） */
   /* 覆盖层常驻渲染盒，用 visibility 控制显隐——display:none 会让元素失去前状态，
      同帧挂状态类时 opacity/scaleY 过渡被整段跳过（浓雾突现白屏 / 百叶突现满屏的根因） */
   .fx-ov { position: fixed; inset: 0; z-index: 9999; overflow: hidden; pointer-events: none; visibility: hidden; }
   .fx-ov.is-closing, .fx-ov.is-closed, .fx-ov.is-opening { pointer-events: auto; visibility: visible; }
 
-  /* —— 百叶快落：14 片影棚竖百叶自底部依次抬起遮住画面，再缓慢落回 —— */
+  /* —— 百叶慢抬：14 片影棚竖百叶自底部依次抬起遮住画面，再缓慢落回 —— */
   .fx-blind .b-slat {
     position: absolute; top: 0; bottom: 0; width: calc(100% / 14 + 1px);
     left: calc(var(--i) * 100% / 14);
@@ -352,13 +352,13 @@
   .fx-blind .b-slat:nth-child(odd) { filter: brightness(1.06); }
   .fx-blind.is-closing .b-slat, .fx-blind.is-closed .b-slat {
     transform: scaleY(1);
-    transition: transform 300ms cubic-bezier(.6,.05,.3,1);
-    transition-delay: calc(var(--i) * 45ms);
+    transition: transform 600ms cubic-bezier(.6,.05,.3,1);
+    transition-delay: calc(var(--i) * 90ms);
   }
   .fx-blind.is-opening .b-slat {
     transform: scaleY(0);
-    transition: transform 300ms cubic-bezier(.6,.05,.3,1);
-    transition-delay: calc((13 - var(--i)) * 45ms);
+    transition: transform 600ms cubic-bezier(.6,.05,.3,1);
+    transition-delay: calc((13 - var(--i)) * 90ms);
   }
   .fx-blind .b-sheen {
     position: absolute; inset: 0; z-index: 2; opacity: 0;
@@ -371,9 +371,9 @@
   .fx-fog .f-base {
     position: absolute; inset: -10%;
     background:
-      radial-gradient(120% 90% at 12% 88%, rgba(214,212,206,.95), transparent 55%),
-      radial-gradient(110% 85% at 88% 20%, rgba(206,204,198,.92), transparent 58%),
-      linear-gradient(120deg, rgba(198,196,190,.55), rgba(222,220,214,.66));
+      radial-gradient(120% 90% at 12% 88%, rgba(158,156,150,.95), transparent 55%),
+      radial-gradient(110% 85% at 88% 20%, rgba(150,148,142,.92), transparent 58%),
+      linear-gradient(120deg, rgba(140,138,132,.55), rgba(162,160,154,.66));
     opacity: 0;
   }
   .fx-fog.is-closing .f-base, .fx-fog.is-closed .f-base { opacity: 1; transition: opacity 900ms ease; }
@@ -381,7 +381,7 @@
   .fx-fog .f-blob {
     position: absolute; left: var(--x); top: var(--y);
     width: 46%; aspect-ratio: 1; border-radius: 50%;
-    background: radial-gradient(circle, rgba(224,222,216,.94) 0%, rgba(214,212,206,.55) 42%, rgba(210,208,202,0) 72%);
+    background: radial-gradient(circle, rgba(166,164,158,.94) 0%, rgba(156,154,148,.55) 42%, rgba(152,150,144,0) 72%);
     filter: blur(26px);
     opacity: 0;
     transform: translate(var(--dx), var(--dy)) scale(var(--s, 1));
@@ -3202,10 +3202,11 @@
      幕布式转场：STAGE_FX 命中的目标阶段改走全屏幕布（百叶/浓雾），全闭瞬间换内容。 */
   let isStageTransitioning = false;
   const FX_TIMING = {
-    blind: { close: 920, hold: 140, open: 920 },
+    blind: { close: 1800, hold: 140, open: 1800 },
     fog:   { close: 1050, hold: 260, open: 1150 }
   };
-  const STAGE_FX = { c1: 'blind', confirm: 'fog' };
+  /* 方向键映射：「来源>目标」命中才走幕布；反向返回（如 c2>c1 返回威廉）保持淡入淡出 */
+  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog' };
 
   function gotoStageWithCrossfade(st) {
     if (isStageTransitioning) return;
@@ -3217,7 +3218,7 @@
       return;
     }
 
-    const fx = STAGE_FX[st];
+    const fx = STAGE_FX[state.stage + '>' + st];
     if (fx) {
       const ov = document.querySelector('.fx-ov[data-fx="' + fx + '"]');
       if (ov) {

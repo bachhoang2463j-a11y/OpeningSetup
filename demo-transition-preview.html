@@ -154,9 +154,9 @@
   .f-base {
     position: absolute; inset: -10%;
     background:
-      radial-gradient(120% 90% at 12% 88%, rgba(214,212,206,.95), transparent 55%),
-      radial-gradient(110% 85% at 88% 20%, rgba(206,204,198,.92), transparent 58%),
-      linear-gradient(120deg, rgba(198,196,190,.55), rgba(222,220,214,.66));
+      radial-gradient(120% 90% at 12% 88%, rgba(158,156,150,.95), transparent 55%),
+      radial-gradient(110% 85% at 88% 20%, rgba(150,148,142,.92), transparent 58%),
+      linear-gradient(120deg, rgba(140,138,132,.55), rgba(162,160,154,.66));
     opacity: 0;
   }
   .ov-fog.is-closing .f-base, .ov-fog.is-closed .f-base { opacity: 1; transition: opacity 900ms ease; }
@@ -165,7 +165,7 @@
   .f-blob {
     position: absolute; left: var(--x); top: var(--y);
     width: 46%; aspect-ratio: 1; border-radius: 50%;
-    background: radial-gradient(circle, rgba(224,222,216,.94) 0%, rgba(214,212,206,.55) 42%, rgba(210,208,202,0) 72%);
+    background: radial-gradient(circle, rgba(166,164,158,.94) 0%, rgba(156,154,148,.55) 42%, rgba(152,150,144,0) 72%);
     filter: blur(26px);
     opacity: 0;
     transform: translate(var(--dx), var(--dy)) scale(var(--s, 1));
@@ -186,7 +186,7 @@
 
   /* ================================================================
      样式三 · 影棚百叶（14 片竖百叶自底部依次抬起遮住画面，再缓慢落回）
-     时序：单条 300ms + 间隔 45ms → close 920ms → hold 140ms → open 920ms
+     时序：单条 600ms + 间隔 90ms → close 1800ms → hold 140ms → open 1800ms
      ================================================================ */
   .ov-blind .b-slat {
     position: absolute; top: 0; bottom: 0; width: calc(100% / 14 + 1px);
@@ -198,13 +198,13 @@
   .ov-blind .b-slat:nth-child(odd)  { filter: brightness(1.06); }
   .ov-blind.is-closing .b-slat, .ov-blind.is-closed .b-slat {
     transform: scaleY(1);
-    transition: transform 300ms cubic-bezier(.6,.05,.3,1);
-    transition-delay: calc(var(--i) * 45ms);
+    transition: transform 600ms cubic-bezier(.6,.05,.3,1);
+    transition-delay: calc(var(--i) * 90ms);
   }
   .ov-blind.is-opening .b-slat {
     transform: scaleY(0);
-    transition: transform 300ms cubic-bezier(.6,.05,.3,1);
-    transition-delay: calc((13 - var(--i)) * 45ms);
+    transition: transform 600ms cubic-bezier(.6,.05,.3,1);
+    transition-delay: calc((13 - var(--i)) * 90ms);
   }
   /* 百叶合拢后的冷光扫线（closed 期间一次性掠过，像灯管扫过百叶缝隙） */
   .ov-blind .b-sheen {
@@ -332,7 +332,7 @@
   var FX = {
     curtain: { close: 640,  hold: 140, open: 720  },
     fog:     { close: 1050, hold: 260, open: 1150 },
-    blind:   { close: 920,  hold: 140, open: 920  },
+    blind:   { close: 1800, hold: 140, open: 1800 },
     flash:   { close: 170,  hold: 110, open: 320  }
   };
   var DESC = {
