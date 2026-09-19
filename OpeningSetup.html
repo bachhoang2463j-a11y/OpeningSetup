@@ -39,6 +39,9 @@
     --card-hover: rgba(26, 34, 48, 0.75);
     --btn-bg: linear-gradient(135deg, rgba(198, 161, 84, 0.24), rgba(198, 161, 84, 0.06));
     --btn-border: rgba(198, 161, 84, 0.5);
+    --tooltip-bg: rgba(11, 15, 22, 0.94);
+    --tooltip-border: rgba(217, 180, 92, 0.45);
+    --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.85), 0 0 20px rgba(217, 180, 92, 0.2);
   }
 
   /* 冯专属：琉璃暗耀 (Gilded Crystal) */
@@ -67,6 +70,9 @@
     --card-hover: rgba(45, 28, 72, 0.78);
     --btn-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(192, 132, 252, 0.16));
     --btn-border: rgba(245, 158, 11, 0.6);
+    --tooltip-bg: rgba(18, 12, 30, 0.95);
+    --tooltip-border: rgba(236, 195, 110, 0.5);
+    --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.88), 0 0 24px rgba(192, 132, 252, 0.25);
   }
 
   html, body { margin: 0; padding: 0; background: var(--noir-bg); transition: background-color 0.4s ease, color 0.4s ease; }
@@ -304,6 +310,104 @@
   * { -webkit-tap-highlight-color: transparent; }
   ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(198, 161, 84, 0.3); border-radius: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
+
+  /* ===== demo 移植：立绘展台氛围粒子（静谧微粒缓慢漂浮升腾） ===== */
+  .portrait-ambient-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
+  .p-dot {
+    position: absolute; left: var(--p-x); top: var(--p-y);
+    width: var(--p-sz, 2.5px); height: var(--p-sz, 2.5px); border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); opacity: 0;
+    animation: p-drift var(--p-dur, 12s) ease-in-out infinite var(--p-del, 0s);
+  }
+  @keyframes p-drift {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
+    20% { opacity: var(--p-op, 0.5); }
+    75% { opacity: var(--p-op, 0.5); }
+    100% { opacity: 0; transform: translate(var(--p-tx, 10px), var(--p-ty, -70px)) scale(1.2); }
+  }
+
+  /* ===== demo 移植：现代微晶品阶流光徽章 ===== */
+  .tier-badge-modern-adv {
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(120, 53, 15, 0.35));
+    color: #fef08a; box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  }
+  .tier-badge-modern-leg {
+    border: 1px solid rgba(248, 113, 113, 0.65);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.28), rgba(136, 19, 55, 0.45));
+    color: #fee2e2; box-shadow: 0 0 12px rgba(239, 68, 68, 0.38);
+  }
+
+  /* ===== demo 移植：左侧展台专属实机战斗视窗（hover 职业卡弹出，移开收起） ===== */
+  .stage-combat-monitor {
+    position: absolute; bottom: 54px; left: 50%;
+    transform: translateX(-50%) translateY(8px) scale(0.96);
+    width: 310px; height: 174px; background: #080c14;
+    border: 1px solid rgba(217, 180, 92, 0.55); border-radius: 8px;
+    box-shadow: 0 18px 45px -4px rgba(0, 0, 0, 0.95), 0 0 24px rgba(217, 180, 92, 0.22);
+    overflow: hidden; z-index: 40; opacity: 0; pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .stage-combat-monitor.active { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  .stage-combat-gif { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .stage-combat-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.55); }
+
+  /* ===== demo 移植：技能机制胶囊悬停触发态 ===== */
+  .pill-trigger { cursor: help; transition: all 0.18s ease; }
+  .pill-trigger:hover { border-color: var(--accent); background: rgba(255, 255, 255, 0.08); transform: scale(1.04); }
+
+  /* ===== demo 移植：纯悬浮窗（Floating Tooltip）核心体系 ===== */
+  #skill-tooltip-container {
+    position: fixed; top: 0; left: 0; width: 336px; max-width: 92vw; z-index: 99999;
+    pointer-events: none; opacity: 0; transform: translateY(6px) scale(0.98);
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #skill-tooltip-container.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .tooltip-glass-card {
+    background: var(--tooltip-bg); backdrop-filter: blur(20px) saturate(1.25);
+    -webkit-backdrop-filter: blur(20px) saturate(1.25);
+    border: 1px solid var(--tooltip-border); border-radius: 12px; padding: 12px 14px;
+    box-shadow: var(--tooltip-glow); position: relative; overflow: hidden;
+  }
+  .tooltip-glass-card:before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); opacity: 0.85;
+  }
+  .tooltip-mech-entry { padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+  .tooltip-mech-entry:last-child { border-bottom: none; padding-bottom: 2px; }
+  .tooltip-mech-entry:first-child { padding-top: 2px; }
+
+  /* ===== demo 移植：战斗规则速查弹窗（半透磨砂 + 鎏金细滚动条 + 机制卡 hover GIF） ===== */
+  .rules-modal-card {
+    background: rgba(13, 18, 28, 0.78); backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid rgba(217, 180, 92, 0.35);
+    box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.9), 0 0 32px rgba(217, 180, 92, 0.2);
+  }
+  .rules-item-card {
+    position: relative; background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(12px); overflow: hidden;
+  }
+  .rules-item-card:hover {
+    background: rgba(255, 255, 255, 0.05); border-color: rgba(217, 180, 92, 0.45);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 16px rgba(217, 180, 92, 0.15);
+  }
+  .rules-scrollbar::-webkit-scrollbar { width: 5px; }
+  .rules-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); border-radius: 9999px; }
+  .rules-scrollbar::-webkit-scrollbar-thumb { background: rgba(217, 180, 92, 0.38); border-radius: 9999px; transition: background 0.2s ease; }
+  .rules-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(217, 180, 92, 0.8); }
+  .rules-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(217, 180, 92, 0.38) rgba(0, 0, 0, 0.25); }
+  .rules-hover-gif-box {
+    position: absolute; top: 10px; right: 10px; width: 128px; height: 72px;
+    pointer-events: none; opacity: 0; z-index: 20; transform: scale(0.9) translateY(4px);
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 95%);
+    mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 95%);
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.9));
+  }
+  .rules-item-card:hover .rules-hover-gif-box { opacity: 1; transform: scale(1) translateY(0); }
+  .rules-hover-gif-img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
 </style>
 </head>
 <body class="theme-arcane">
@@ -412,7 +516,7 @@
         属性: "[HP:120/120][MP:40/40][Atk:20][Armor:40][Speed:70][职业:灾厄使]"
         技能:
           - "【蚀骨毒刃】[通用][价:1][穿透;power:20][中毒;power:5][中毒;power:5][Aim:160][MP:3][近战]"
-          - "【拉莱耶造雾术】[通用][价:1][群盲;power:15;turns:4][自盲;power:15;turns:2][MP:2][法术][限1次][必中][特效:造雾术]"
+          - "【拉莱耶造雾术】[通用][价:1][群盲;power:15;turns:4][再动;power:1][自盲;power:15;turns:2][MP:2][法术][限1次][必中][特效:造雾术]"
           - "【静默之域】[通用][价:1][群滞;power:15][Aim:160][MP:2][法术]"
           - "【灾厄降临】[限定][价:3][MP:10][TP:10][看破:远程][限3次]"
           - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][限2次][法术][特效:高阶召唤术][高阶]"
@@ -520,13 +624,13 @@
 
     // 职业介绍（选择职业时展示；被动摘要对应 RpgCombat CLASS_PASSIVES 的实际效果）
     classIntro: {
-      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕' },
-      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留住最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存' },
-      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打' },
-      '风行者': { intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。', passive: '闪避成长 · 多重施法 · 回避致命' },
-      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响' },
-      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发' },
-      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒' },
+      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_隐匿者.gif' },
+      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留住最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_狂战士.gif' },
+      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_防守者.gif' },
+      '风行者': { intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。', passive: '闪避成长 · 多重施法 · 回避致命', gifUrl: 'http://127.0.0.1:8766/OS/gif/主角_风行者.gif' },
+      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_施法者.gif' },
+      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_圣职者.gif' },
+      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_灾厄使.gif' },
     },
 
     identity: {
@@ -919,19 +1023,215 @@
     '群反击': '全体反击', '再动': '额外行动', '免伤': '绝对免伤', '必中': '锁定必中', '转火': '转火追击'
   };
 
-  function getPillColorStyle(text) {
-    if (text.indexOf('伤害') >= 0 || text.indexOf('穿透') >= 0) return 'bg-rose-950/40 text-rose-300/90 border-rose-800/40';
-    if (text.indexOf('回复') >= 0 || text.indexOf('回蓝') >= 0 || text.indexOf('充能') >= 0 || text.indexOf('净化') >= 0 || text.indexOf('抽取') >= 0) return 'bg-emerald-950/40 text-emerald-300/90 border-emerald-800/40';
-    if (text.indexOf('护盾') >= 0 || text.indexOf('加防') >= 0 || text.indexOf('闪避') >= 0 || text.indexOf('免伤') >= 0) return 'bg-sky-950/40 text-sky-300/90 border-sky-800/40';
-    if (text.indexOf('降防') >= 0 || text.indexOf('降攻') >= 0 || text.indexOf('延迟') >= 0 || text.indexOf('缓速') >= 0 || text.indexOf('致盲') >= 0 || text.indexOf('中毒') >= 0 || text.indexOf('燃烧') >= 0 || text.indexOf('麻痹') >= 0 || text.indexOf('眩晕') >= 0) return 'bg-purple-950/40 text-purple-300/90 border-purple-800/40';
-    if (text.indexOf('持续') >= 0 || text.indexOf('命中') >= 0 || text.indexOf('加速') >= 0 || text.indexOf('增攻') >= 0 || text.indexOf('瞄准') >= 0 || text.indexOf('暴击') >= 0 || text.indexOf('必中') >= 0 || text.indexOf('转火') >= 0) return 'bg-amber-950/40 text-amber-300/80 border-amber-800/40';
-    if (text.indexOf('反应') >= 0) return 'bg-rose-950/50 text-rose-300/90 border-rose-700/40';
-    return 'bg-white/5 text-white/70 border-white/10';
+  /* ===== demo 移植：机制悬浮说明体系（注册表 / 机制提取 / 生效回合 / 富胶囊） ===== */
+
+  /* 弹药绑定：从 Combat_block 物品行 [绑定:技能*N] 动态构建，供 tooltip 展示材料消耗 */
+  const GLOBAL_AMMO_BINDINGS = {};
+  Object.keys(COMBAT.classes).forEach(function (cls) {
+    (COMBAT.classes[cls].items || []).forEach(function (it) {
+      (it.data.bindings || []).forEach(function (b) {
+        GLOBAL_AMMO_BINDINGS[b.skillName] = { ammoName: it.data.name, count: b.cost };
+      });
+    });
+  });
+
+  const MECHANICS_REGISTRY = {
+    '看破': { title: '看破', icon: '👁️', desc: '敌方宣告技能时触发，消耗资源强制中断并完全无效化对应伤害类型的技能，使其本次行动落空。' },
+    '反应': { title: '反应', icon: '⚡', desc: '闪避判定失败、即将遭受攻击时触发，消耗资源插队施展身法或防御技，重新进行闪避判定或减免伤害。' },
+    '舍身': { title: '舍身', icon: '🛡️', desc: '友方目标闪避失败、即将承受单体攻击时触发，挺身代替其承受本次攻击的全部伤害与负面效果。' },
+    '反击': { title: '受击反击', icon: '⚔️', desc: '进入反击架势，成功闪避敌方近战攻击后，自动以自身攻击力结合技能威力回敬目标。' },
+    '肃正': { title: '绝对肃正', icon: '✨', desc: '展开全队共享圣域结界，存在期间敌方单体攻击强制归集结界，全额吸收穿透伤害并隔离负面效果。结界未被击破前无法重复施展。' },
+    '免伤': { title: '绝对免伤', icon: '🛡️', desc: '赋予自身一次性极高防御抵扣层，在下一次遭受攻击结算后立即消耗清除。' },
+    '再动': { title: '额外行动', icon: '⏩', desc: '施展后立即获得N次额外的行动回合。该技能每大回合限制使用一次。' },
+    '延迟': { title: '蓄力准备', icon: '⏳', desc: '开启时即时押注扣除资源并进入蓄力，蓄力 N 回合后就绪释放。蓄力期间仍可触发反应与看破。' },
+    '加速': { title: '加速机制', icon: '⚡', desc: '施展蓄力技能时，每层加速自动抵扣 1 回合蓄力准备。首次完成蓄力释放后获得 3 层加速，使后续施展可免除蓄力直接连续释放。' },
+    '眩晕': { title: '击晕瘫痪', icon: '💫', desc: '攻击命中后剥夺目标下一次行动资格，跳过该次行动并即时清除眩晕。' },
+    '召唤': { title: '战术召唤', icon: '🌀', desc: '召唤从者即时参战，拥有独立行动轴与技能，阵亡不计入全灭。主人受击时从者自动执行反应或挺身舍身护卫。' },
+    '单速': { title: '目标加速', icon: '🟢', desc: '提升目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。' },
+    '目标缓速': { title: '目标缓速', icon: '🔴', desc: '降低受击目标的行动速度（Speed），施展后立即重排当前回合剩余行动队列。仅影响行动时序，不影响目标的闪避率（区别于降避）。' },
+    '目标降避': { title: '目标降避', icon: '🟣', desc: '降低受击目标的闪避率（Eva），削弱其闪避判定对抗上限。仅影响闪避率，不影响目标的行动速度与时序（区别于缓速）。' },
+    '持续闪避': { title: '持续闪避', icon: '💨', desc: '在持续回合内恒定提升目标的闪避率（Eva），期间承受多次攻击判定均有效，不因遭受攻击而消耗清除（区别于单次生效的紧急回避）。' },
+    '护盾吸收': { title: '护盾吸收', icon: '🔷', desc: '赋予目标临时伤害吸收护盾，优先全额吸收承受的物理与法术直接伤害；真实伤害（中毒与燃烧）将直接绕过护盾扣减生命值。' },
+    '目标加防': { title: '目标加防', icon: '🛡️', desc: '提升目标的护甲防御力（Armor），直接按数值抵扣承受的物理与法术伤害；无法减免穿透伤害与真实伤害。' },
+    '目标降防': { title: '目标降防', icon: '🛡️', desc: '降低受击目标的防御力，使目标在持续期间承受更多伤害。' },
+    '目标增攻': { title: '目标增攻', icon: '⚔️', desc: '提升目标的攻击力（Atk），直接提高其在持续期间造成的物理与法术伤害。' },
+    '目标降攻': { title: '目标降攻', icon: '⚔️', desc: '降低受击目标的攻击力，削弱其在持续期间造成的伤害。' },
+    '目标瞄准': { title: '目标瞄准', icon: '🎯', desc: '提升目标的攻击命中率（Aim），增强攻击判定命中上限，抵消受击方闪避率。' },
+    '目标致盲': { title: '目标致盲', icon: '👁️', desc: '降低受击目标的命中率，削弱其攻击命中上限。' },
+    '战技充能': { title: '战技充能', icon: '🔋', desc: '为目标注入指定点数的战技点（TP），加速极限爆发充能或战技点储备。' },
+    '仇恨嘲讽': { title: '仇恨嘲讽', icon: '🎯', desc: '大幅提升自身受击仇恨权重，强制敌方在索敌与单体攻击时优先锁定自身为第一目标。' },
+    '隐匿': { title: '战术隐匿', icon: '👤', desc: '大幅降低自身受击仇恨权重，使敌方在索敌与单体攻击时优先将目标转向其他队友，大幅降低被集火概率。' },
+    '战术隐匿': { title: '战术隐匿', icon: '👤', desc: '大幅降低自身受击仇恨权重，使敌方在索敌与单体攻击时优先将目标转向其他队友，大幅降低被集火概率。' },
+    '场次限制': { title: '场次限制', icon: '⏳', desc: '单场战斗内限制最大施展次数，耗尽后本场战斗无法再次施展，脱离战斗后自动重置。' },
+    '生命消耗': { title: '生命消耗', icon: '🩸', desc: '施展技能时代替或额外扣减自身指定点数的生命值（HP）；若当前生命值不足以支付（剩余 HP ≤ 消耗值）则无法施展。' },
+    '战技点消耗': { title: '战技点消耗', icon: '⚡', desc: '施展高阶战技时消耗积累的战技点（TP）；战斗开局默认为 0，受击与施法时积攒。TP 不足时无法施展。' },
+    '自身致盲': { title: '代价·自盲', icon: '⚠️', desc: '施展技能时降低自身命中率，使用后无条件生效，且数值不受爆发与暴击放大。' },
+    '必中': { title: '锁定必中', icon: '🎯', desc: '攻击跳过被动闪避判定必定命中目标，但仍可被敌方主动反应或看破化解。' },
+    '暴击': { title: '暴击机制', icon: '💥', desc: '按概率触发效果翻倍，本技能所有效果槽数值提升 100%。与极限爆发效果互斥。' },
+    '穿透': { title: '无视防御', icon: '⚡', desc: '造成的伤害完全无视目标的护甲防御力与免伤状态。' },
+    '散射': { title: '散射伤害', icon: '💥', desc: '造成大范围多弹丸散射伤害，受目标护甲的 3 倍防御减免。' },
+    '转火': { title: '转火追击', icon: '🔥', desc: '多段连续攻击中，若前置伤害击杀当前目标，后续攻击段自动转移至其他存活敌人。' },
+    '回避': { title: '紧急回避', icon: '💨', desc: '提升自身闪避值，在下一次遭遇攻击判定后立刻消耗清除。' },
+    '麻痹': { title: '雷电麻痹', icon: '⚡', desc: '降低目标闪避率，且目标每次行动时按层数概率发生僵直跳过行动，成功僵直后消耗一层。' },
+    '中毒': { title: '毒素侵蚀', icon: '🧪', desc: '每回合持续造成无视防御与护盾的真实伤害，每次命中独立叠层，层数无上限。' },
+    '燃烧': { title: '火焰灼烧', icon: '🔥', desc: '每回合持续造成无视防御与护盾的真实伤害，重复施加仅刷新持续时间，期间目标受到的治疗效果降低 50%。' },
+    '他人': { title: '友方指定', icon: '🤝', desc: '赋予纯单体有益技能选择友方目标施放的能力，未携带时仅限自身生效。' },
+    '驱散': { title: '净化驱散', icon: '✨', desc: '驱散目标身上的中毒、燃烧、眩晕、麻痹及负面属性状态，无法驱散战前场地效果。' },
+    '材料绑定': { title: '弹药与材料消耗', icon: '🎒', desc: '施展技能时消耗绑定的物品或弹药。道具每场战斗重置满额，消耗品跨场持久扣减，弹药按实际射击段数逐发扣除。' }
+  };
+
+  function extractMechanicsKeys(rawText, skillName = null) {
+    const keys = [];
+    if (!rawText) return keys;
+    if (rawText.includes('看破')) keys.push('看破');
+    if (rawText.includes('反应')) keys.push('反应');
+    if (rawText.includes('舍身')) keys.push('舍身');
+    if (rawText.includes('反击')) keys.push('反击');
+    if (rawText.includes('肃正')) keys.push('肃正');
+    if (rawText.includes('免伤')) keys.push('免伤');
+    if (rawText.includes('再动')) keys.push('再动');
+    if (rawText.includes('延迟')) keys.push('延迟');
+    if (rawText.includes('加速')) keys.push('加速');
+    if (rawText.includes('眩晕')) keys.push('眩晕');
+    if (rawText.includes('召唤')) keys.push('召唤');
+    if (rawText.includes('单速') || rawText.includes('群速')) keys.push('单速');
+    if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('目标缓速');
+    if (rawText.includes('单滞') || rawText.includes('群滞') || rawText.includes('降避')) keys.push('目标降避');
+    if (rawText.includes('单避') || rawText.includes('群避')) keys.push('持续闪避');
+    if (rawText.includes('单盾') || rawText.includes('群盾') || rawText.includes('护盾')) keys.push('护盾吸收');
+    if (rawText.includes('单降') || rawText.includes('群降') || rawText.includes('降防')) keys.push('目标降防');
+    if (rawText.includes('单防') || rawText.includes('群防') || rawText.includes('加防')) keys.push('目标加防');
+    if (rawText.includes('单弱') || rawText.includes('群弱') || rawText.includes('降攻')) keys.push('目标降攻');
+    if (rawText.includes('单增') || rawText.includes('群增') || rawText.includes('增攻')) keys.push('目标增攻');
+    if (rawText.includes('单盲') || rawText.includes('群盲') || rawText.includes('致盲')) keys.push('目标致盲');
+    if (rawText.includes('单瞄') || rawText.includes('群瞄') || rawText.includes('瞄准')) keys.push('目标瞄准');
+    if (rawText.includes('单冲') || rawText.includes('群冲') || rawText.includes('充能')) keys.push('战技充能');
+
+    // 仇恨与隐匿判断：若为负仇恨或包含隐匿，提取隐匿；正仇恨提取仇恨嘲讽
+    const tauntMatches = rawText.match(/\[嘲讽(?:;[^\]]*)?\]/g) || [];
+    let hasTauntPositive = false;
+    let hasTauntNegative = rawText.includes('隐匿');
+    tauntMatches.forEach(t => {
+      if (t.includes('-')) {
+        hasTauntNegative = true;
+      } else {
+        hasTauntPositive = true;
+      }
+    });
+    if (hasTauntNegative) keys.push('隐匿');
+    if (hasTauntPositive) keys.push('仇恨嘲讽');
+
+    if (/限\d+次|限用/.test(rawText)) keys.push('场次限制');
+    if (rawText.includes('自盲') || rawText.includes('自降') || rawText.includes('自弱')) keys.push('自身致盲');
+    if (rawText.includes('必中')) keys.push('必中');
+    if (rawText.includes('暴击')) keys.push('暴击');
+    if (rawText.includes('穿透')) keys.push('穿透');
+    if (rawText.includes('散射') || rawText.includes('霰弹')) keys.push('散射');
+    if (rawText.includes('转火')) keys.push('转火');
+    if (rawText.includes('回避')) keys.push('回避');
+    if (rawText.includes('麻痹')) keys.push('麻痹');
+    if (rawText.includes('中毒')) keys.push('中毒');
+    if (rawText.includes('燃烧')) keys.push('燃烧');
+    if (rawText.includes('他人')) keys.push('他人');
+    if (rawText.includes('驱散')) keys.push('驱散');
+
+    // MP 以外的资源消耗说明（生命消耗、战技点消耗、弹药材料）
+    if (/\[HP:\d+\]/i.test(rawText)) keys.push('生命消耗');
+    if (/\[TP:\d+\]/i.test(rawText)) keys.push('战技点消耗');
+    if (rawText.includes('子弹') || rawText.includes('鹿弹') || rawText.includes('道具') || rawText.includes('消耗品') || (skillName && GLOBAL_AMMO_BINDINGS[skillName])) {
+      keys.push('材料绑定');
+    }
+
+    return Array.from(new Set(keys));
+  }
+
+  /* 具有持续生效时间的机制列表与其匹配标签正则 */
+  const DURATION_MECH_PATTERNS = {
+    '目标致盲': [/^(?:单盲|群盲|致盲)/i],
+    '自身致盲': [/^(?:自盲|自降|自弱)/i],
+    '目标降防': [/^(?:单降|群降|降防)/i],
+    '目标加防': [/^(?:单防|群防|加防)/i],
+    '目标降攻': [/^(?:单弱|群弱|降攻)/i],
+    '目标增攻': [/^(?:单增|群增|增攻)/i],
+    '目标缓速': [/^(?:单缓|群缓|缓速)/i],
+    '单速': [/^(?:单速|群速|加速)/i],
+    '目标降避': [/^(?:单滞|群滞|降避)/i],
+    '持续闪避': [/^(?:单避|群避|闪避)/i],
+    '护盾吸收': [/^(?:单盾|群盾|护盾)/i],
+    '目标瞄准': [/^(?:单瞄|群瞄|瞄准)/i],
+    '隐匿': [/^(?:隐匿)/i],
+    '仇恨嘲讽': [/^(?:嘲讽)/i],
+    '中毒': [/^(?:中毒|群中毒)/i],
+    '燃烧': [/^(?:燃烧|群燃烧)/i],
+    '麻痹': [/^(?:麻痹|群麻痹)/i],
+    '眩晕': [/^(?:眩晕|击晕)/i],
+    '延迟': [/^(?:延迟)/i]
+  };
+
+  /* 获取特定机制或效果在指定技能中的生效回合数（瞬发或被动规则返回 null） */
+  function getMechTurns(mechKey, rawText, matchedTagStr = null) {
+    if (!mechKey || !DURATION_MECH_PATTERNS[mechKey]) return null;
+
+    let targetTag = matchedTagStr;
+    if (!targetTag && rawText) {
+      const tags = rawText.match(/\[([^\]]+)\]/g) || [];
+      for (const t of tags) {
+        const inner = t.slice(1, -1).trim();
+        const parts = inner.split(/[;；]/);
+        const mainPart = parts[0].trim();
+
+        if (mechKey === '隐匿') {
+          if (mainPart === '隐匿' || (mainPart.includes('嘲讽') && parts.some(p => p.includes('-')))) {
+            targetTag = inner;
+            break;
+          }
+        } else if (mechKey === '仇恨嘲讽') {
+          if (mainPart.includes('嘲讽') && !parts.some(p => p.includes('-'))) {
+            targetTag = inner;
+            break;
+          }
+        } else if (DURATION_MECH_PATTERNS[mechKey].some(pat => pat.test(mainPart))) {
+          targetTag = inner;
+          break;
+        }
+      }
+    }
+
+    // 1. 优先匹配该标签片段自带的 ;turns:N
+    if (targetTag) {
+      const tm = targetTag.match(/;turns?[:：](\d+)/i);
+      if (tm) return parseInt(tm[1], 10);
+    }
+
+    // 2. 自盲专属规则：用户明确指定"自盲基本都是2回合，造雾术是和敌方debuff区分开的"
+    if (mechKey === '自身致盲') return 2;
+
+    // 3. 眩晕（跳过行动）：默认 1 回合
+    if (mechKey === '眩晕') return 1;
+
+    // 4. 延迟蓄力准备
+    if (mechKey === '延迟') {
+      if (targetTag) {
+        const dm = targetTag.match(/延迟[:：](\d+)/i);
+        if (dm) return parseInt(dm[1], 10);
+      }
+      return 1;
+    }
+
+    // 5. 检查全局顶级 [Turns:N] 或 [持续:N] 声明
+    if (rawText) {
+      const gm = rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i);
+      if (gm) return parseInt(gm[1], 10);
+    }
+
+    // 6. 其他持续性 Buff / Debuff 状态遵循底层引擎默认 3 回合
+    return 3;
   }
 
   function formatSkillEffectPills(rawText) {
     if (!rawText) return '';
     let clean = rawText.replace(/【[^】]+】/, '');
+    // 彻底剥离重复后台前缀
     clean = clean.replace(/\[(限定|通用)\]/g, '');
     clean = clean.replace(/\[价:\d+\]/g, '');
     clean = clean.replace(/\[MP:\d+\]/g, '');
@@ -939,51 +1239,122 @@
     clean = clean.replace(/\[TP:\d+\]/g, '');
     clean = clean.replace(/\[特效:[^\]]+\]/g, '');
 
+    const hasOthers = rawText.includes('[他人]') || rawText.includes('他人');
+    const targetOrSelf = hasOthers ? '目标' : '自身';
+
     const tagMatches = clean.match(/\[([^\]]+)\]/g) || [];
     if (tagMatches.length === 0) {
       return '<span class="text-[0.65rem] text-white/30 font-mono">无特殊效果</span>';
     }
 
     const pills = [];
-    tagMatches.forEach(function (tagStr) {
+    tagMatches.forEach(tagStr => {
       const inner = tagStr.slice(1, -1).trim();
       const parts = inner.split(/[;；]/);
       const mainPart = parts[0].trim();
       let powerVal = null;
-      parts.slice(1).forEach(function (p) {
+      let extraTurns = null;
+      parts.slice(1).forEach(p => {
         const pm = p.match(/power:(-?\d+)/i);
         if (pm) powerVal = pm[1];
+        const tm = p.match(/turns:(\d+)/i);
+        if (tm) extraTurns = tm[1];
       });
 
       let displayLabel = '';
       let displayVal = powerVal;
 
-      if (/^持续[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^持续[:：](\d+)/i);
-        displayLabel = '持续';
+      if (/^持续[:：](\d+)/i.test(mainPart) || /^Turns?[:：](\d+)/i.test(mainPart)) {
+        // 持续回合已统一移至右侧命中率之前专属时序徽章展示，左侧胶囊彻底去除以防冗余
+        return;
+      } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart) || mainPart === '必中') {
+        // 右侧状态列已专设金色命中率栏，左侧胶囊彻底去除以防冗余
+        return;
+      } else if (/^加速[:：](\d+)/i.test(mainPart) || /^单速[:：](\d+)/i.test(mainPart) || mainPart === '单速') {
+        const m = mainPart.match(/^(?:加速|单速)[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}加速`;
+        displayVal = m ? `+${m[1]}` : (powerVal ? `+${powerVal}` : null);
+      } else if (/^单冲[:：](\d+)/i.test(mainPart) || mainPart === '单冲') {
+        const m = mainPart.match(/^单冲[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}充能`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单瞄[:：](\d+)/i.test(mainPart) || mainPart === '单瞄') {
+        const m = mainPart.match(/^单瞄[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}瞄准`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单防[:：](\d+)/i.test(mainPart) || mainPart === '单防') {
+        const m = mainPart.match(/^单防[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}加防`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单避[:：](\d+)/i.test(mainPart) || mainPart === '单避') {
+        const m = mainPart.match(/^单避[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}闪避`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单增[:：](\d+)/i.test(mainPart) || mainPart === '单增') {
+        const m = mainPart.match(/^单增[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}增攻`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单盾[:：](\d+)/i.test(mainPart) || mainPart === '单盾') {
+        const m = mainPart.match(/^单盾[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}护盾`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单回[:：](\d+)/i.test(mainPart) || mainPart === '单回') {
+        const m = mainPart.match(/^单回[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}回复`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单回蓝[:：](\d+)/i.test(mainPart) || mainPart === '单回蓝') {
+        const m = mainPart.match(/^单回蓝[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}回蓝`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (mainPart === '嘲讽' || mainPart === '隐匿') {
+        const isNeg = (powerVal != null && (Number(powerVal) < 0 || String(powerVal).startsWith('-'))) || mainPart === '隐匿';
+        if (isNeg) {
+          displayLabel = `${targetOrSelf}隐匿`;
+          displayVal = powerVal != null ? String(Math.abs(Number(powerVal))) : null;
+        } else {
+          displayLabel = `${targetOrSelf}嘲讽`;
+          displayVal = powerVal != null ? String(powerVal) : null;
+        }
+      } else if (/^延迟[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^延迟[:：](\d+)/i);
+        displayLabel = '蓄力';
         displayVal = (m ? m[1] : '') + '回合';
-      } else if (/^加速[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^加速[:：](\d+)/i);
-        displayLabel = '加速';
-        displayVal = '+' + (m ? m[1] : '');
       } else if (/^暴击[:：](\d+)%?/i.test(mainPart)) {
         const m = mainPart.match(/^暴击[:：](\d+)%?/i);
         displayLabel = '暴击';
         displayVal = (m ? m[1] : '') + '%';
-      } else if (/^(?:Hit|Aim)[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^(?:Hit|Aim)[:：](\d+)/i);
-        displayLabel = '命中';
-        displayVal = (m ? m[1] : '') + '%';
-      } else if (/^反应(?::([^\]]+))?/i.test(mainPart)) {
-        const m = mainPart.match(/^反应(?::([^\]]+))?/i);
-        displayLabel = m && m[1] ? '⟲反应·' + m[1] : '⟲反应';
-      } else if (mainPart === '他人') {
-        displayLabel = '友方目标';
-      } else if (mainPart === '法术' || mainPart === '近战' || mainPart === '远程') {
+      } else if (/^限(\d+)次/i.test(mainPart)) {
+        const m = mainPart.match(/^限(\d+)次/i);
+        displayLabel = '限用';
+        displayVal = (m ? m[1] : '') + '次';
+      } else if (/^(?:反应|舍身|看破)(?::([^\]]+))?/i.test(mainPart)) {
+        // 右上角已专设金色战术机制徽章（如【⟲反应·近战】、【舍身·近战】、【看破·法术】），下方胶囊中不再重复显示
+        return;
+      } else if (/^肃正(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^肃正(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `肃正·${m[1]}` : '绝对肃正';
+      } else if (/^召唤(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^召唤(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `召唤·${m[1]}` : '战术召唤';
+      } else if (/^散射(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '散射伤害';
+      } else if (/^群散射(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '群体散射';
+      } else if (/^单体(?:\([^)]+\))?/i.test(mainPart)) {
+        // 括号备注（光、火焰、枪击等）只是特效标签，技能栏统一改为【单体伤害】
+        displayLabel = '单体伤害';
+      } else if (/^穿透(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '单体穿透';
+      } else if (mainPart === '他人' || mainPart === '友方' || mainPart === '友方目标') {
+        displayLabel = '他人';
+        displayVal = null;
+      } else if (mainPart === '法术' || mainPart === '近战' || mainPart === '远程' || mainPart === '高阶' || mainPart === '传奇') {
+        // 头部与阶级徽章已标注伤害属性与阶级，效果行内无需重复
         return;
       } else if (/^(群驱散|驱散)(?::(\d+))?/i.test(mainPart)) {
         const m = mainPart.match(/^(群驱散|驱散)(?::(\d+))?/i);
-        displayLabel = m[1].indexOf('群') >= 0 ? '群体净化' : '单体净化';
+        const isGroup = m[1].includes('群');
+        displayLabel = isGroup ? '群体净化' : '单体净化';
         displayVal = m[2] ? m[2] + '层' : null;
       } else if (TAG_EXPAND_MAP[mainPart]) {
         displayLabel = TAG_EXPAND_MAP[mainPart];
@@ -991,14 +1362,97 @@
         displayLabel = mainPart;
       }
 
-      const style = getPillColorStyle(displayLabel);
-      pills.push('<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.64rem] font-mono border leading-none ' + style + '">'
-        + '<span>' + esc(displayLabel) + '</span>'
-        + (displayVal != null ? '<span class="font-bold opacity-90 font-mono">' + esc(displayVal) + '</span>' : '')
-        + '</span>');
+      // 关联机制 key 用于胶囊悬停聚焦
+      let targetMechKey = null;
+      if (displayLabel.includes('散射')) targetMechKey = '散射';
+      else if (displayLabel.includes('转火')) targetMechKey = '转火';
+      else if (displayLabel.includes('肃正')) targetMechKey = '肃正';
+      else if (displayLabel.includes('免伤')) targetMechKey = '免伤';
+      else if (displayLabel.includes('回避')) targetMechKey = '回避';
+      else if (displayLabel.includes('穿透')) targetMechKey = '穿透';
+      else if (displayLabel.includes('再动') || displayLabel.includes('额外行动')) targetMechKey = '再动';
+      else if (displayLabel.includes('蓄力')) targetMechKey = '延迟';
+      else if (displayLabel.includes('加速')) targetMechKey = '加速';
+      else if (displayLabel.includes('麻痹')) targetMechKey = '麻痹';
+      else if (displayLabel.includes('中毒') || displayLabel.includes('毒素侵蚀')) targetMechKey = '中毒';
+      else if (displayLabel.includes('燃烧') || displayLabel.includes('灼烧')) targetMechKey = '燃烧';
+      else if (displayLabel.includes('降防')) targetMechKey = '目标降防';
+      else if (displayLabel.includes('加防')) targetMechKey = '目标加防';
+      else if (displayLabel.includes('降攻')) targetMechKey = '目标降攻';
+      else if (displayLabel.includes('增攻')) targetMechKey = '目标增攻';
+      else if (displayLabel.includes('自身致盲') || displayLabel.includes('自盲')) targetMechKey = '自身致盲';
+      else if (displayLabel.includes('致盲')) targetMechKey = '目标致盲';
+      else if (displayLabel.includes('缓速')) targetMechKey = '目标缓速';
+      else if (displayLabel.includes('降避')) targetMechKey = '目标降避';
+      else if (displayLabel.includes('瞄准')) targetMechKey = '目标瞄准';
+      else if (displayLabel.includes('充能')) targetMechKey = '战技充能';
+      else if (displayLabel.includes('隐匿')) targetMechKey = '隐匿';
+      else if (displayLabel.includes('嘲讽')) targetMechKey = '仇恨嘲讽';
+      else if (displayLabel.includes('限用') || displayLabel.includes('限次')) targetMechKey = '场次限制';
+      else if (displayLabel.includes('闪避') && !displayLabel.includes('紧急回避')) targetMechKey = '持续闪避';
+      else if (displayLabel.includes('护盾')) targetMechKey = '护盾吸收';
+      else if (displayLabel.includes('他人')) targetMechKey = '他人';
+      else if (displayLabel.includes('净化')) targetMechKey = '驱散';
+      else if (displayLabel.includes('反击')) targetMechKey = '反击';
+      else if (displayLabel.includes('暴击')) targetMechKey = '暴击';
+      else if (displayLabel.includes('必中')) targetMechKey = '必中';
+      else if (displayLabel.includes('眩晕') || displayLabel.includes('击晕')) targetMechKey = '眩晕';
+      else if (displayLabel.includes('召唤')) targetMechKey = '召唤';
+
+      const mechFocusAttr = targetMechKey ? `data-mech-focus="${targetMechKey}"` : '';
+
+      // 属性语义分类（战术全息透镜 · 毛玻璃微晶）
+      let cat = 'buff';
+      if (displayLabel === '他人' || displayLabel === '友方' || displayLabel === '持续' || displayLabel === '限用' || displayLabel === '蓄力') {
+        cat = 'aux';
+      } else if (displayLabel.includes('回复') || displayLabel.includes('回蓝') || displayLabel.includes('充能') || displayLabel.includes('净化') || displayLabel.includes('抽取') || displayLabel.includes('驱散')) {
+        cat = 'heal';
+      } else if (displayLabel.includes('伤害') || displayLabel.includes('穿透') || displayLabel.includes('枪击') || displayLabel.includes('散射') || displayLabel.includes('光')) {
+        cat = 'damage';
+      } else if (displayLabel.includes('护盾') || displayLabel.includes('加防') || displayLabel.includes('闪避') || displayLabel.includes('免伤') || displayLabel.includes('回避') || displayLabel.includes('舍身') || displayLabel.includes('肃正')) {
+        cat = 'defense';
+      } else if (displayLabel.includes('降防') || displayLabel.includes('降攻') || displayLabel.includes('缓速') || displayLabel.includes('致盲') || displayLabel.includes('中毒') || displayLabel.includes('燃烧') || displayLabel.includes('麻痹') || displayLabel.includes('眩晕') || displayLabel.includes('自盲') || displayLabel.includes('滞')) {
+        cat = 'debuff';
+      } else {
+        cat = 'buff';
+      }
+
+      if (cat === 'aux') {
+        // 辅助属性（他人、持续、限用、蓄力）：紧凑浅灰半透微标，无呼吸光点，低调不抢视线
+        pills.push(`
+          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none cursor-pointer">
+            <span>${esc(displayLabel)}</span>
+            ${displayVal != null ? `<span class="font-bold font-mono text-white/60 ml-0.5">${esc(displayVal)}</span>` : ''}
+          </span>
+        `);
+      } else {
+        // 核心战斗收益：极细半透微晶描边 + 呼吸微光色点指示分类 + 象牙金等宽数值
+        let dotClass = 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]';
+        if (cat === 'heal') dotClass = 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]';
+        else if (cat === 'damage') dotClass = 'bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)]';
+        else if (cat === 'defense') dotClass = 'bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.9)]';
+        else if (cat === 'debuff') dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
+
+        pills.push(`
+          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] cursor-pointer">
+            <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
+            <span class="tracking-wide">${esc(displayLabel)}</span>
+            ${displayVal != null ? `<span class="font-bold text-amber-200 font-mono ml-0.5">${esc(displayVal)}</span>` : ''}
+          </span>
+        `);
+      }
     });
 
     return pills.join('');
+  }
+
+  /* 技能阶级判定：普通 (Tier 1) / 高阶 (Tier 2) / 传奇 (Tier 3) */
+  function getSkillTier(s) {
+    if (!s) return 1;
+    const text = (s.rawText || '') + ' ' + ((s.data && s.data.name) || s.name || '');
+    if (text.includes('[传奇]') || text.includes('传奇')) return 3;
+    if (text.includes('[高阶]') || text.includes('高阶') || text.includes('净蚀反冲')) return 2;
+    return 1;
   }
 
   // ---- 工具 ----
@@ -1390,6 +1844,7 @@
     }
     app.innerHTML = html;
     afterRender();
+    preheatCombatGifs(state.stage);
     if (state.soundOn) {
       if (state.stage === 'c1') playHeroCurrentVoice('hero1');
       else if (state.stage === 'c2') playHeroCurrentVoice('hero2');
@@ -1510,6 +1965,22 @@
     const voiceData = (hero.classVoiceMap && hero.classVoiceMap[curCls]) || { quote: hero.inner || '', audioUrl: '' };
 
     return '<div class="portrait-podium mb-4 lg:mb-0 h-full flex-1 flex flex-col justify-between">'
+      /* 纯净实机战斗视窗：hover 职业卡时在此弹出，移开自动隐藏（demo 移植） */
+      + '    <div id="stage-combat-monitor" class="stage-combat-monitor">'
+      + '      <img id="stage-combat-img" src="" alt="实机战斗" class="stage-combat-gif">'
+      + '      <div class="stage-combat-vignette"></div>'
+      + '    </div>'
+      /* 契合的微弱缓慢氛围粒子（静谧微粒缓慢漂浮升腾，不喧宾夺主） */
+      + '    <div class="portrait-ambient-particles" aria-hidden="true">'
+      + '      <div class="p-dot" style="--p-x: 14%; --p-y: 72%; --p-tx: 8px; --p-ty: -75px; --p-dur: 11s; --p-del: 0s; --p-sz: 3px; --p-op: 0.55;"></div>'
+      + '      <div class="p-dot" style="--p-x: 82%; --p-y: 65%; --p-tx: -10px; --p-ty: -80px; --p-dur: 13.5s; --p-del: 2s; --p-sz: 2px; --p-op: 0.45;"></div>'
+      + '      <div class="p-dot" style="--p-x: 24%; --p-y: 48%; --p-tx: 12px; --p-ty: -65px; --p-dur: 9.5s; --p-del: 4s; --p-sz: 2.5px; --p-op: 0.5;"></div>'
+      + '      <div class="p-dot" style="--p-x: 74%; --p-y: 38%; --p-tx: -14px; --p-ty: -70px; --p-dur: 12s; --p-del: 1s; --p-sz: 3px; --p-op: 0.55;"></div>'
+      + '      <div class="p-dot" style="--p-x: 48%; --p-y: 84%; --p-tx: -6px; --p-ty: -90px; --p-dur: 15s; --p-del: 3s; --p-sz: 2px; --p-op: 0.4;"></div>'
+      + '      <div class="p-dot" style="--p-x: 10%; --p-y: 30%; --p-tx: 10px; --p-ty: -55px; --p-dur: 10s; --p-del: 5s; --p-sz: 3px; --p-op: 0.45;"></div>'
+      + '      <div class="p-dot" style="--p-x: 88%; --p-y: 25%; --p-tx: -8px; --p-ty: -60px; --p-dur: 14s; --p-del: 2.5s; --p-sz: 2.5px; --p-op: 0.5;"></div>'
+      + '      <div class="p-dot" style="--p-x: 32%; --p-y: 18%; --p-tx: 10px; --p-ty: -50px; --p-dur: 8.5s; --p-del: 1.5s; --p-sz: 2px; --p-op: 0.35;"></div>'
+      + '    </div>'
       + '  <div>'
       + '    <div class="flex items-start justify-between">'
       + '      <div>'
@@ -1600,12 +2071,22 @@
       ? '<button data-action="c3-skill-remove" data-skill="' + esc(s.data.name) + '" class="text-xs text-white/40 hover:text-rose-400 p-1 cursor-pointer transition-colors" title="卸下芯片">✕</button>'
       : '';
 
-    return '<div class="skill-slot-chip ' + (isLim ? 'type-limited' : 'type-generic') + ' ' + (s.data && s.data.isReaction ? 'is-reaction' : '') + '" style="--slot-idx:' + slotIdx + '">'
+    const tier = getSkillTier(s);
+    const tierBadgeHtml = tier === 3
+      ? '<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>'
+      : (tier === 2
+        ? '<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>'
+        : '');
+
+    const skillRawAttr = s.rawText ? esc(s.rawText) : '';
+
+    return '<div class="skill-slot-chip ' + (isLim ? 'type-limited' : 'type-generic') + ' ' + (s.data && s.data.isReaction ? 'is-reaction' : '') + '" style="--slot-idx:' + slotIdx + '" data-skill-name="' + esc(s.data.name) + '" data-skill-raw="' + skillRawAttr + '">'
       + '<div class="flex items-center gap-3 min-w-0 flex-1">'
       + '  <div class="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center font-tw text-[0.65rem] text-[var(--accent)] font-bold shrink-0">' + slotIdx + '</div>'
       + '  <div class="min-w-0 flex-1">'
       + '    <div class="flex items-center gap-2 flex-wrap">'
       + '      <span class="text-sm font-bold text-[var(--text-main)] truncate">' + esc(s.data ? s.data.name : s.id) + '</span>'
+      + tierBadgeHtml
       + costBadge + mpBadge + reactionBadge + damageBadge
       + '    </div>'
       + '    <div class="flex items-center gap-1.5 flex-wrap mt-1">'
@@ -1622,7 +2103,8 @@
     const cfg = classConfigOf(cls);
     const skills = classSkills(cls).map(function (s) {
       const lim = s.scope === '限定';
-      return '<div class="flex items-baseline justify-between gap-2">'
+      return '<div data-skill-name="' + esc(s.data.name) + '" data-skill-raw="' + esc(s.rawText || s.data.name) + '">'
+        + '<div class="flex items-baseline justify-between gap-2">'
         + '<span class="text-[0.7rem] text-[#e8dcc0]">'
         + (lim ? '<span class="text-[rgba(198,161,84,0.95)]">[限定]</span> ' : '<span class="text-[rgba(150,190,150,0.95)]">[通用]</span> ')
         + esc(s.data.name)
@@ -1630,7 +2112,8 @@
         + '</span>'
         + '<span class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.6)] shrink-0">' + (lim ? '随职业' : s.shopCost + ' 点') + '</span>'
         + '</div>'
-        + '<div class="mt-0.5">' + formatSkillEffectPills(s.rawText || s.data.name) + '</div>';
+        + '<div class="mt-0.5">' + formatSkillEffectPills(s.rawText || s.data.name) + '</div>'
+        + '</div>';
     }).join('');
     return '<div class="class-tab-card ' + (picked ? 'active' : '') + '" data-action="' + (slot === 'c3' ? 'c3-class-pick' : slot + '-pick') + '" data-class="' + esc(cls) + '" data-class-tab="' + esc(cls) + '">'
       + '<div class="flex items-baseline justify-between mb-1">'
@@ -2073,12 +2556,21 @@
 
     const cards = genericPool().map(function (e) {
       const isSel = genericEquipped.indexOf(e.data.name) >= 0;
-      return '<div class="skill-pick-card ' + (isSel ? 'selected' : '') + '" data-action="c3-skill-toggle" data-skill="' + esc(e.data.name) + '" data-skill-card="' + esc(e.data.name) + '">'
+      const tier = getSkillTier(e);
+      const tierBadgeHtml = tier === 3
+        ? '<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>'
+        : (tier === 2
+          ? '<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>'
+          : '');
+      return '<div class="skill-pick-card ' + (isSel ? 'selected' : '') + '" data-action="c3-skill-toggle" data-skill="' + esc(e.data.name) + '" data-skill-card="' + esc(e.data.name) + '" data-skill-name="' + esc(e.data.name) + '" data-skill-raw="' + esc(e.rawText || e.data.name) + '">'
         + '<div class="flex items-baseline justify-between mb-1">'
         + '  <span class="text-sm font-bold text-[var(--text-main)]">' + esc(e.data.name) + '</span>'
         + '  <span class="font-tw text-xs text-[var(--accent)] font-bold">' + e.shopCost + ' 点</span>'
         + '</div>'
-        + '<div class="font-tw text-[0.62rem] text-[var(--text-muted)] mb-1.5">来源职业：' + esc(e.srcClass) + (e.data.isReaction ? ' · <span class="text-rose-400 font-bold">⟲反应</span>' : '') + '</div>'
+        + '<div class="flex items-center gap-1.5 flex-wrap mb-1.5">'
+        + '  <span class="font-tw text-[0.62rem] text-[var(--text-muted)]">来源职业：' + esc(e.srcClass) + (e.data.isReaction ? ' · <span class="text-rose-400 font-bold">⟲反应</span>' : '') + '</span>'
+        + tierBadgeHtml
+        + '</div>'
         + '<div class="flex items-center gap-1.5 flex-wrap">'
         + formatSkillEffectPills(e.rawText || e.data.name)
         + '</div>'
@@ -2093,13 +2585,16 @@
       + '      <span class="font-tw text-xs text-[var(--accent)] tracking-widest">TACTICAL CHIP ALLOCATION</span>'
       + '      <h2 class="text-xl font-bold text-[var(--text-main)] mt-0.5">自由通用技能插槽购点</h2>'
       + '    </div>'
-      + '    <div class="w-48 text-right">'
-      + '      <div class="flex items-center justify-between font-tw text-xs mb-1">'
-      + '        <span class="text-white/60">REMAINING BUDGET</span>'
-      + '        <span id="c3-remain-points" class="font-bold ' + (remainPoints === 0 ? 'text-amber-400' : 'text-[var(--accent)]') + '">' + remainPoints + ' / ' + maxPoints + ' 点</span>'
-      + '      </div>'
-      + '      <div class="energy-meter">'
-      + '        <div id="c3-energy-fill" class="energy-fill" style="width:' + pct + '%;"></div>'
+      + '    <div class="flex items-center gap-4">'
+      + '      <button class="btn-ghost shrink-0" data-action="rules-modal" title="核心战斗专有机制速查">📖 机制速查</button>'
+      + '      <div class="w-48 text-right">'
+      + '        <div class="flex items-center justify-between font-tw text-xs mb-1">'
+      + '          <span class="text-white/60">REMAINING BUDGET</span>'
+      + '          <span id="c3-remain-points" class="font-bold ' + (remainPoints === 0 ? 'text-amber-400' : 'text-[var(--accent)]') + '">' + remainPoints + ' / ' + maxPoints + ' 点</span>'
+      + '        </div>'
+      + '        <div class="energy-meter">'
+      + '          <div id="c3-energy-fill" class="energy-fill" style="width:' + pct + '%;"></div>'
+      + '        </div>'
       + '      </div>'
       + '    </div>'
       + '  </div>'
@@ -2190,7 +2685,10 @@
       + '<div class="min-h-[640px] flex flex-col items-center justify-center px-6 py-14">'
       + header('GEAR · 随身装备', '物品选购')
       + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
-      + '    <div class="text-xs text-[rgba(232,220,192,0.6)] mb-4">' + esc(hero3Name()) + ' 的随身物品（写入战斗档案与 Status_block）。</div>'
+      + '    <div class="flex items-center justify-between gap-3 mb-4">'
+      + '      <div class="text-xs text-[rgba(232,220,192,0.6)]">' + esc(hero3Name()) + ' 的随身物品（写入战斗档案与 Status_block）。</div>'
+      + '      <button class="btn-ghost shrink-0" data-action="rules-modal" title="核心战斗专有机制速查">📖 机制速查</button>'
+      + '    </div>'
       + '    <div id="item-budget">' + budgetBar(itemsUsed(), OPENING_DATA.shop.itemPoints, false) + '</div>'
       + '    <div class="grid sm:grid-cols-2 gap-3 mt-4">' + cards + '</div>'
       + '    <div class="mt-8 flex items-center justify-between">'
@@ -2427,6 +2925,9 @@
       case 'item-toggle':
         toggleItem(t.getAttribute('data-item-id'));
         break;
+      case 'rules-modal':
+        toggleBattleRulesModal();
+        break;
       case 'c3item-done':
         gotoStageWithCrossfade('confirm');
         break;
@@ -2587,6 +3088,311 @@
     }
   }
 
+  /* ==================== demo 移植：实机战斗视窗 / 技能悬浮窗 / 规则弹窗 ==================== */
+
+  /* 悬停职业卡 → 左侧展台实机战斗视窗（仅 hover 时弹出，移开隐藏；GIF 已预热秒显） */
+  function showCombatPreview(cName) {
+    const info = OPENING_DATA.classIntro[cName] || {};
+    const gifSrc = info.gifUrl || '';
+    const monitor = document.getElementById('stage-combat-monitor');
+    const img = document.getElementById('stage-combat-img');
+    /* 相同职业重复悬浮不重设 src，避免动画重启与重复解码 */
+    if (img && gifSrc && img.getAttribute('src') !== gifSrc) {
+      img.src = gifSrc;
+    }
+    if (monitor) monitor.classList.add('active');
+  }
+  function hideCombatPreview() {
+    const monitor = document.getElementById('stage-combat-monitor');
+    if (!monitor) return;
+    monitor.classList.remove('active');
+    /* 弹出过渡(220ms)结束后清空 src，停止隐藏态 GIF 的持续解码播放 */
+    setTimeout(function () {
+      if (!monitor.classList.contains('active')) {
+        const img = document.getElementById('stage-combat-img');
+        if (img) img.removeAttribute('src');
+      }
+    }, 260);
+  }
+  function initCombatMonitorHover() {
+    app.addEventListener('mouseover', function (ev) {
+      const tab = ev.target.closest('[data-class-tab]');
+      if (tab) showCombatPreview(tab.getAttribute('data-class-tab'));
+    });
+    app.addEventListener('mouseout', function (ev) {
+      const tab = ev.target.closest('[data-class-tab]');
+      if (!tab) return;
+      const rel = ev.relatedTarget;
+      if (rel && tab.contains(rel)) return;
+      hideCombatPreview();
+    });
+  }
+
+  /* 进入职业步时预热当前角色名下的职业 GIF（幂等去重；仅 c1/c2 有展台视窗，c3class 无立绘展台不预热） */
+  const PREHEATED_GIFS = new Set();
+  function preheatCombatGifs(stage) {
+    let clsNames = [];
+    if (stage === 'c1' && OPENING_DATA.party.hero1) clsNames = OPENING_DATA.party.hero1.classes || [];
+    else if (stage === 'c2' && OPENING_DATA.party.hero2) clsNames = OPENING_DATA.party.hero2.classes || [];
+    clsNames.forEach(function (cName) {
+      const info = OPENING_DATA.classIntro[cName];
+      if (info && info.gifUrl && !PREHEATED_GIFS.has(info.gifUrl)) {
+        PREHEATED_GIFS.add(info.gifUrl);
+        const pre = new Image();
+        pre.src = info.gifUrl;
+      }
+    });
+  }
+
+  /* 战斗规则速查弹窗交互 */
+  function toggleBattleRulesModal(forceState) {
+    const modal = document.getElementById('battle-rules-modal');
+    if (!modal) return;
+    const isVisible = modal.classList.contains('visible');
+    const target = (typeof forceState === 'boolean') ? forceState : !isVisible;
+    const card = modal.querySelector('.rules-modal-card');
+
+    if (target) {
+      modal.classList.add('visible');
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      if (card) card.style.transform = 'scale(1)';
+    } else {
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+      if (card) card.style.transform = 'scale(0.95)';
+      setTimeout(function () { modal.classList.remove('visible'); }, 220);
+    }
+  }
+  function initRulesModal() {
+    const modal = document.getElementById('battle-rules-modal');
+    if (!modal) return;
+    modal.addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-rules-close]')) toggleBattleRulesModal(false);
+    });
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') toggleBattleRulesModal(false);
+    });
+  }
+
+  /* 纯悬浮窗（Floating Tooltip）：技能卡与机制胶囊悬停说明 */
+  let activeTooltipTimer = null;
+
+  function showTooltipForSkillData(skillName, rawText, targetRect, focusMechKey = null) {
+    const tooltipContainer = document.getElementById('skill-tooltip-container');
+    const ttName = document.getElementById('tt-skill-name');
+    const ttIcon = document.getElementById('tt-type-icon');
+    const ttBadges = document.getElementById('tt-header-badges');
+    const ttBody = document.getElementById('tt-mechanics-body');
+
+    if (!tooltipContainer) return;
+
+    // 1. 设置头部概要
+    if (ttName) ttName.textContent = skillName || '技能';
+
+    // 从 rawText 推断类型图标与阶位标签
+    let typeIcon = '⚔️';
+    if (rawText && rawText.includes('远程')) typeIcon = '🏹';
+    else if (rawText && rawText.includes('法术')) typeIcon = '🔮';
+    else if (rawText && rawText.includes('反应')) typeIcon = '⚡';
+    if (ttIcon) ttIcon.textContent = typeIcon;
+
+    const badges = [];
+    if (rawText && rawText.includes('传奇')) {
+      badges.push('<span class="text-red-300 border border-red-500/50 bg-red-950/40 px-1.5 py-0.2 rounded">传奇</span>');
+    } else if (rawText && rawText.includes('高阶')) {
+      badges.push('<span class="text-amber-300 border border-amber-500/50 bg-amber-950/40 px-1.5 py-0.2 rounded">高阶</span>');
+    }
+    if (rawText && rawText.includes('限定')) {
+      badges.push('<span class="text-amber-200/70 border border-amber-500/30 bg-black/40 px-1.5 py-0.2 rounded">限定</span>');
+    } else if (rawText && rawText.includes('通用')) {
+      badges.push('<span class="text-purple-200/70 border border-purple-500/30 bg-black/40 px-1.5 py-0.2 rounded">通用</span>');
+    }
+    // 悬停特定机制图标时，回合徽章展示该机制自身的生效回合（如造雾术群盲4/自盲2）；瞬发/被动机制不展示。
+    // 整卡悬浮时仅在技能显式声明顶级 [Turns:N]/[持续:N] 时展示，未声明的回合归属各机制图标自身。
+    let turnsVal = null;
+    if (focusMechKey) {
+      turnsVal = getMechTurns(focusMechKey, rawText);
+    } else {
+      const topMatch = rawText ? rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i) : null;
+      turnsVal = topMatch ? parseInt(topMatch[1], 10) : null;
+    }
+    if (turnsVal != null) {
+      badges.push(`<span class="text-amber-300 font-mono border border-amber-500/40 bg-amber-950/40 px-1.5 py-0.2 rounded">⏱ ${turnsVal}回合</span>`);
+    }
+    if (ttBadges) ttBadges.innerHTML = badges.join('');
+
+    // 2. 提取并渲染关联机制 (按需高亮聚焦机制)
+    const mechKeys = extractMechanicsKeys(rawText, skillName);
+    let displayKeys = [...mechKeys];
+    if (focusMechKey) {
+      if (!displayKeys.includes(focusMechKey)) {
+        displayKeys.unshift(focusMechKey);
+      } else {
+        displayKeys = [focusMechKey, ...displayKeys.filter(k => k !== focusMechKey)];
+      }
+    }
+
+    // 无特殊特性机制则完全不显示悬浮窗，直接收起并返回
+    if (displayKeys.length === 0) {
+      hideTooltip();
+      return;
+    }
+
+    if (ttBody) {
+      const entriesHtml = displayKeys.map(key => {
+        const item = MECHANICS_REGISTRY[key] || { title: key, icon: '✦', desc: '按标准规则结算生效。' };
+        const isFocused = focusMechKey === key;
+        let borderHighlight = isFocused ? 'border-amber-400/80 bg-amber-500/10' : 'border-white/5 bg-white/[0.02]';
+        let titleColor = 'text-[var(--accent)]';
+        let extraBadge = '';
+
+        if (key === '生命消耗') {
+          const hpM = rawText ? rawText.match(/\[HP:(\d+)\]/i) : null;
+          const hpVal = hpM ? hpM[1] : '';
+          borderHighlight = isFocused ? 'border-rose-400 bg-rose-950/40 shadow-[0_0_12px_rgba(244,63,94,0.3)]' : 'border-rose-500/30 bg-rose-950/20';
+          titleColor = 'text-rose-300';
+          if (hpVal) extraBadge = `<span class="text-[0.6rem] font-mono text-rose-300 font-bold px-1.5 py-0.2 rounded border border-rose-500/40 bg-rose-950/60 ml-auto">消耗 ${hpVal} HP</span>`;
+        } else if (key === '战技点消耗') {
+          const tpM = rawText ? rawText.match(/\[TP:(\d+)\]/i) : null;
+          const tpVal = tpM ? tpM[1] : '';
+          borderHighlight = isFocused ? 'border-sky-400 bg-sky-950/40 shadow-[0_0_12px_rgba(56,189,248,0.3)]' : 'border-sky-500/30 bg-sky-950/20';
+          titleColor = 'text-sky-300';
+          if (tpVal) extraBadge = `<span class="text-[0.6rem] font-mono text-sky-300 font-bold px-1.5 py-0.2 rounded border border-sky-500/40 bg-sky-950/60 ml-auto">消耗 ${tpVal} TP</span>`;
+        } else if (key === '材料绑定') {
+          titleColor = 'text-amber-300';
+          const ammo = skillName ? GLOBAL_AMMO_BINDINGS[skillName] : null;
+          if (ammo) extraBadge = `<span class="text-[0.6rem] font-mono text-amber-300 font-bold px-1.5 py-0.2 rounded border border-amber-500/40 bg-amber-950/60 ml-auto">${ammo.ammoName}*${ammo.count}</span>`;
+        } else if (key === '隐匿' || key === '战术隐匿') {
+          titleColor = 'text-emerald-300';
+          if (isFocused) borderHighlight = 'border-emerald-400/80 bg-emerald-500/10';
+        }
+
+        const focusTurns = isFocused ? getMechTurns(key, rawText) : null;
+
+        return `
+          <div class="tooltip-mech-entry ${borderHighlight} rounded-lg px-2 py-1.5 transition-all">
+            <div class="flex items-center gap-1.5 text-xs font-bold ${titleColor} mb-0.5">
+              <span>${item.icon}</span>
+              <span class="tracking-wide">【${item.title}】</span>
+              ${extraBadge}
+              ${isFocused && focusTurns != null ? `<span class="text-[0.6rem] font-mono text-amber-300 font-bold px-1.5 py-0.2 rounded border border-amber-500/40 bg-amber-950/60 ml-auto shrink-0">⏱ 生效 ${focusTurns} 回合</span>` : (isFocused && !extraBadge ? '<span class="text-[0.58rem] text-amber-300 font-mono font-normal ml-auto">聚焦机制</span>' : '')}
+            </div>
+            <div class="text-[0.72rem] text-white/80 leading-relaxed font-sans pl-5">
+              ${item.desc}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      ttBody.innerHTML = entriesHtml;
+    }
+
+    // 3. 智能定位与防视口溢出计算
+    tooltipContainer.classList.add('visible');
+    const ttWidth = tooltipContainer.offsetWidth || 320;
+    const ttHeight = tooltipContainer.offsetHeight || 180;
+    const padding = 12;
+
+    let posX = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
+    let posY = targetRect.top - ttHeight - 8; // 默认在卡片正上方
+
+    // 上边界溢出检测：如果上方放不下，放下方
+    if (posY < padding) {
+      posY = targetRect.bottom + 8;
+    }
+    // 左边界溢出检测
+    if (posX < padding) {
+      posX = padding;
+    }
+    // 右边界溢出检测
+    if (posX + ttWidth > window.innerWidth - padding) {
+      posX = window.innerWidth - ttWidth - padding;
+    }
+
+    tooltipContainer.style.left = `${Math.round(posX)}px`;
+    tooltipContainer.style.top = `${Math.round(posY)}px`;
+  }
+
+  function hideTooltip() {
+    const tooltipContainer = document.getElementById('skill-tooltip-container');
+    if (!tooltipContainer) return;
+    tooltipContainer.classList.remove('visible');
+  }
+
+  /* 全局事件委托：监听技能插槽与胶囊悬停，自适应动态重绘 */
+  function initTooltipGlobalEvents() {
+    const tooltipContainer = document.getElementById('skill-tooltip-container');
+    let currentTrigger = null;
+
+    document.addEventListener('mouseover', (e) => {
+      // 避免在卸下按钮或悬浮窗本身上触发/闪烁
+      if (e.target.closest('#skill-tooltip-container') || e.target.closest('.slot-remove-btn')) {
+        return;
+      }
+
+      // 1. 优先检测是否悬停在特定的机制胶囊上
+      const pill = e.target.closest('[data-mech-focus]');
+      if (pill) {
+        const card = pill.closest('[data-skill-name]');
+        if (card) {
+          currentTrigger = pill;
+          clearTimeout(activeTooltipTimer);
+          const skillName = card.getAttribute('data-skill-name');
+          const rawText = card.getAttribute('data-skill-raw');
+          const mechKey = pill.getAttribute('data-mech-focus');
+          const pillRect = pill.getBoundingClientRect();
+          activeTooltipTimer = setTimeout(() => {
+            showTooltipForSkillData(skillName, rawText, pillRect, mechKey);
+          }, 35);
+          return;
+        }
+      }
+
+      // 2. 检测是否悬停在技能插槽卡片或备选卡片上
+      const card = e.target.closest('[data-skill-name]');
+      if (card) {
+        if (currentTrigger === card) return;
+        currentTrigger = card;
+        clearTimeout(activeTooltipTimer);
+        const skillName = card.getAttribute('data-skill-name');
+        const rawText = card.getAttribute('data-skill-raw');
+        const cardRect = card.getBoundingClientRect();
+        activeTooltipTimer = setTimeout(() => {
+          showTooltipForSkillData(skillName, rawText, cardRect, null);
+        }, 65);
+        return;
+      }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      const card = e.target.closest('[data-skill-name]');
+      if (card) {
+        const related = e.relatedTarget;
+        if (related && card.contains(related)) return;
+        if (related && tooltipContainer && tooltipContainer.contains(related)) return;
+
+        currentTrigger = null;
+        clearTimeout(activeTooltipTimer);
+        hideTooltip();
+      }
+    });
+
+    // 点击空白处收起
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#skill-tooltip-container')) {
+        clearTimeout(activeTooltipTimer);
+        hideTooltip();
+      }
+    });
+
+    // 页面滚动时隐藏，防止悬浮窗悬空
+    window.addEventListener('scroll', () => {
+      clearTimeout(activeTooltipTimer);
+      hideTooltip();
+    }, { passive: true });
+  }
+
   /* ==================== 启动 ==================== */
 
   async function boot() {
@@ -2594,6 +3400,16 @@
     const fsBtn = document.getElementById('fs-btn');
     if (fsBtn) fsBtn.addEventListener('click', toggleFs);
     document.addEventListener('fullscreenchange', updateFsIcon);
+
+    // demo 移植：悬浮窗 / 实机视窗 hover / 规则弹窗的一次性事件挂载
+    // （规则弹窗静态 DOM 位于主脚本之后，须等 DOM 解析完成再绑定，boot 时还是 null）
+    initTooltipGlobalEvents();
+    initCombatMonitorHover();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initRulesModal);
+    } else {
+      initRulesModal();
+    }
 
     // 背景视频 / BGM 配置应用
     if (OPENING_DATA.bgVideo.url) {
@@ -2623,5 +3439,210 @@
   boot();
 })();
 </script>
+
+<!-- ========================================================================= -->
+<!-- demo 移植：核心纯悬浮窗容器（挂载于全局 body，智能防溢出定位）             -->
+<!-- ========================================================================= -->
+<div id="skill-tooltip-container" aria-hidden="true">
+  <div class="tooltip-glass-card">
+    <!-- 悬浮窗技能头部概要 -->
+    <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
+      <div class="flex items-center gap-2 min-w-0">
+        <span id="tt-type-icon" class="text-sm shrink-0">✦</span>
+        <span id="tt-skill-name" class="font-bold text-xs sm:text-sm text-[var(--text-main)] truncate font-serif">技能名称</span>
+      </div>
+      <div id="tt-header-badges" class="flex items-center gap-1 shrink-0 font-mono text-[0.62rem]"></div>
+    </div>
+
+    <!-- 关联机制条目列表 (仅说明【怎么用/怎么生效】) -->
+    <div id="tt-mechanics-body" class="space-y-1">
+      <!-- 动态注入机制词条 -->
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- demo 移植：6大核心战斗专有机制速查战术弹窗                                 -->
+<!-- ========================================================================= -->
+<div id="battle-rules-modal" class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-6 opacity-0 pointer-events-none transition-all duration-200 ease-out" aria-hidden="true">
+  <!-- 半透明通透全息磨砂背景遮罩 -->
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" data-rules-close></div>
+
+  <!-- 弹窗主体容器：半透明微晶玻璃拟态（高度上限用 px，规避酒馆 iframe 流式 vh 回归） -->
+  <div class="rules-modal-card relative z-10 w-full max-w-4xl max-h-[560px] flex flex-col rounded-2xl overflow-hidden transform scale-95 transition-transform duration-200 ease-out">
+    <!-- 顶部鎏金流光细线 -->
+    <div class="h-1 w-full bg-gradient-to-r from-transparent via-amber-400/85 to-transparent"></div>
+
+    <!-- 弹窗顶栏 -->
+    <div class="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-white/[0.02]">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">📖</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-bold text-[var(--text-main)] font-serif tracking-wider">核心战斗专有机制速查</h3>
+            <span class="text-[0.62rem] font-mono px-2 py-0.5 rounded border border-amber-500/40 bg-amber-950/40 text-amber-200">6 CORE MECHANICS</span>
+          </div>
+          <p class="text-[0.68rem] text-white/45 font-mono">底层规则与时序结算速查 · 仅说明【怎么用 / 怎么生效】</p>
+        </div>
+      </div>
+      <button data-rules-close class="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors text-base font-mono cursor-pointer" title="关闭 (ESC)">✕</button>
+    </div>
+
+    <!-- 6大机制内容卡片网格 (采用专属 rules-scrollbar 美化细滚动条) -->
+    <div class="p-4 sm:p-5 overflow-y-auto rules-scrollbar grid grid-cols-1 md:grid-cols-2 gap-3.5">
+      <!-- 1. 极限爆发 -->
+      <div class="rules-item-card">
+        <!-- 机制卡悬停实机战斗 GIF 预留窗口 (四周径向羽化；资源未配置时由 onerror 占位图兜底) -->
+        <div class="rules-hover-gif-box">
+          <img src="http://127.0.0.1:8766/OS/gif/机制_极限爆发.gif" alt="极限爆发 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
+        </div>
+
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
+          <span class="font-bold text-sm text-amber-300 font-serif flex items-center gap-1.5">
+            <span>💥</span><span>极限爆发 (Limit Break)</span>
+          </span>
+          <span class="text-[0.6rem] font-mono text-amber-200/80 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/30">100 TP 全额</span>
+        </div>
+        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+          <div>
+            <span class="text-[var(--accent)] font-bold font-mono">【怎么用】</span>
+            <span>TP 达 100 时头像高亮闪烁，点击头像激活爆发（再点取消）；施放技能后全额扣除 100 TP。</span>
+          </div>
+          <div>
+            <span class="text-[var(--accent)] font-bold font-mono">【怎么生效】</span>
+            <span>技能所有数值槽（伤害/治疗/护盾/持续）<strong class="text-amber-200">翻倍 (+100%)</strong> 并<strong class="text-amber-200">附加必中</strong>（仍受反应/看破化解）；激活期间自带 TP 技能禁用；与暴击互斥。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 战技点循环 -->
+      <div class="rules-item-card">
+        <div class="rules-hover-gif-box">
+          <img src="http://127.0.0.1:8766/OS/gif/机制_战技点循环.gif" alt="TP循环 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
+        </div>
+
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
+          <span class="font-bold text-sm text-sky-300 font-serif flex items-center gap-1.5">
+            <span>⚡</span><span>战技点 (TP) 循环</span>
+          </span>
+          <span class="text-[0.6rem] font-mono text-sky-200/80 px-1.5 py-0.5 rounded bg-sky-950/40 border border-sky-500/30">上限 100 点</span>
+        </div>
+        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+          <div>
+            <span class="text-sky-400 font-bold font-mono">【怎么用】</span>
+            <span>全角色通用战斗能量（上限 100），驱动高阶技能施放与极限爆发激活。</span>
+          </div>
+          <div>
+            <span class="text-sky-400 font-bold font-mono">【怎么生效】</span>
+            <span>施法/闪避各 +5，受击 +10，技能 <code class="text-amber-200 font-mono">[充能]</code> 定向补充；圣职者满 TP 可赋予队友再动，风行者 TP 1:1 恒定转化为闪避率。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 行动时序与排轴 -->
+      <div class="rules-item-card">
+        <div class="rules-hover-gif-box">
+          <img src="http://127.0.0.1:8766/OS/gif/机制_行动时序.gif" alt="CTB时序 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
+        </div>
+
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
+          <span class="font-bold text-sm text-emerald-300 font-serif flex items-center gap-1.5">
+            <span>⏱️</span><span>行动时序与排轴 (CTB)</span>
+          </span>
+          <span class="text-[0.6rem] font-mono text-emerald-200/80 px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">速度判定</span>
+        </div>
+        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+          <div>
+            <span class="text-emerald-400 font-bold font-mono">【怎么用】</span>
+            <span>每回合依全员即时速度（Speed）从高到低动态排定行动次序。</span>
+          </div>
+          <div>
+            <span class="text-emerald-400 font-bold font-mono">【怎么生效】</span>
+            <span>多动单位后续行动按每动 -10 速度递减；<code class="text-amber-200 font-mono">[单速/缓速]</code> 即时重排队列；<code class="text-amber-200 font-mono">[再动]</code> 立即插顶；<code class="text-amber-200 font-mono">[眩晕]</code> 剥夺当次行动；<code class="text-amber-200 font-mono">[麻痹]</code> 概率僵直。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. 战术防守反制链条 -->
+      <div class="rules-item-card">
+        <div class="rules-hover-gif-box">
+          <img src="http://127.0.0.1:8766/OS/gif/机制_防守反制.gif" alt="反制链条 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
+        </div>
+
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
+          <span class="font-bold text-sm text-rose-300 font-serif flex items-center gap-1.5">
+            <span>🛡️</span><span>防守反制链条 (看破·舍身·反应)</span>
+          </span>
+          <span class="text-[0.6rem] font-mono text-rose-200/80 px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-500/30">三道窗口</span>
+        </div>
+        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+          <div>
+            <span class="text-rose-400 font-bold font-mono">【怎么用】</span>
+            <span>敌方宣告攻击时冻结时序，依次触发三道反制窗口。</span>
+          </div>
+          <div>
+            <span class="text-rose-400 font-bold font-mono">【怎么生效】</span>
+            <span><strong class="text-white">①看破</strong>：敌方施法时消耗资源强制中断并完全落空；<strong class="text-white">②舍身</strong>：队友闪避失败受创时代替承受；<strong class="text-white">③反应</strong>：自身受创前插队重新闪避或减免伤害。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 空间阵型与属性对抗 -->
+      <div class="rules-item-card">
+        <div class="rules-hover-gif-box">
+          <img src="http://127.0.0.1:8766/OS/gif/机制_阵型对抗.gif" alt="阵型对抗 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
+        </div>
+
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
+          <span class="font-bold text-sm text-amber-200 font-serif flex items-center gap-1.5">
+            <span>🎯</span><span>空间阵型与属性对抗</span>
+          </span>
+          <span class="text-[0.6rem] font-mono text-amber-200/80 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/30">站位制约</span>
+        </div>
+        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+          <div>
+            <span class="text-amber-400 font-bold font-mono">【怎么用】</span>
+            <span>近战、远程、法术三系攻防，受战场站位与变种抗性制约。</span>
+          </div>
+          <div>
+            <span class="text-amber-400 font-bold font-mono">【怎么生效】</span>
+            <span>前排存活时近战单体无法攻击后排；后排存活时攻前排远程/法术命中率削减 30%；变种抗性 <code class="text-amber-200 font-mono">[流体]</code> 减免 50% 远程，<code class="text-amber-200 font-mono">[虚形]</code> 减免 50% 近战，<code class="text-amber-200 font-mono">[破法]</code> 减免 50% 法术。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. 仇恨索敌与绝境留存 -->
+      <div class="rules-item-card">
+        <div class="rules-hover-gif-box">
+          <img src="http://127.0.0.1:8766/OS/gif/机制_仇恨留存.gif" alt="仇恨留存 实机演示" class="rules-hover-gif-img" onerror="this.style.display='none'">
+        </div>
+
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 pr-14">
+          <span class="font-bold text-sm text-purple-300 font-serif flex items-center gap-1.5">
+            <span>🩸</span><span>仇恨索敌与绝境留存</span>
+          </span>
+          <span class="text-[0.6rem] font-mono text-purple-200/80 px-1.5 py-0.5 rounded bg-purple-950/40 border border-purple-500/30">轮盘 & 保命</span>
+        </div>
+        <div class="space-y-1.5 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+          <div>
+            <span class="text-purple-400 font-bold font-mono">【怎么用】</span>
+            <span>敌方依据仇恨权重抽取攻击目标；濒死承受致命伤时自动保命。</span>
+          </div>
+          <div>
+            <span class="text-purple-400 font-bold font-mono">【怎么生效】</span>
+            <span>基础权重：防守者 200 / 常规 100 / 隐匿者 50，<code class="text-amber-200 font-mono">[嘲讽]</code> 调整权重，<code class="text-amber-200 font-mono">[智慧]</code> 优先斩杀残血；受致命伤时，防守者/狂战触发【毅力留存】保底 1 HP，隐匿者/风行者触发【回避致命】免疫伤害（每场限 1 次）。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 弹窗底栏 -->
+    <div class="px-5 py-2.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-[0.68rem] font-mono text-white/40">
+      <span>⚡ 提示：技能栏中所有带特性的效果标签，鼠标悬停均可查阅即时生效说明</span>
+      <button data-rules-close class="px-3.5 py-1 rounded border border-white/15 bg-white/5 hover:bg-white/10 text-white/80 transition-colors cursor-pointer text-xs">我知道了</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
