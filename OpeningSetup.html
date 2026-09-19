@@ -192,6 +192,9 @@
   @keyframes slot-slide-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
   /* 技能列表按各职业最坏高度预留：切换职业时右栏外框高度恒定不跳动 */
   #hero-skill-chips-container { min-height: 335px; }
+  /* 自定义角色两步同款预留：6 槽芯片随效果胶囊换行数变化，按最坏高度恒定外框 */
+  #c3-limited-slots-container { min-height: 250px; }
+  #c3-equipped-slots-grid { min-height: 250px; }
   .skill-slot-chip:before {
     content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
     background: var(--slot-border); transition: background 0.25s ease;
@@ -676,6 +679,12 @@
         wearing: '👔 灰色风衣配贴身战术皮甲，腰间挂着改装弩机与箭筒',
         inner: '💭 「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
         classes: ['隐匿者', '狂战士', '防守者'],
+        // 随身枪械（纯叙事，走 Status_block 物品徽章，不进战斗档案——战斗逻辑由同名技能与弹药承担）
+        weaponsByClass: {
+          '隐匿者': ['柯尔特M1911', '柯尔特M1911'], // 双持
+          '狂战士': ['双管猎象枪'],
+          '防守者': ['温切斯特M1897', '克虏伯1918型'],
+        },
         classVoiceMap: {
           '隐匿者': {
             quote: '「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
@@ -698,6 +707,8 @@
         wearing: '👔 墨绿纹章长袍，束金腰带，腰间挂着水银与贤者之石试管',
         inner: '💭 「所有遍布于大地的心爱之子，都是高贵星辰的闪耀。」',
         classes: ['施法者', '圣职者', '灾厄使'],
+        // 随身武器（纯叙事，各职业固定：法杖与小刀）
+        fixedWeapons: ['胡桃木法杖', '炼金小刀'],
         classVoiceMap: {
           '施法者': {
             quote: '「好好领教五大元素使之魔术是何等的存在吧——」',
@@ -736,31 +747,41 @@
     // 购点机制接口（数值全部占位，按需自行调整）
     shop: {
       skillPoints: 4,   // 自定义角色·通用技能购点预算
-      attrPoints: 12,   // 自定义角色·属性购点预算
-      attrCosts: { maxHp: 5, maxMp: 3, atk: 1, def: 1, spd: 2 }, // 属性 1 点的兑换量
-      itemPoints: 40,   // 自定义角色·物品购点预算
+      itemPoints: 40,   // 自定义角色·物品购点预算（属性不开放购点，按职业模板自动适配）
     },
 
     items: [
       {
-        id: 'revolver', shopCost: 25, desc: '可靠的制式手枪，编号已被锉平。',
-        data: { name: '柯尔特M1911手枪', category: '武器', count: 1, maxUses: 0, bindings: [], type: '[单体]', power: 10, type2: null, power2: 0, type3: null, power3: 0, hit: 80, turns: 0, isOthers: false, guaranteedHit: false, critRate: 5, isHighTier: false, isLegendary: false, fxTag: 'gunfire', damageType: '物理', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        id: 'grenade', shopCost: 20, desc: '改装的霰弹雷管，拉环即掷，覆盖整片街角。',
+        data: { name: '破片手雷', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[群攻]', power: 140, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '物理', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
-        id: 'bullets', shopCost: 10, desc: '点四五口径，一盒十二发。',
-        data: { name: '.45 ACP子弹', category: '弹药', count: 12, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 0, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        id: 'firebomb', shopCost: 8, desc: '烈酒与碎布，瓶子碎裂的地方火舌不会熄灭。',
+        data: { name: '燃烧瓶', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[单体]', power: 30, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: '燃烧弹', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
-        id: 'medkit', shopCost: 15, desc: '绷带、碘酒与一卷胶带。',
-        data: { name: '战地急救包', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[治疗]', power: 5, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: true, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'heal', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        id: 'flashbang', shopCost: 8, desc: '镁光一闪，失神的敌人连回合都丢了。',
+        data: { name: '闪光弹', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[眩晕]', power: 15, type2: null, power2: 0, type3: null, power3: 0, hit: 120, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
-        id: 'notebook', shopCost: 5, desc: '皮面笔记本，夹着半张老照片。',
-        data: { name: '侦探笔记本', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 0, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        id: 'medkit', shopCost: 8, desc: '绷带、碘酒与一卷胶带。',
+        data: { name: '战地急救包', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[单回]', power: 30, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: true, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
-        id: 'pocketwatch', shopCost: 5, desc: '黄铜怀表，比时钟快七分钟。',
-        data: { name: '黄铜怀表', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 0, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        id: 'morphine', shopCost: 5, desc: '军规镇痛剂，一针下去连疼痛都变得遥远。',
+        data: { name: '吗啡针剂', category: '消耗品', count: 1, maxUses: 0, bindings: [], type: '[单回]', power: 50, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: true, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'smoke', shopCost: 8, desc: '掷出后腾起浓白烟幕，遮蔽所有敌人的视线。',
+        data: { name: '烟雾弹', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[群盲]', power: 15, type2: null, power2: 0, type3: null, power3: 0, hit: 150, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'charm', shopCost: 20, desc: '劣等圣遗物，握紧时为主人展开一次护盾。',
+        data: { name: '圣血护符', category: '道具', count: 1, maxUses: 1, bindings: [], type: '[单盾]', power: 80, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+      },
+      {
+        id: 'emblem', shopCost: 15, desc: '伪造的教会圣徽，可净化一人身上的一个减益。',
+        data: { name: '银质圣徽', category: '道具', count: 1, maxUses: 2, bindings: [], type: '[驱散]', power: 1, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
     ],
 
@@ -803,7 +824,8 @@
   function emptyItemData() {
     return { name: '', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: null, damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] };
   }
-  const SLOT_NAMES = ['单体', '群攻', '散射', '群散射', '单回', '群回', '单防', '群防', '单盾', '群盾', '单冲', '群冲', '单弱', '群弱', '中毒', '燃烧', '麻痹', '吸蓝', '驱散', '群驱散', '眩晕'];
+  // 效果槽名全集：镜像 RpgCombat SKILL_TYPES 裸名（供裸标签/冒号简写兜底；带 power 主分支不做白名单）
+  const SLOT_NAMES = ['单体', '群攻', '穿透', '群穿透', '散射', '群散射', '眩晕', '群眩晕', '单降', '群降', '单盲', '群盲', '单滞', '群滞', '单弱', '群弱', '中毒', '群中毒', '燃烧', '群燃烧', '麻痹', '群麻痹', '吸蓝', '单增', '群增', '单防', '群防', '单速', '群速', '单回', '群回', '单盾', '群盾', '单回蓝', '群回蓝', '单冲', '群冲', '单瞄', '群瞄', '嘲讽', '反击', '群反击', '再动', '回避', '群避', '单避', '免伤', '自盲', '自降', '自弱', '自滞', '自缓', '驱散', '群驱散'];
   function parseSkillLine(raw, entry) {
     const nm = raw.match(/【([^】]+)】/);
     if (!nm) return false;
@@ -815,8 +837,9 @@
       if (t === '通用' || t === '限定') { entry.scope = t; continue; }
       let m;
       if ((m = t.match(/^价\s*[:：]\s*(\d+)$/))) { entry.shopCost = parseInt(m[1], 10); continue; }
-      // 效果槽：[名;power:N]（可选 ;turns:M）与冒号简写 [名:N]
-      if ((m = t.match(/^(.+?)\s*;\s*power\s*[:：]\s*(\d+)(?:\s*;\s*turns\s*[:：]\s*(\d+))?$/)) && SLOT_NAMES.indexOf(m[1].trim()) >= 0) {
+      // 效果槽：[名;power:N]（可选 ;turns:M）——镜像 RpgCombat parseSkill 主正则：槽名不做白名单校验，
+      // 括号子类型原样保留（如 [单体(枪击)]），负 power 合法（如 [嘲讽;power:-30]）
+      if ((m = t.match(/^(.+?)\s*;\s*power\s*[:：]\s*(-?\d+)(?:\s*;\s*turns\s*[:：]\s*(\d+))?$/))) {
         if (slot < 3) {
           slot++;
           entry.data[slot === 1 ? 'type' : 'type' + slot] = '[' + m[1].trim() + ']';
@@ -987,7 +1010,6 @@
       storyItems: '',      // 自定义叙事物品自由文本（纯叙事，不进战斗档案）
       classType: '',
       skills: [],          // 已购通用技能名数组（切职业保留）
-      attrs: { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 }, // 属性购点叠加值
     },
     selectedItems: new Set(),
     submitting: false,
@@ -1603,15 +1625,10 @@
     const p = state.hero3.customPortraits.filter(function (c) { return c.key === state.hero3.portrait; })[0];
     return (p && p.url) || '';
   }
+  // 属性按职业自动适配：直接取职业模板（classConfigOf 深拷贝，不污染源数据）
   function hero3Config() {
     const cfg = classConfigOf(state.hero3.classType);
     if (!cfg) return null;
-    const a = state.hero3.attrs;
-    cfg.maxHp += a.maxHp * OPENING_DATA.shop.attrCosts.maxHp;
-    cfg.maxMp += a.maxMp * OPENING_DATA.shop.attrCosts.maxMp;
-    cfg.atk += a.atk * OPENING_DATA.shop.attrCosts.atk;
-    cfg.def += a.def * OPENING_DATA.shop.attrCosts.def;
-    cfg.spd += a.spd * OPENING_DATA.shop.attrCosts.spd;
     cfg.img = hero3PortraitUrl() || null;
     return cfg;
   }
@@ -1637,9 +1654,50 @@
   function itemEntries() {
     return OPENING_DATA.items.filter(function (e) { return state.selectedItems.has(e.id); });
   }
+  // 弹药自动分配：职业标配物品（深拷贝）基础上，按最终 6 技能补齐耗弹绑定——
+  // 已有绑定跳过；同弹种弹匣追加绑定行；无同弹种则新建弹匣（数量取 Combat_block 同名弹匣最大标配数）
+  function hero3AmmoAllocation() {
+    const items = classItems(state.hero3.classType).map(function (e) {
+      return { id: e.id, data: JSON.parse(JSON.stringify(e.data)) };
+    });
+    limitedSkills(state.hero3.classType).concat(genericSkillEntries()).forEach(function (s) {
+      const ab = GLOBAL_AMMO_BINDINGS[s.data.name];
+      if (!ab) return; // 非耗弹技能
+      const covered = items.some(function (it) {
+        return (it.data.bindings || []).some(function (b) { return b.skillName === s.data.name; });
+      });
+      if (covered) return;
+      const ammo = items.find(function (it) { return it.data.name === ab.ammoName; });
+      if (ammo) {
+        ammo.data.bindings.push({ skillName: s.data.name, cost: ab.count });
+        return;
+      }
+      let stock = 0;
+      Object.keys(COMBAT.classes).forEach(function (cls) {
+        (COMBAT.classes[cls].items || []).forEach(function (it) {
+          if (it.data.name === ab.ammoName) stock = Math.max(stock, it.data.count || 0);
+        });
+      });
+      const entry = { id: ab.ammoName, data: emptyItemData() };
+      entry.data.name = ab.ammoName;
+      entry.data.category = '弹药';
+      entry.data.count = stock || ab.count * 4;
+      entry.data.bindings = [{ skillName: s.data.name, cost: ab.count }];
+      items.push(entry);
+    });
+    return items;
+  }
   // hero3 随身物品 = 所选职业标配物品（Combat_block 物品段）+ 自己购点的物品
   function hero3ItemEntries() {
-    return classItems(state.hero3.classType).concat(itemEntries());
+    return hero3AmmoAllocation().concat(itemEntries());
+  }
+  // hero1/hero2 随身武器（纯叙事，随职业变 / 固定），走 Status_block 物品徽章，不进战斗档案
+  function hero1Weapons() {
+    const h1 = OPENING_DATA.party.hero1;
+    return (h1.weaponsByClass && h1.weaponsByClass[state.hero1Class]) || [];
+  }
+  function hero2Weapons() {
+    return OPENING_DATA.party.hero2.fixedWeapons || [];
   }
   function itemsUsed() {
     return itemEntries().reduce(function (a, e) { return a + e.shopCost; }, 0);
@@ -1656,10 +1714,6 @@
       const e = pool.find(function (p) { return p.data.name === name; });
       return a + (e ? e.shopCost : 0);
     }, 0);
-  }
-  function attrsUsed() {
-    const c = OPENING_DATA.shop.attrCosts, a = state.hero3.attrs;
-    return a.maxHp * c.maxHp + a.maxMp * c.maxMp + a.atk * c.atk + a.def * c.def + a.spd * c.spd;
   }
   function fmtTs(ts) {
     const d = new Date(ts);
@@ -1796,8 +1850,8 @@
     const h2 = OPENING_DATA.party.hero2;
     const cfg3 = hero3Config();
     const roles = [
-      { emoji: h1.emoji, name: h1.name, attrs: state.hero1Class ? attrLine(classConfigOf(state.hero1Class)) : '', wearing: h1.wearing, inner: h1.inner, items: classItems(state.hero1Class), story: '' },
-      { emoji: h2.emoji, name: h2.name, attrs: state.hero2Class ? attrLine(classConfigOf(state.hero2Class)) : '', wearing: h2.wearing, inner: h2.inner, items: classItems(state.hero2Class), story: '' },
+      { emoji: h1.emoji, name: h1.name, attrs: state.hero1Class ? attrLine(classConfigOf(state.hero1Class)) : '', wearing: h1.wearing, inner: h1.inner, items: classItems(state.hero1Class), story: hero1Weapons().join('、') },
+      { emoji: h2.emoji, name: h2.name, attrs: state.hero2Class ? attrLine(classConfigOf(state.hero2Class)) : '', wearing: h2.wearing, inner: h2.inner, items: classItems(state.hero2Class), story: hero2Weapons().join('、') },
       { emoji: OPENING_DATA.identity.emoji, name: hero3Name(), attrs: cfg3 ? attrLine(cfg3) : '', wearing: state.hero3.wearing, inner: state.hero3.inner, items: hero3ItemEntries(), story: state.hero3.storyItems },
     ];
     const lines = [];
@@ -1948,7 +2002,6 @@
       case 'c3id': html = viewC3id(); break;
       case 'c3class': html = viewC3class(); break;
       case 'c3skill': html = viewC3skill(); break;
-      case 'c3attr': html = viewC3attr(); break;
       case 'c3item': html = viewItems(); break;
       case 'confirm': html = viewConfirm(); break;
       case 'loading': html = viewLoading(); break;
@@ -2041,7 +2094,7 @@
       + '  <div class="glass px-8 py-6 max-w-md w-full text-center fade-in">'
       + '    <div class="text-sm text-[rgba(232,220,192,0.8)] leading-relaxed mb-6">这是一次性的开场初始化向导。<br>你将为三位角色选定职业与技艺，并为自定义角色登记姓名、立绘与随身物品，<br>档案将写入 MiniMapStatus 与前端战斗两个插件。</div>'
       + '    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">'
-      + '      <button class="btn-noir" data-action="sound">' + soundLabel + '</button>'
+      + '      <button id="title-sound-btn" class="btn-noir" data-action="sound">' + soundLabel + '</button>'
       + '      <button class="btn-noir" data-action="start">进入引导</button>'
       + '    </div>'
       + '    <div class="mt-5 flex items-center justify-center gap-2 cursor-pointer select-none" data-action="auto-fs-toggle">'
@@ -2835,57 +2888,29 @@
       + '    <button class="btn-ghost" data-action="back-c3class">← 返回主角职业</button>'
       + '    <div class="flex items-center gap-3">'
       + '      <span id="c3-equipped-count" class="font-tw text-xs text-[var(--text-muted)]">通用槽已装配: ' + genericEquipped.length + '/3</span>'
-      + '      <button class="btn-noir" data-action="c3skill-done">确定 · 属性购点 →</button>'
+      + '      <button class="btn-noir" data-action="c3skill-done">确定 · 物品选购 →</button>'
       + '    </div>'
       + '  </div>'
       + '</div>'
       + '</div>';
   }
 
-  function renderAttrValHtml(key) {
-    const costs = OPENING_DATA.shop.attrCosts;
-    const cfg = classConfigOf(state.hero3.classType) || { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
-    const base = cfg[key] || 0;
-    const a = state.hero3.attrs[key] || 0;
-    return (base + a * costs[key]) + (a ? ' <span class="text-[#9fbf7f]">(+' + (a * costs[key]) + ')</span>' : '');
+  // 物品战斗属性行：效果槽/他人/命中/持续 + 存量形态，让"购点有属性"可见
+  function itemStatLine(e) {
+    const d = e.data;
+    const parts = [];
+    if (d.type) parts.push(d.type.replace(/[\[\]]/g, '') + (d.power ? ':' + d.power : ''));
+    if (d.type2) parts.push(d.type2.replace(/[\[\]]/g, '') + (d.power2 ? ':' + d.power2 : ''));
+    if (d.type3) parts.push(d.type3.replace(/[\[\]]/g, '') + (d.power3 ? ':' + d.power3 : ''));
+    if (d.isOthers) parts.push('他人');
+    if (d.hit && d.hit !== 100) parts.push('命中' + d.hit);
+    if (d.turns) parts.push('持续' + d.turns);
+    return parts.join(' · ');
   }
-
-  function viewC3attr() {
-    const costs = OPENING_DATA.shop.attrCosts;
-    const cfg = classConfigOf(state.hero3.classType) || { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
-    const defs = [
-      { key: 'maxHp', label: '生命 HP', base: cfg.maxHp },
-      { key: 'maxMp', label: '法力 MP', base: cfg.maxMp },
-      { key: 'atk', label: '攻击 Atk', base: cfg.atk },
-      { key: 'def', label: '护甲 Armor', base: cfg.def },
-      { key: 'spd', label: '速度 Speed', base: cfg.spd },
-    ];
-    const rows = defs.map(function (r) {
-      return '<div class="card p-3 flex items-center justify-between">'
-        + '<div>'
-        + '<div class="text-sm text-[#e8dcc0] tracking-[0.12em]">' + r.label + '</div>'
-        + '<div class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.6)]">基础 ' + r.base + ' · 1 点 +' + costs[r.key] + '</div>'
-        + '</div>'
-        + '<div class="flex items-center gap-2">'
-        + '  <button class="btn-ghost" data-action="c3-attr" data-attr="' + r.key + '" data-dir="-">−</button>'
-        + '  <span id="attr-val-' + r.key + '" class="font-tw text-[0.85rem] text-[#e8dcc0] w-20 text-center">' + renderAttrValHtml(r.key) + '</span>'
-        + '  <button class="btn-ghost" data-action="c3-attr" data-attr="' + r.key + '" data-dir="+">＋</button>'
-        + '</div>'
-        + '</div>';
-    }).join('');
-    return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
-      + header('ATTRIBUTES · 属性购点', '雕琢面板')
-      + '  <div class="glass max-w-2xl w-full px-8 py-8 fade-in">'
-      + '    <div id="attr-budget">' + budgetBar(attrsUsed(), OPENING_DATA.shop.attrPoints, false) + '</div>'
-      + '    <div class="flex flex-col gap-2 mt-4">' + rows + '</div>'
-      + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
-      + '    <div class="mt-8 flex items-center justify-between">'
-      + '      <button class="btn-ghost" data-action="back-c3skill">返回</button>'
-      + '      <button class="btn-noir" data-action="c3attr-done">确定 · 物品选购</button>'
-      + '    </div>'
-      + '  </div>'
-      + '</div>';
+  function itemStockText(e) {
+    const d = e.data;
+    if (d.category === '道具' && d.maxUses > 0) return ' · 每场' + d.maxUses + '次';
+    return d.count > 1 ? ' · x' + d.count : '';
   }
 
   function viewItems() {
@@ -2897,7 +2922,8 @@
         + '<span class="font-tw text-[0.78rem] text-[rgba(198,161,84,0.9)]">' + e.shopCost + ' 点</span>'
         + '</div>'
         + '<div class="text-xs text-[rgba(232,220,192,0.62)] leading-relaxed">' + esc(e.desc) + '</div>'
-        + '<div class="mt-2 font-tw text-[0.66rem] text-[rgba(198,161,84,0.55)]">' + esc(e.data.category || '') + (e.data.count > 1 ? ' · x' + e.data.count : '') + '</div>'
+        + '<div class="mt-2 font-tw text-[0.66rem] text-[rgba(198,161,84,0.85)]">' + esc(itemStatLine(e)) + '</div>'
+        + '<div class="mt-1 font-tw text-[0.66rem] text-[rgba(198,161,84,0.55)]">' + esc(e.data.category || '') + itemStockText(e) + '</div>'
         + '</div>';
     }).join('');
     return ''
@@ -2911,7 +2937,7 @@
       + '    <div id="item-budget">' + budgetBar(itemsUsed(), OPENING_DATA.shop.itemPoints, false) + '</div>'
       + '    <div class="grid sm:grid-cols-2 gap-3 mt-4">' + cards + '</div>'
       + '    <div class="mt-8 flex items-center justify-between">'
-      + '      <button class="btn-ghost" data-action="back-c3attr">返回</button>'
+      + '      <button class="btn-ghost" data-action="back-c3skill">返回</button>'
       + '      <button class="btn-noir" data-action="c3item-done">选定物品</button>'
       + '    </div>'
       + '  </div>'
@@ -2948,14 +2974,16 @@
       + '      <div class="font-black tracking-[0.4em] text-lg">调查档案</div>'
       + '      <div class="stamp text-xs">绝密</div>'
       + '    </div>'
-      + sec('角色一 · ' + h1.name,
-          rows('职业', state.hero1Class || '（未选）')
-          + rows('属性', cfg1 ? attrLine(cfg1) : '—')
-          + rows('技能', listNames(classSkills(state.hero1Class))))
-      + sec('角色二 · ' + h2.name,
-          rows('职业', state.hero2Class || '（未选）')
-          + rows('属性', cfg2 ? attrLine(cfg2) : '—')
-          + rows('技能', listNames(classSkills(state.hero2Class))))
+    + sec('角色一 · ' + h1.name,
+        rows('职业', state.hero1Class || '（未选）')
+        + rows('属性', cfg1 ? attrLine(cfg1) : '—')
+        + rows('武器', state.hero1Class ? (hero1Weapons().join('、') || '—') : '—')
+        + rows('技能', listNames(classSkills(state.hero1Class))))
+    + sec('角色二 · ' + h2.name,
+        rows('职业', state.hero2Class || '（未选）')
+        + rows('属性', cfg2 ? attrLine(cfg2) : '—')
+        + rows('武器', hero2Weapons().join('、') || '—')
+        + rows('技能', listNames(classSkills(state.hero2Class))))
       + sec('角色三 · 自定义',
           rows('姓名', hero3Name())
           + rows('职业', state.hero3.classType || '（未选）')
@@ -3133,12 +3161,6 @@
         toggleC3Skill(t.getAttribute('data-skill'));
         break;
       case 'c3skill-done':
-        gotoStageWithCrossfade('c3attr');
-        break;
-      case 'c3-attr':
-        toggleC3Attr(t.getAttribute('data-attr'), t.getAttribute('data-dir'));
-        break;
-      case 'c3attr-done':
         gotoStageWithCrossfade('c3item');
         break;
       case 'item-toggle':
@@ -3170,7 +3192,6 @@
       case 'back-c3id': gotoStageWithCrossfade('c3id'); break;
       case 'back-c3class': gotoStageWithCrossfade('c3class'); break;
       case 'back-c3skill': gotoStageWithCrossfade('c3skill'); break;
-      case 'back-c3attr': gotoStageWithCrossfade('c3attr'); break;
       case 'back-c3item': gotoStageWithCrossfade('c3item'); break;
     }
   });
@@ -3229,7 +3250,8 @@
       bgVideo.muted = !state.soundOn;
       updateBgmForStage(state.stage);
     } catch (e) { /* 自动播放策略拒绝时静默 */ }
-    render();
+    // 纯状态切换：只定点刷新声音 UI，绝不整页重绘
+    updateDockBgmUi();
   }
 
   function refreshBudget(boxId, used, total) {
@@ -3259,30 +3281,6 @@
     }
     // 纯增量更新：绝不触发整页 DOM 重绘，消除生硬刷新
     incrementalUpdateC3Skill(name, isAdded);
-  }
-
-  function toggleC3Attr(key, dir) {
-    if (!(key in state.hero3.attrs)) return;
-    const cost = OPENING_DATA.shop.attrCosts[key] || 1;
-    const totalPoints = OPENING_DATA.shop.attrPoints;
-    if (dir === '+') {
-      if (attrsUsed() + cost > totalPoints) {
-        showFlashToast('属性点数不足（上限 ' + totalPoints + ' 点）');
-        refreshBudget('attr-budget', attrsUsed(), totalPoints);
-        return; // 点数不足：拒绝（预算边界）
-      }
-      state.hero3.attrs[key]++;
-    } else {
-      if (state.hero3.attrs[key] > 0) {
-        state.hero3.attrs[key]--;
-      } else {
-        return;
-      }
-    }
-    // 纯增量更新：局部刷新顶部能量条与该项数值，绝不整页重绘
-    refreshBudget('attr-budget', attrsUsed(), totalPoints);
-    const valEl = document.getElementById('attr-val-' + key);
-    if (valEl) valEl.innerHTML = renderAttrValHtml(key);
   }
 
   function toggleItem(id) {
@@ -3770,19 +3768,21 @@ ${sectionBlocks}
     if (bgmBtn) bgmBtn.addEventListener('click', toggleSound);
   }
 
-  /* BGM 胶囊图标随声音状态同步（胶囊在 #app 外，不随 render 重建，需手动刷） */
+  /* BGM 胶囊与首屏声音按钮随声音状态同步（胶囊在 #app 外、按钮不走 render，均需手动刷） */
   function updateDockBgmUi() {
     const icon = document.getElementById('bgm-icon');
     const label = document.getElementById('bgm-label');
     if (icon) icon.textContent = state.soundOn ? '🎵' : '🔇';
     if (label) label.textContent = state.soundOn ? 'BGM' : '静音';
+    const titleBtn = document.getElementById('title-sound-btn');
+    if (titleBtn) titleBtn.textContent = state.soundOn ? '🔊 声音已开启' : '🔇 开启声音';
   }
 
   /* 右上角战斗规则速查胶囊显隐：仅战斗配置流程显示，标题页/叙事导引隐藏 */
   function updateTopRulesVisibility() {
     const btn = document.getElementById('top-rules-btn');
     if (!btn) return;
-    const battleStages = ['c1', 'c2', 'c3id', 'c3class', 'c3skill', 'c3attr', 'c3item', 'confirm'];
+    const battleStages = ['c1', 'c2', 'c3id', 'c3class', 'c3skill', 'c3item', 'confirm'];
     btn.style.display = battleStages.indexOf(state.stage) >= 0 ? '' : 'none';
   }
 

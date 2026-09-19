@@ -134,10 +134,6 @@
     clickAction(ctx, 'c3class-done');
     (o.skills || []).forEach(function (name) { click(ctx, '[data-action="c3-skill-toggle"][data-skill="' + name + '"]'); });
     clickAction(ctx, 'c3skill-done');
-    (o.attrs || []).forEach(function (a) {
-      click(ctx, '[data-action="c3-attr"][data-attr="' + a.key + '"][data-dir="+"]');
-    });
-    clickAction(ctx, 'c3attr-done');
     (o.items || []).forEach(function (id) { click(ctx, '[data-item-id="' + id + '"]'); });
     clickAction(ctx, 'c3item-done');
   }
@@ -149,11 +145,6 @@
       avatar: { '某人': 'https://example.com/a.png' },
       background: {},
     }));
-  }
-  function attrsUsedOf(ctx) {
-    const c = ctx.win.__OPENING_DEBUG__.DATA.shop.attrCosts;
-    const a = ctx.win.__OPENING_DEBUG__.state.hero3.attrs;
-    return a.maxHp * c.maxHp + a.maxMp * c.maxMp + a.atk * c.atk + a.def * c.def + a.spd * c.spd;
   }
 
   document.getElementById('run').addEventListener('click', runAll);
@@ -174,13 +165,13 @@
         const want = ['隐匿者', '狂战士', '防守者', '风行者', '施法者', '圣职者', '灾厄使'];
         return want.every(function (k) { return C.classes[k]; }) ? true : Object.keys(C.classes);
       });
-      assert('每职业 6 技能且 3限定+3通用 且 ≥1 反应', () => {
+      assert('每职业 6 技能且 3限定+3通用 且 ≥1 插队技（反应/看破/舍身）', () => {
         const bad = Object.keys(C.classes).filter(function (k) {
           const ss = C.classes[k].skills;
           return ss.length !== 6
             || ss.filter(function (s) { return s.scope === '限定'; }).length !== 3
             || ss.filter(function (s) { return s.scope === '通用'; }).length !== 3
-            || !ss.some(function (s) { return s.data.isReaction; });
+            || !ss.some(function (s) { return s.data.isReaction || s.data.kanpoTarget || s.data.sheshenTarget; });
         });
         return bad.length === 0 ? true : bad;
       });
@@ -196,21 +187,22 @@
         });
         return dup.length === 0 ? true : dup;
       });
-      assert('属性行 → baseConfig（隐匿者 HP85/MP40/Atk12/Armor3/Speed120）', () => {
+      assert('属性行 → baseConfig（隐匿者 HP140/MP16/Atk40/Armor40/Speed80）', () => {
         const c = C.classes['隐匿者'].config;
-        return c.maxHp === 85 && c.maxMp === 40 && c.atk === 12 && c.def === 3 && c.spd === 120 && c.classType === '隐匿者' && c.maxTp === 100 ? true : c;
+        return c.maxHp === 140 && c.maxMp === 16 && c.atk === 40 && c.def === 40 && c.spd === 80 && c.classType === '隐匿者' && c.maxTp === 100 ? true : c;
       });
-      assert('标签解析：暗巷快枪 [单体;power:38][远程][MP:4] → 契约字段', () => {
-        const d = C.classes['隐匿者'].skills[1].data;
-        return d.type === '[单体]' && d.power === 38 && d.damageType === '远程' && d.cost === 4 && d.fxTag === 'gunfire' && d.isReaction === false ? true : d;
+      assert('标签解析：暗巷快枪 [单体(枪击);power:65]×3 → 契约字段（括号子类型保留）', () => {
+        const d = C.classes['隐匿者'].skills[2].data;
+        return d.type === '[单体(枪击)]' && d.power === 65 && d.type2 === '[单体(枪击)]' && d.power2 === 65
+          && d.type3 === '[单体(枪击)]' && d.power3 === 65 && d.damageType === '远程' && d.hit === 110 && d.isReaction === false ? true : d;
       });
-      assert('反应技能：影缝闪避 isReaction + reactionTarget=近战', () => {
+      assert('反应技能：唯快不破 isReaction + reactionTarget=近战', () => {
         const d = C.classes['隐匿者'].skills[4].data;
         return d.isReaction === true && d.reactionTarget === '近战' ? true : d;
       });
-      assert('多槽位：净化颂歌 群回+群驱散 双槽', () => {
-        const d = C.classes['圣职者'].skills[5].data;
-        return d.type === '[群回]' && d.power === 15 && d.type2 === '[群驱散]' && d.power2 === 1 ? true : d;
+      assert('多槽位：净化颂歌 群回+群驱散 双槽（冒号简写）', () => {
+        const d = C.classes['圣职者'].skills[4].data;
+        return d.type === '[群回]' && d.power === 100 && d.type2 === '[群驱散]' && d.power2 === 1 ? true : d;
       });
     } catch (e) { row('① 执行中断', false, e.message); }
 
@@ -223,9 +215,8 @@
       await driveFull(ctx1, {
         name: '夜鸦', portraitKey: '夜鸦', portraitUrl: 'https://files.catbox.moe/os-party.png',
         c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
-        skills: ['烟灰迷眼', '影缝闪避'],       // 1 + 2 = 3 ≤ 4
-        attrs: [{ key: 'atk' }, { key: 'atk' }, { key: 'maxHp' }, { key: 'maxHp' }], // 2 + 10 = 12 ≤ 12
-        items: ['revolver', 'bullets'],          // 25 + 10 = 35 ≤ 40
+        skills: ['寂静指令', '烟尘迷眼'],        // 2 + 1 = 3 ≤ 4
+        items: ['grenade', 'medkit'],            // 20 + 8 = 28 ≤ 40
       });
       const st = await submitAndWait(ctx1);
       assert('提交后进入归档完成页', () => st === 'done' ? true : st);
@@ -235,36 +226,49 @@
       });
       const roster = ctx1.mock.store.chat.rpg_combat_roster;
       assert('roster 为 version 1 三英雄', () => roster && roster.version === 1 && roster.heroes.length === 3 ? true : roster && roster.heroes.length);
-      assert('角色一：占位名 + 隐匿者 + 6 技能 + 反应目标', () => {
+      assert('角色一：占位名 + 隐匿者 + 6 技能 + 反应目标 + 标配弹药', () => {
         const h = roster.heroes[0];
-        return h.name === '威廉·退尔' && h.config.classType === '隐匿者' && h.config.maxHp === 85
-          && h.skills.length === 6 && h.skills.some(function (s) { return s.name === '影缝闪避' && s.isReaction === true && s.reactionTarget === '近战'; })
-          && h.items.length === 0 ? true : h;
+        return h.name === '威廉·退尔' && h.config.classType === '隐匿者' && h.config.maxHp === 140
+          && h.skills.length === 6 && h.skills.some(function (s) { return s.name === '唯快不破' && s.isReaction === true && s.reactionTarget === '近战'; })
+          && h.items.length === 1 && h.items[0].name === '.45子弹'
+          && h.items[0].bindings.some(function (b) { return b.skillName === '暗巷快枪' && b.cost === 3; }) ? true : h;
       });
       assert('角色二：占位名 + 圣职者 + 6 技能', () => {
         const h = roster.heroes[1];
         return h.name === '冯·霍恩海姆' && h.config.classType === '圣职者' && h.skills.length === 6
-          && h.skills.some(function (s) { return s.name === '圣光抚慰'; }) ? true : h;
+          && h.skills.some(function (s) { return s.name === '迅捷愈合法'; }) ? true : h;
       });
-      assert('角色三：姓名/职业/购点属性合成（HP90+10=100，Atk11+2=13）', () => {
+      assert('角色三：属性按职业模板自动适配（灾厄使 HP120/Atk20，无购点叠加）', () => {
         const h = roster.heroes[2];
-        return h.name === '夜鸦' && h.config.classType === '灾厄使' && h.config.maxHp === 100 && h.config.atk === 13 ? true : h.config;
+        return h.name === '夜鸦' && h.config.classType === '灾厄使' && h.config.maxHp === 120 && h.config.atk === 20 ? true : h.config;
       });
       assert('角色三：3 限定 + 2 通用购点 = 5 技能', () => {
         const h = roster.heroes[2];
-        return h.skills.length === 5 && h.skills.some(function (s) { return s.name === '蚀骨毒雾'; })
-          && h.skills.some(function (s) { return s.name === '烟灰迷眼'; })
-          && h.skills.some(function (s) { return s.name === '影缝闪避'; }) ? true : h.skills.map(function (s) { return s.name; });
+        return h.skills.length === 5 && h.skills.some(function (s) { return s.name === '异种坏死雾'; })
+          && h.skills.some(function (s) { return s.name === '烟尘迷眼'; })
+          && h.skills.some(function (s) { return s.name === '寂静指令'; }) ? true : h.skills.map(function (s) { return s.name; });
       });
-      assert('角色三：img = 自定义立绘 URL，物品 2 件', () => {
+      assert('角色三：img = 自定义立绘 URL，购得物品 2 件入战斗档案', () => {
         const h = roster.heroes[2];
         return h.config.img === 'https://files.catbox.moe/os-party.png' && h.items.length === 2
-          && h.items[0].name === '柯尔特M1911手枪' ? true : h;
+          && h.items[0].name === '破片手雷' && h.items[1].name === '战地急救包'
+          && h.items[1].isOthers === true ? true : h;
+      });
+      assert('叙事武器：威廉双持柯尔特M1911 与 冯法杖小刀 进 Status_block 物品徽章', () => {
+        const m = ctx1.mock.created[0].message;
+        return m.indexOf('[柯尔特M1911][柯尔特M1911]') >= 0
+          && m.indexOf('[胡桃木法杖][炼金小刀]') >= 0 ? true : 'Status_block 缺叙事武器';
+      });
+      assert('叙事武器不进战斗档案（威廉 items 仅标配弹药）', () => {
+        const h = roster.heroes[0];
+        return !h.items.some(function (it) { return it.name === '柯尔特M1911'; }) ? true : h.items;
       });
       assert('$mms_portrait_choice 写入自定义立绘键（留白通道，现状契约）', () => ctx1.mock.store.chat.$mms_portrait_choice === '夜鸦' ? true : ctx1.mock.store.chat.$mms_portrait_choice);
-      const snap = JSON.parse(localStorage.getItem(LS_KEY));
-      assert('快照合并：角色三以姓名为键入表，且保留原快照键', () => {
-        return snap && snap.portrait['夜鸦'] === 'https://files.catbox.moe/os-party.png' && snap.portrait['占位旧键'] === 'https://example.com/old.png' ? true : snap;
+      assert('立绘写独立补丁键（§11-3 修复：不读-改-写共享快照），共享快照原样保留', () => {
+        const patch = JSON.parse(localStorage.getItem('openingsetup_portrait_patch_v1') || 'null');
+        const snap = JSON.parse(localStorage.getItem(LS_KEY));
+        return patch && patch.v === 1 && patch.portrait['夜鸦'] === 'https://files.catbox.moe/os-party.png'
+          && snap && snap.portrait['占位旧键'] === 'https://example.com/old.png' && !snap.portrait['夜鸦'] ? true : { patch: patch, snap: snap };
       });
       assert('开场白 assistant 单条，含三角色名与【立绘】', () => {
         const m = ctx1.mock.created[0] && ctx1.mock.created[0].message;
@@ -295,23 +299,23 @@
       clickAction(ctx, 'c3id-done');
       pickClass(ctx, 'c3', '隐匿者');
       clickAction(ctx, 'c3class-done');
-      click(ctx, '[data-action="c3-skill-toggle"][data-skill="烟灰迷眼"]');
+      click(ctx, '[data-action="c3-skill-toggle"][data-skill="烟尘迷眼"]');
       click(ctx, '[data-action="back-c3class"]');
       pickClass(ctx, 'c3', '狂战士');
       assert('切职业后已购通用技能保留', () => {
         const s = ctx.win.__OPENING_DEBUG__.state.hero3.skills;
-        return s.length === 1 && s[0] === '烟灰迷眼' ? true : s;
+        return s.length === 1 && s[0] === '烟尘迷眼' ? true : s;
       });
       assert('停留在职业页可继续', () => ctx.win.__OPENING_DEBUG__.state.stage === 'c3class' ? true : ctx.win.__OPENING_DEBUG__.state.stage);
       clickAction(ctx, 'c3class-done');
       assert('六槽预览随新职业刷新（限定=狂战士组）', () => {
         const t = ctx.doc.body.textContent;
-        return t.indexOf('鲁莽挥击') >= 0 && t.indexOf('痛楚反击') >= 0 && t.indexOf('烟灰迷眼') >= 0 ? true : '预览缺少技能名';
+        return t.indexOf('鲁莽挥击') >= 0 && t.indexOf('重击推撞') >= 0 && t.indexOf('烟尘迷眼') >= 0 ? true : '预览缺少技能名';
       });
     } catch (e) { row('③ 执行中断', false, e.message); }
 
     /* ============ ④ 预算边界 ============ */
-    group('④ 预算边界（技能 4 点 / 属性 12 点：超支拒绝）');
+    group('④ 预算边界（技能 4 点 / 物品 40 点：超支拒绝）');
     try {
       localStorage.removeItem(LS_KEY);
       const ctx = await makeStage(null);
@@ -321,25 +325,24 @@
       pickClass(ctx, 'c2', '灾厄使'); clickAction(ctx, 'c2-done');
       setName(ctx, '夜鸦'); clickAction(ctx, 'c3id-done');
       pickClass(ctx, 'c3', '施法者'); clickAction(ctx, 'c3class-done');
-      // 技能：影缝闪避(2) + 秘术护体(2) = 4 打满
-      click(ctx, '[data-action="c3-skill-toggle"][data-skill="影缝闪避"]');
-      click(ctx, '[data-action="c3-skill-toggle"][data-skill="秘术护体"]');
+      // 技能：烟尘迷眼(1) + 寂静指令(2) = 3；再买暗巷快枪(2) → 总 5 > 4 拒绝
+      click(ctx, '[data-action="c3-skill-toggle"][data-skill="烟尘迷眼"]');
+      click(ctx, '[data-action="c3-skill-toggle"][data-skill="寂静指令"]');
       assert('预算内购入 2 条成功', () => ctx.win.__OPENING_DEBUG__.state.hero3.skills.length === 2 ? true : ctx.win.__OPENING_DEBUG__.state.hero3.skills);
-      click(ctx, '[data-action="c3-skill-toggle"][data-skill="追风射击"]');
-      assert('第 3 条（价2，总 6 > 4）被拒绝', () => ctx.win.__OPENING_DEBUG__.state.hero3.skills.length === 2 ? true : ctx.win.__OPENING_DEBUG__.state.hero3.skills);
+      click(ctx, '[data-action="c3-skill-toggle"][data-skill="暗巷快枪"]');
+      assert('第 3 条（价2，总 5 > 4）被拒绝', () => ctx.win.__OPENING_DEBUG__.state.hero3.skills.length === 2 ? true : ctx.win.__OPENING_DEBUG__.state.hero3.skills);
       clickAction(ctx, 'c3skill-done');
-      // 属性：maxHp(5)×2 + spd(2)×1 = 12 打满
-      click(ctx, '[data-action="c3-attr"][data-attr="maxHp"][data-dir="+"]');
-      click(ctx, '[data-action="c3-attr"][data-attr="maxHp"][data-dir="+"]');
-      click(ctx, '[data-action="c3-attr"][data-attr="spd"][data-dir="+"]');
-      assert('属性 12 点打满', () => attrsUsedOf(ctx) === 12 ? true : attrsUsedOf(ctx));
-      click(ctx, '[data-action="c3-attr"][data-attr="maxMp"][data-dir="+"]');
-      assert('再购属性被拒绝', () => attrsUsedOf(ctx) === 12 ? true : attrsUsedOf(ctx));
-      assert('属性可回退（spd − 释放 2 点）', () => {
-        click(ctx, '[data-action="c3-attr"][data-attr="spd"][data-dir="-"]');
-        const ok = attrsUsedOf(ctx) === 10;
-        click(ctx, '[data-action="c3-attr"][data-attr="spd"][data-dir="+"]');
-        return ok ? true : attrsUsedOf(ctx);
+      // 物品：破片手雷(20) + 战地急救包(8) = 28；再买圣血护符(20) → 总 48 > 40 拒绝
+      click(ctx, '[data-item-id="grenade"]');
+      click(ctx, '[data-item-id="medkit"]');
+      assert('预算内购入 2 件成功', () => ctx.win.__OPENING_DEBUG__.state.selectedItems.size === 2 ? true : [...ctx.win.__OPENING_DEBUG__.state.selectedItems]);
+      click(ctx, '[data-item-id="charm"]');
+      assert('第 3 件（价20，总 48 > 40）被拒绝', () => ctx.win.__OPENING_DEBUG__.state.selectedItems.size === 2 ? true : [...ctx.win.__OPENING_DEBUG__.state.selectedItems]);
+      assert('物品页返回直达技能页（无属性购点步骤）', () => {
+        click(ctx, '[data-action="back-c3skill"]');
+        const st = ctx.win.__OPENING_DEBUG__.state.stage;
+        clickAction(ctx, 'c3skill-done');
+        return st === 'c3skill' ? true : st;
       });
     } catch (e) { row('④ 执行中断', false, e.message); }
 
@@ -395,6 +398,59 @@
       assert('损坏快照原样保留（不覆盖不修复）', () => localStorage.getItem(LS_KEY) === '{bad json' ? true : localStorage.getItem(LS_KEY));
       assert('聊天变量写入链不受影响', () => !!(ctx.mock.store.chat.rpg_combat_roster && ctx.mock.store.chat.$opening_setup_done));
     } catch (e) { row('⑦ 执行中断', false, e.message); }
+
+    /* ============ ⑧ 弹药自动分配 ============ */
+    group('⑧ 弹药按所选技能自动分配（职业标配补绑定 / 新建弹匣）');
+    try {
+      localStorage.removeItem(LS_KEY);
+      const ctx = await makeStage(null);
+      clickAction(ctx, 'start');
+      clickAction(ctx, 'story-next'); clickAction(ctx, 'story-next'); clickAction(ctx, 'story-done');
+      pickClass(ctx, 'c1', '防守者'); clickAction(ctx, 'c1-done');
+      pickClass(ctx, 'c2', '圣职者'); clickAction(ctx, 'c2-done');
+      setName(ctx, '夜鸦'); clickAction(ctx, 'c3id-done');
+      pickClass(ctx, 'c3', '风行者'); clickAction(ctx, 'c3class-done');
+      // 风行者标配 .45子弹×40 只绑 追风射击*1；购【暗巷快枪】(通用) → 同弹匣追加绑定 暗巷快枪*3
+      click(ctx, '[data-action="c3-skill-toggle"][data-skill="暗巷快枪"]');
+      clickAction(ctx, 'c3skill-done');
+      click(ctx, '[data-item-id="grenade"]');
+      clickAction(ctx, 'c3item-done');
+      const st = await submitAndWait(ctx);
+      assert('提交完成', () => st === 'done' ? true : st);
+      const h = ctx.mock.store.chat.rpg_combat_roster.heroes[2];
+      assert('风行者标配弹匣追加新技能绑定（追风射击*1 + 暗巷快枪*3）', () => {
+        const ammo = h.items.find(function (it) { return it.name === '.45子弹'; });
+        return ammo && ammo.count === 40
+          && ammo.bindings.some(function (b) { return b.skillName === '追风射击' && b.cost === 1; })
+          && ammo.bindings.some(function (b) { return b.skillName === '暗巷快枪' && b.cost === 3; }) ? true : ammo;
+      });
+      assert('购得物品与弹匣同入战斗档案', () => {
+        return h.items.some(function (it) { return it.name === '破片手雷'; }) ? true : h.items;
+      });
+    } catch (e) { row('⑧ 执行中断', false, e.message); }
+
+    try {
+      localStorage.removeItem(LS_KEY);
+      const ctx = await makeStage(null);
+      clickAction(ctx, 'start');
+      clickAction(ctx, 'story-next'); clickAction(ctx, 'story-next'); clickAction(ctx, 'story-done');
+      pickClass(ctx, 'c1', '防守者'); clickAction(ctx, 'c1-done');
+      pickClass(ctx, 'c2', '圣职者'); clickAction(ctx, 'c2-done');
+      setName(ctx, '夜鸦'); clickAction(ctx, 'c3id-done');
+      pickClass(ctx, 'c3', '施法者'); clickAction(ctx, 'c3class-done');
+      // 施法者无标配物品段：购【温切斯特M1897】(通用,价1) → 新建 12号鹿弹×12 绑定 温切斯特M1897*1
+      click(ctx, '[data-action="c3-skill-toggle"][data-skill="温切斯特M1897"]');
+      clickAction(ctx, 'c3skill-done');
+      clickAction(ctx, 'c3item-done');
+      const st = await submitAndWait(ctx);
+      assert('无标配职业新建弹匣（12号鹿弹×12，绑定温切斯特M1897*1）', () => {
+        if (st !== 'done') return st;
+        const h = ctx.mock.store.chat.rpg_combat_roster.heroes[2];
+        const ammo = h.items.find(function (it) { return it.name === '12号鹿弹'; });
+        return ammo && ammo.category === '弹药' && ammo.count === 12
+          && ammo.bindings.length === 1 && ammo.bindings[0].skillName === '温切斯特M1897' && ammo.bindings[0].cost === 1 ? true : ammo;
+      });
+    } catch (e) { row('⑧ 弹匣新建执行中断', false, e.message); }
 
     localStorage.removeItem(LS_KEY);
     totalRow.textContent = passCount + ' / ' + total + ' 项通过' + (passCount === total ? '（全部通过）' : '（存在失败项）');

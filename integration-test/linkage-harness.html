@@ -225,10 +225,6 @@ async function driveWizard(o) {
   act('c3class-done');
   (o.skills || []).forEach((name) => click('[data-action="c3-skill-toggle"][data-skill="' + name + '"]'));
   act('c3skill-done');
-  (o.attrs || []).forEach((a) => {
-    for (let i = 0; i < (a.count || 1); i++) click('[data-action="c3-attr"][data-attr="' + a.key + '"][data-dir="+"]');
-  });
-  act('c3attr-done');
   (o.items || []).forEach((id) => click('[data-item-id="' + id + '"]'));
   act('c3item-done');
   if (o.forceNoPortrait) win.__OPENING_DEBUG__.state.hero3.portrait = '';
@@ -273,9 +269,8 @@ async function scenario1_main() {
     MOCK.reset(); seedMmsConfig(); seedSnapshot();
     const osWin = await driveWizard({
       name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
-      skills: ['烟灰迷眼', '影缝闪避'],
-      attrs: [{ key: 'atk', count: 2 }, { key: 'maxHp', count: 2 }],
-      items: ['revolver', 'bullets'],
+      skills: ['烟尘迷眼', '寂静指令'],
+      items: ['grenade', 'medkit'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
 
@@ -286,18 +281,19 @@ async function scenario1_main() {
     const msg = MOCK.chatMessages()[0].message;
     check(msg.indexOf('【立绘 ' + CUSTOM_KEY + '】') >= 0 && msg.indexOf('<Status_block>') >= 0, '开场白含自定义立绘标签与 Status_block');
     check((msg.match(/- 角色:/g) || []).length === 3, 'Status_block 角色列表含三个角色');
-    check(msg.indexOf('队员一（占位）') >= 0 && msg.indexOf('队员二（占位）') >= 0 && msg.indexOf(HERO_NAME) >= 0, '开场白含三位角色姓名');
+    check(msg.indexOf('威廉·退尔') >= 0 && msg.indexOf('冯·霍恩海姆') >= 0 && msg.indexOf(HERO_NAME) >= 0, '开场白含三位角色姓名');
     check(MOCK.store.chat.$mms_portrait_choice === CUSTOM_KEY, '立绘选择写入 $mms_portrait_choice（字符串形态，现状契约）');
     const roster = MOCK.store.chat.rpg_combat_roster;
     check(!!roster && roster.version === 1 && Array.isArray(roster.heroes) && roster.heroes.length === 3, 'roster 为 version 1 三英雄结构');
-    check(!!roster && roster.heroes[0].name === '队员一（占位）' && roster.heroes[0].config.classType === '隐匿者' && roster.heroes[0].skills.length === 6, '角色一占位档案：隐匿者 + 6 技能');
-    check(!!roster && roster.heroes[1].name === '队员二（占位）' && roster.heroes[1].config.classType === '圣职者' && roster.heroes[1].skills.length === 6, '角色二占位档案：圣职者 + 6 技能');
+    check(!!roster && roster.heroes[0].name === '威廉·退尔' && roster.heroes[0].config.classType === '隐匿者' && roster.heroes[0].skills.length === 6, '角色一档案：隐匿者 + 6 技能');
+    check(!!roster && roster.heroes[1].name === '冯·霍恩海姆' && roster.heroes[1].config.classType === '圣职者' && roster.heroes[1].skills.length === 6, '角色二档案：圣职者 + 6 技能');
     check(!!roster && roster.heroes[2].name === HERO_NAME && roster.heroes[2].config.classType === '灾厄使' && roster.heroes[2].config.img === CUSTOM_URL, '角色三档案：姓名/灾厄使/自定义 URL');
-    check(!!roster && roster.heroes[2].skills.length === 5 && roster.heroes[2].skills.some((s) => s.name === '蚀骨毒雾') && roster.heroes[2].skills.some((s) => s.name === '影缝闪避'), '角色三：3 限定 + 2 通用技能');
+    check(!!roster && roster.heroes[2].skills.length === 5 && roster.heroes[2].skills.some((s) => s.name === '异种坏死雾') && roster.heroes[2].skills.some((s) => s.name === '寂静指令'), '角色三：3 限定 + 2 通用技能');
     check(!!roster && roster.heroes[2].items.length === 2, '角色三物品 2 件');
     check(!!MOCK.store.chat.$opening_setup_done && Array.isArray(MOCK.store.chat.$opening_setup_done.chars) && MOCK.store.chat.$opening_setup_done.chars.length === 3, '归档标记保存三角色');
     const snap = readSnapshot();
-    check(!!snap && snap.portrait && snap.portrait[CUSTOM_KEY] === CUSTOM_URL && snap.portrait['旧键'] === 'https://example.com/old.png', '自定义立绘并入 MMS 快照且保留原快照键');
+    const patch = (() => { try { return JSON.parse(localStorage.getItem('openingsetup_portrait_patch_v1')); } catch (e) { return null; } })();
+    check(!!patch && patch.v === 1 && patch.portrait[CUSTOM_KEY] === CUSTOM_URL && !!snap && snap.portrait['旧键'] === 'https://example.com/old.png' && !snap.portrait[CUSTOM_KEY], '自定义立绘写独立补丁键（§11-3），共享快照原样保留');
 
     const rpgWin = await mountRpg();
     const rosterRead = JSON.parse(rpgWin.eval('JSON.stringify(readRoster())'));
@@ -311,15 +307,15 @@ async function scenario1_main() {
     rpgWin.eval('applyPersistedRoster()');
     const hero = JSON.parse(rpgWin.eval('JSON.stringify((typeof heroesData !== "undefined" ? heroesData : []).find(function(h){return h.name === ' + JSON.stringify(HERO_NAME) + ';}) || null)'));
     check(!!hero && hero.img === CUSTOM_URL, 'RpgCombat 同名英雄头像合并为自定义 URL', hero && hero.img);
-    check(!!hero && hero.classType === '灾厄使' && hero.maxHp === 100 && hero.atk === 13, 'RpgCombat 同名英雄职业与购点属性合并', hero && [hero.classType, hero.maxHp, hero.atk]);
-    check(!!hero && Array.isArray(hero.skills) && hero.skills.some((s) => s.name === '蚀骨毒雾') && hero.skills.some((s) => s.name === '影缝闪避'), 'RpgCombat 同名英雄技能合并');
+    check(!!hero && hero.classType === '灾厄使' && hero.maxHp === 120 && hero.atk === 20, 'RpgCombat 同名英雄职业与职业模板属性合并', hero && [hero.classType, hero.maxHp, hero.atk]);
+    check(!!hero && Array.isArray(hero.skills) && hero.skills.some((s) => s.name === '异种坏死雾') && hero.skills.some((s) => s.name === '寂静指令'), 'RpgCombat 同名英雄技能合并');
     check(!!hero && Array.isArray(hero.items) && hero.items.length === 2, 'RpgCombat 同名英雄物品合并');
 
     const mmsWin = await mountMms();
     check(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY] === CUSTOM_URL, 'MMS 启动读回快照：PORTRAIT_MAP 命中自定义 URL');
     const legacy = JSON.parse(mmsWin.eval('JSON.stringify(typeof MMS.readLegacyState === "function" ? MMS.readLegacyState(0) : "NO_FN")'));
     const legacyText = JSON.stringify(legacy);
-    check(!!legacy && legacyText.indexOf(HERO_NAME) >= 0 && legacyText.indexOf('队员一（占位）') >= 0 && legacyText.indexOf('队员二（占位）') >= 0, 'MMS 解析开场白 Status_block：三角色姓名可得');
+    check(!!legacy && legacyText.indexOf(HERO_NAME) >= 0 && legacyText.indexOf('威廉·退尔') >= 0 && legacyText.indexOf('冯·霍恩海姆') >= 0, 'MMS 解析开场白 Status_block：三角色姓名可得');
     check(!!legacy && legacyText.indexOf('拆开委托信') >= 0, 'MMS 解析开场白行动选项');
   } catch (e) {
     check(false, '场景①执行中断：' + e.message);
@@ -337,11 +333,12 @@ async function scenario2_baseline() {
     check(!(mmsWin1.PORTRAIT_MAP && mmsWin1.PORTRAIT_MAP[CUSTOM_KEY]), '基线不含向导自定义键（向导尚未运行）');
     await driveWizard({
       name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
-      skills: ['烟灰迷眼'], items: ['revolver'],
+      skills: ['烟尘迷眼'], items: ['medkit'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
     const snap2 = readSnapshot();
-    check(!!snap2 && snap2.portrait && snap2.portrait[CUSTOM_KEY] === CUSTOM_URL, '向导自定义立绘并入基线快照');
+    const patch2 = (() => { try { return JSON.parse(localStorage.getItem('openingsetup_portrait_patch_v1')); } catch (e) { return null; } })();
+    check(!!patch2 && patch2.portrait[CUSTOM_KEY] === CUSTOM_URL, '向导自定义立绘写独立补丁键（§11-3，待 MMS 启动吸收）');
     const mmsWin2 = await mountMms();
     check(mmsWin2.PORTRAIT_MAP && mmsWin2.PORTRAIT_MAP[CUSTOM_KEY] === CUSTOM_URL, 'MMS 重启后 PORTRAIT_MAP 命中自定义立绘');
   } catch (e) {
@@ -371,7 +368,7 @@ async function scenario4_corrupt() {
     localStorage.setItem(LS_KEY, '{bad json');
     const win = await driveWizard({
       name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
-      skills: ['烟灰迷眼'], items: ['revolver'],
+      skills: ['烟尘迷眼'], items: ['medkit'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
     check(win.__OPENING_DEBUG__.state.stage === 'done', '损坏快照下向导仍正常完成');
@@ -392,7 +389,7 @@ async function scenario5_fresh() {
       skills: [], items: [], portrait: null, forceNoPortrait: true,
     });
     const m5 = MOCK.chatMessages()[0] ? MOCK.chatMessages()[0].message : '';
-    check(!(m5.match(/【立绘 ([^】]*)】/) || ['', ''])[1], '未选立绘：开场白不含立绘标签', (m5.match(/【立绘 ([^】]*)】/) || ['', ''])[1]);
+    check(m5.indexOf('【立绘 ' + HERO_NAME + '】') < 0, '未选立绘：开场白不含自定义角色立绘标签（威廉/冯配置立绘仍在）');
     check(MOCK.chatMessages()[0].message.indexOf('<Status_block>') >= 0, '未选立绘：Status_block 照常落楼');
     check(localStorage.getItem(LS_KEY) === null, '未选立绘：不触碰 MMS 快照（键仍不存在）');
   } catch (e) {
@@ -403,14 +400,14 @@ async function scenario5_fresh() {
     localStorage.removeItem(LS_KEY);
     await driveWizard({
       name: HERO_NAME, c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
-      skills: ['烟灰迷眼'], items: ['revolver'],
+      skills: ['烟尘迷眼'], items: ['medkit'],
       portrait: { name: CUSTOM_KEY, url: CUSTOM_URL },
     });
-    check(localStorage.getItem(LS_KEY) === null, '全新安装（MMS 从未渲染）：向导合并静默跳过（残余边界，锁行为）');
+    check(localStorage.getItem(LS_KEY) === null, '全新安装（MMS 从未渲染）：向导不碰共享快照（键仍不存在，立绘走独立补丁键）');
     const mmsWin = await mountMms();
     const snap = readSnapshot();
     check(!!snap && snap.portrait, 'MMS 此后首次启动补写基线快照');
-    check(!(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY]), '但本聊自定义立绘未入表（首聊残余边界；文档口径：进新聊天前让 MMS 渲染过一次）');
+    check(!!(mmsWin.PORTRAIT_MAP && mmsWin.PORTRAIT_MAP[CUSTOM_KEY]), 'MMS 启动吸收独立补丁键，本聊自定义立绘入表（§11-3 修复后残余边界已消除）');
   } catch (e) {
     check(false, '场景⑤全新安装部分中断：' + e.message);
   }
