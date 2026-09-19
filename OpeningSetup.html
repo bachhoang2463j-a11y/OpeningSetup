@@ -339,24 +339,24 @@
   .fx-ov { position: fixed; inset: 0; z-index: 9999; overflow: hidden; pointer-events: none; display: none; }
   .fx-ov.is-closing, .fx-ov.is-closed, .fx-ov.is-opening { pointer-events: auto; }
 
-  /* —— 百叶快落：14 片影棚竖百叶依次拍落，反向斜收 + 冷光扫线 —— */
+  /* —— 百叶快落：14 片影棚竖百叶自底部依次抬起遮住画面，再缓慢落回 —— */
   .fx-blind .b-slat {
     position: absolute; top: 0; bottom: 0; width: calc(100% / 14 + 1px);
     left: calc(var(--i) * 100% / 14);
     background: linear-gradient(180deg, #3c3c40, #232327 58%, #151518);
     box-shadow: inset 1px 0 rgba(255,255,255,.07), inset -1px 0 rgba(0,0,0,.55), inset 0 0 24px rgba(0,0,0,.35);
-    transform: scaleY(0); transform-origin: top;
+    transform: scaleY(0); transform-origin: bottom;
   }
   .fx-blind .b-slat:nth-child(odd) { filter: brightness(1.06); }
   .fx-blind.is-closing .b-slat, .fx-blind.is-closed .b-slat {
     transform: scaleY(1);
-    transition: transform 240ms cubic-bezier(.6,.05,.3,1);
-    transition-delay: calc(var(--i) * 42ms);
+    transition: transform 300ms cubic-bezier(.6,.05,.3,1);
+    transition-delay: calc(var(--i) * 45ms);
   }
   .fx-blind.is-opening .b-slat {
-    transform: scaleY(0); transform-origin: bottom;
-    transition: transform 240ms cubic-bezier(.6,.05,.3,1);
-    transition-delay: calc((13 - var(--i)) * 42ms);
+    transform: scaleY(0);
+    transition: transform 300ms cubic-bezier(.6,.05,.3,1);
+    transition-delay: calc((13 - var(--i)) * 45ms);
   }
   .fx-blind .b-sheen {
     position: absolute; inset: 0; z-index: 2; opacity: 0;
@@ -3200,7 +3200,7 @@
      幕布式转场：STAGE_FX 命中的目标阶段改走全屏幕布（百叶/浓雾），全闭瞬间换内容。 */
   let isStageTransitioning = false;
   const FX_TIMING = {
-    blind: { close: 800, hold: 140, open: 800 },
+    blind: { close: 920, hold: 140, open: 920 },
     fog:   { close: 1050, hold: 260, open: 1150 }
   };
   const STAGE_FX = { c1: 'blind', confirm: 'fog' };
