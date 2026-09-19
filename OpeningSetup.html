@@ -1861,10 +1861,11 @@
     };
   }
 
-  // MMS 本机图片快照合并：把三个角色的 {名字: 立绘URL} 并入 mms_img_data_llm_v1 的
-  // portrait 字典，MMS 立绘引擎（快照命中即整表覆盖内置表）按角色名匹配渲染。
-  // 该 key 是 MMS 官方默许的外部集成路径（源码注释点名 ShopBlock 先例）；
-  // 快照不存在/结构不合法/存储不可用时静默跳过（玩家可在 MMS 图片管理里手动添加）。
+  // MMS 本机图片快照合并：把三个角色的 {名字: 立绘URL} 写入独立补丁键
+  // openingsetup_portrait_patch_v1，由 MMS 启动时吸收进图片表并清键。不读-改-写
+  // 共享键 mms_img_data_llm_v1——那会与 MMS 的整表落盘形成 last-write-wins 竞态，
+  // 并发时丢一方更新；各写各的键后双写消除。存储不可用时静默跳过
+  //（玩家可在 MMS 图片管理里手动添加）。
   function mergeMmsPortraitSnapshot() {
     const maps = [
       { key: OPENING_DATA.party.hero1.name, url: OPENING_DATA.party.hero1.url },
@@ -1873,12 +1874,15 @@
     ].filter(function (m) { return m.key && m.url; });
     if (!maps.length) return;
     try {
-      const KEY = 'mms_img_data_llm_v1';
-      const snap = JSON.parse(localStorage.getItem(KEY));
-      if (!snap || typeof snap !== 'object' || !snap.portrait || !snap.avatar) return;
-      maps.forEach(function (m) { snap.portrait[m.key] = m.url; });
-      localStorage.setItem(KEY, JSON.stringify(snap));
-    } catch (e) { /* 快照损坏或存储不可用：跳过 */ }
+      const KEY = 'openingsetup_portrait_patch_v1';
+      let patch;
+      try { patch = JSON.parse(localStorage.getItem(KEY)); } catch (e) { patch = null; }
+      if (!patch || typeof patch !== 'object' || !patch.portrait || typeof patch.portrait !== 'object') {
+        patch = { v: 1, portrait: {} };
+      }
+      maps.forEach(function (m) { patch.portrait[m.key] = m.url; });
+      localStorage.setItem(KEY, JSON.stringify(patch));
+    } catch (e) { /* 存储不可用：跳过 */ }
   }
 
   async function submitAll() {
