@@ -336,8 +336,10 @@
 
   /* ===== 幕布式转场覆盖层（源自 demo-transition-preview.html）：百叶快落 / 浓雾涌漫 ===== */
   /* 时序由 JS 状态机驱动：is-closing（合拢）→ is-closed（全闭钉住，换内容）→ is-opening（散开） */
-  .fx-ov { position: fixed; inset: 0; z-index: 9999; overflow: hidden; pointer-events: none; display: none; }
-  .fx-ov.is-closing, .fx-ov.is-closed, .fx-ov.is-opening { pointer-events: auto; }
+  /* 覆盖层常驻渲染盒，用 visibility 控制显隐——display:none 会让元素失去前状态，
+     同帧挂状态类时 opacity/scaleY 过渡被整段跳过（浓雾突现白屏 / 百叶突现满屏的根因） */
+  .fx-ov { position: fixed; inset: 0; z-index: 9999; overflow: hidden; pointer-events: none; visibility: hidden; }
+  .fx-ov.is-closing, .fx-ov.is-closed, .fx-ov.is-opening { pointer-events: auto; visibility: visible; }
 
   /* —— 百叶快落：14 片影棚竖百叶自底部依次抬起遮住画面，再缓慢落回 —— */
   .fx-blind .b-slat {
@@ -3221,7 +3223,7 @@
       if (ov) {
         const t = FX_TIMING[fx];
         isStageTransitioning = true;
-        ov.style.display = 'block';
+        /* 覆盖层常驻渲染盒（visibility 控制），挂状态类即可触发过渡，无同帧跳变问题 */
         ov.classList.add('is-closing');
         setTimeout(function () {
           ov.classList.remove('is-closing');
@@ -3238,7 +3240,6 @@
             ov.classList.add('is-opening');
             setTimeout(function () {
               ov.classList.remove('is-opening');
-              ov.style.display = 'none';
               isStageTransitioning = false;
             }, t.open);
           };
@@ -3248,7 +3249,6 @@
         return;
       }
     }
-
     isStageTransitioning = true;
     app.classList.remove('stage-fade-in');
     app.classList.add('stage-fade-out');
