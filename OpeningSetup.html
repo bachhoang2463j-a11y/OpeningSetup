@@ -86,7 +86,7 @@
   }
 
   /* ---- 背景层：视频 / CSS 雾夜兜底 / 胶片颗粒 / 暗角 ---- */
-  #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: var(--vid-op, 0.6); }
+  #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: var(--vid-op, 0.6); filter: blur(var(--vid-blur, 0px)); transform: scale(1.1); }
   #bg-fallback { position: fixed; inset: 0; z-index: 0; overflow: hidden;
     background: radial-gradient(120% 90% at 50% 110%, #101623 0%, #070a12 55%, #05070c 100%); }
   .fog { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: 0.5; will-change: transform; }
@@ -737,7 +737,7 @@
       url: "http://127.0.0.1:8766/I%20Don%27t%20Want%20to%20Set%20the%20World.mp3",
       title: "I Don't Want to Set the World on Fire / The Ecstasy Of Gold",
     },
-    bgVideo: { url: '', opacity: 0.6 },
+    bgVideo: { url: 'https://cdn.pixabay.com/video/2026/07/24/366249_large.mp4', opacity: 0.6, blur: 10 },
 
     story: {
       title: '雾港谜案',
@@ -1265,8 +1265,26 @@
     '群速': '群体加速', '单缓': '单体缓速', '群缓': '群体缓速', '单盲': '单体致盲', '群盲': '群体致盲',
     '单瞄': '单体瞄准', '群瞄': '群体瞄准', '单冲': '单体充能', '群冲': '群体充能', '单增': '单体增攻',
     '群增': '群体增攻', '单避': '单体闪避', '群避': '群体闪避', '嘲讽': '目标嘲讽', '反击': '受击反击',
-    '群反击': '全体反击', '再动': '额外行动', '免伤': '绝对免伤', '必中': '锁定必中', '转火': '转火追击'
+    '群反击': '全体反击', '再动': '额外行动', '免伤': '绝对免伤', '必中': '锁定必中', '转火': '转火追击',
+    '燃烧弹': '燃烧'
   };
+
+  /* 购点物品的镂空线性图标（24 网格描边，与界面描边图标同风格；缺省 id 无图标） */
+  const ITEM_ICON = {
+    grenade:  '<circle cx="12" cy="14" r="6.5"/><path d="M9.5 7.5v-2h5v2M12 5.5v-2h3.5"/>',
+    firebomb: '<path d="M10 3.5h4M10.5 3.5v4L6 13a6 6 0 1012 0l-4.5-5.5v-4"/><path d="M12 12.5c1.6 1.4 1.6 3.4 0 4.6-1.6-1.2-1.6-3.2 0-4.6z"/>',
+    flashbang:'<path d="M12 5v3M12 16v3M5 12h3M16 12h3M7.2 7.2l2 2M14.8 14.8l2 2M16.8 7.2l-2 2M9.2 14.8l-2 2"/>',
+    medkit:   '<rect x="4" y="7.5" width="16" height="12.5" rx="2"/><path d="M9.5 7.5v-2h5v2M12 11v5M9.5 13.5h5"/>',
+    morphine: '<path d="M4.5 19.5l2.5-2.5M6 16.5L14.5 8M8.5 19L5 15.5M14.5 8l1.5-1.5 2.5 2.5L17 10.5M16 6l2-2 2 2-2 2"/>',
+    smoke:    '<path d="M7 16.5a4 4 0 01-.5-7.97A5.5 5.5 0 0117 10a3.75 3.75 0 01-.5 7.47z"/>',
+    charm:    '<path d="M12 3.5c3.6 4 5.5 6.8 5.5 9.5a5.5 5.5 0 11-11 0c0-2.7 1.9-5.5 5.5-9.5z"/>',
+    emblem:   '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5v11M6.5 12h11"/>'
+  };
+  function itemIcon(e) {
+    const p = ITEM_ICON[e.id];
+    if (!p) return '';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="#d9b45c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-[17px] h-[17px] inline-block align-[-3px] mr-1.5">' + p + '</svg>';
+  }
 
   /* ===== demo 移植：机制悬浮说明体系（注册表 / 机制提取 / 生效回合 / 富胶囊） ===== */
 
@@ -2981,7 +2999,6 @@
       + '      <h2 class="text-xl font-bold text-[var(--text-main)] mt-0.5">自由通用技能插槽购点</h2>'
       + '    </div>'
       + '    <div class="flex items-center gap-4">'
-      + '      <button class="btn-ghost shrink-0" data-action="rules-modal" title="核心战斗专有机制速查">📖 机制速查</button>'
       + '      <div class="w-48 text-right">'
       + '        <div class="flex items-center justify-between font-tw text-xs mb-1">'
       + '          <span class="text-white/60">REMAINING BUDGET</span>'
@@ -3021,10 +3038,12 @@
   // 物品战斗属性行：效果槽/他人/命中/持续 + 存量形态，让"购点有属性"可见
   function itemStatLine(e) {
     const d = e.data;
+    const tagOf = function (t) { return TAG_EXPAND_MAP[t] || t; };
     const parts = [];
-    if (d.type) parts.push(d.type.replace(/[\[\]]/g, '') + (d.power ? ':' + d.power : ''));
-    if (d.type2) parts.push(d.type2.replace(/[\[\]]/g, '') + (d.power2 ? ':' + d.power2 : ''));
-    if (d.type3) parts.push(d.type3.replace(/[\[\]]/g, '') + (d.power3 ? ':' + d.power3 : ''));
+    if (d.type) parts.push(tagOf(d.type.replace(/[\[\]]/g, '')) + (d.power ? ':' + d.power : ''));
+    if (d.type2) parts.push(tagOf(d.type2.replace(/[\[\]]/g, '')) + (d.power2 ? ':' + d.power2 : ''));
+    if (d.type3) parts.push(tagOf(d.type3.replace(/[\[\]]/g, '')) + (d.power3 ? ':' + d.power3 : ''));
+    if (d.fxTag && d.fxTag !== 'none') parts.push(tagOf(d.fxTag));
     if (d.isOthers) parts.push('他人');
     if (d.hit && d.hit !== 100) parts.push('命中' + d.hit);
     if (d.turns) parts.push('持续' + d.turns);
@@ -3041,7 +3060,7 @@
       const sel = state.selectedItems.has(e.id);
       return '<div class="card p-4 ' + (sel ? 'sel' : '') + '" data-action="item-toggle" data-item-id="' + esc(e.id) + '">'
         + '<div class="flex items-baseline justify-between mb-1">'
-        + '<span class="text-[#e8dcc0] tracking-[0.12em]">' + esc(e.data.name) + '</span>'
+        + '<span class="text-[#e8dcc0] tracking-[0.12em]">' + itemIcon(e) + esc(e.data.name) + '</span>'
         + '<span class="font-tw text-[0.78rem] text-[rgba(198,161,84,0.9)]">' + e.shopCost + ' 点</span>'
         + '</div>'
         + '<div class="text-xs text-[rgba(232,220,192,0.62)] leading-relaxed">' + esc(e.desc) + '</div>'
@@ -3055,7 +3074,6 @@
       + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
       + '    <div class="flex items-center justify-between gap-3 mb-4">'
       + '      <div class="text-xs text-[rgba(232,220,192,0.6)]">' + esc(hero3Name()) + ' 的随身物品（写入战斗档案与 Status_block）。</div>'
-      + '      <button class="btn-ghost shrink-0" data-action="rules-modal" title="核心战斗专有机制速查">📖 机制速查</button>'
       + '    </div>'
       + '    <div id="item-budget">' + budgetBar(itemsUsed(), OPENING_DATA.shop.itemPoints, false) + '</div>'
       + '    <div class="grid sm:grid-cols-2 gap-3 mt-4">' + cards + '</div>'
@@ -3947,8 +3965,8 @@ ${sectionBlocks}
   function updateTopRulesVisibility() {
     const btn = document.getElementById('top-rules-btn');
     if (!btn) return;
-    const battleStages = ['c1', 'c2', 'c3id', 'c3class', 'c3skill', 'c3item', 'confirm'];
-    btn.style.display = battleStages.indexOf(state.stage) >= 0 ? '' : 'none';
+    /* 右上角速查为唯一入口（c3skill/viewItems 页内的重复按钮已移除），始终显示 */
+    btn.style.display = '';
   }
 
   /* 纯悬浮窗（Floating Tooltip）：技能卡与机制胶囊悬停说明 */
@@ -4227,6 +4245,7 @@ ${sectionBlocks}
       bgVideo.src = OPENING_DATA.bgVideo.url;
       bgVideo.classList.remove('hidden');
       bgVideo.style.setProperty('--vid-op', String(OPENING_DATA.bgVideo.opacity || 0.6));
+      bgVideo.style.setProperty('--vid-blur', String(OPENING_DATA.bgVideo.blur || 0) + 'px');
       bgFallback.style.display = 'none';
     }
 
@@ -4280,7 +4299,7 @@ ${sectionBlocks}
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" data-rules-close></div>
 
   <!-- 弹窗主体容器：半透明微晶玻璃拟态（高度上限用 px，规避酒馆 iframe 流式 vh 回归） -->
-  <div class="rules-modal-card relative z-10 w-full max-w-5xl max-h-[560px] flex flex-col rounded-2xl overflow-hidden transform scale-95 transition-transform duration-200 ease-out">
+  <div class="rules-modal-card relative z-10 w-full max-w-5xl max-h-[644px] flex flex-col rounded-2xl overflow-hidden transform scale-95 transition-transform duration-200 ease-out">
     <!-- 顶部鎏金流光细线 -->
     <div class="h-1 w-full bg-gradient-to-r from-transparent via-amber-400/85 to-transparent"></div>
 
