@@ -1835,12 +1835,12 @@
       else if (displayLabel.includes('免伤')) targetMechKey = '免伤';
       else if (displayLabel.includes('回避')) targetMechKey = '回避';
       else if (displayLabel.includes('穿透')) targetMechKey = '穿透';
-      else if (displayLabel.includes('再动')) targetMechKey = '再动';
+      else if (displayLabel.includes('再动') || displayLabel.includes('额外行动')) targetMechKey = '再动';
       else if (displayLabel.includes('蓄力')) targetMechKey = '延迟';
       else if (displayLabel.includes('加速')) targetMechKey = '加速';
       else if (displayLabel.includes('麻痹')) targetMechKey = '麻痹';
-      else if (displayLabel.includes('中毒')) targetMechKey = '中毒';
-      else if (displayLabel.includes('燃烧')) targetMechKey = '燃烧';
+      else if (displayLabel.includes('中毒') || displayLabel.includes('毒素侵蚀')) targetMechKey = '中毒';
+      else if (displayLabel.includes('燃烧') || displayLabel.includes('灼烧')) targetMechKey = '燃烧';
       else if (displayLabel.includes('降防')) targetMechKey = '目标降防';
       else if (displayLabel.includes('加防')) targetMechKey = '目标加防';
       else if (displayLabel.includes('降攻')) targetMechKey = '目标降攻';
