@@ -1318,7 +1318,7 @@
     if (text.includes('降防') || text.includes('降攻') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕') || text.includes('自盲') || text.includes('滞')) {
       return 'bg-purple-950/40 text-purple-300/90 border-purple-800/40';
     }
-    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('暴击') || text.includes('必中') || text.includes('转火') || text.includes('再动') || text.includes('蓄力') || text.includes('高阶') || text.includes('传奇') || text.includes('召唤')) {
+    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('嘲讽') || text.includes('暴击') || text.includes('必中') || text.includes('转火') || text.includes('再动') || text.includes('蓄力') || text.includes('高阶') || text.includes('传奇') || text.includes('召唤')) {
       return 'bg-amber-950/40 text-amber-300/80 border-amber-800/40';
     }
     if (text.includes('反应') || text.includes('看破')) {
@@ -1337,6 +1337,9 @@
     clean = clean.replace(/\[HP:\d+\]/g, '');
     clean = clean.replace(/\[TP:\d+\]/g, '');
     clean = clean.replace(/\[特效:[^\]]+\]/g, '');
+
+    const hasOthers = rawText.includes('[他人]') || rawText.includes('他人');
+    const targetOrSelf = hasOthers ? '目标' : '自身';
 
     const tagMatches = clean.match(/\[([^\]]+)\]/g) || [];
     if (tagMatches.length === 0) {
@@ -1367,10 +1370,44 @@
       } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart) || mainPart === '必中') {
         // 右侧状态列已专设金色命中率栏，左侧胶囊彻底去除以防冗余
         return;
-      } else if (/^加速[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^加速[:：](\d+)/i);
-        displayLabel = '加速';
-        displayVal = '+' + (m ? m[1] : '');
+      } else if (/^加速[:：](\d+)/i.test(mainPart) || /^单速[:：](\d+)/i.test(mainPart) || mainPart === '单速') {
+        const m = mainPart.match(/^(?:加速|单速)[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}加速`;
+        displayVal = m ? `+${m[1]}` : (powerVal ? `+${powerVal}` : null);
+      } else if (/^单冲[:：](\d+)/i.test(mainPart) || mainPart === '单冲') {
+        const m = mainPart.match(/^单冲[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}充能`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单瞄[:：](\d+)/i.test(mainPart) || mainPart === '单瞄') {
+        const m = mainPart.match(/^单瞄[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}瞄准`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单防[:：](\d+)/i.test(mainPart) || mainPart === '单防') {
+        const m = mainPart.match(/^单防[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}加防`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单避[:：](\d+)/i.test(mainPart) || mainPart === '单避') {
+        const m = mainPart.match(/^单避[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}闪避`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单增[:：](\d+)/i.test(mainPart) || mainPart === '单增') {
+        const m = mainPart.match(/^单增[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}增攻`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单盾[:：](\d+)/i.test(mainPart) || mainPart === '单盾') {
+        const m = mainPart.match(/^单盾[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}护盾`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单回[:：](\d+)/i.test(mainPart) || mainPart === '单回') {
+        const m = mainPart.match(/^单回[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}回复`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单回蓝[:：](\d+)/i.test(mainPart) || mainPart === '单回蓝') {
+        const m = mainPart.match(/^单回蓝[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}回蓝`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (mainPart === '嘲讽') {
+        displayLabel = `${targetOrSelf}嘲讽`;
       } else if (/^延迟[:：](\d+)/i.test(mainPart)) {
         const m = mainPart.match(/^延迟[:：](\d+)/i);
         displayLabel = '蓄力';
@@ -1384,7 +1421,7 @@
         displayLabel = '限用';
         displayVal = (m ? m[1] : '') + '次';
       } else if (/^(?:反应|舍身|看破)(?::([^\]]+))?/i.test(mainPart)) {
-        // 右上角已专设金色反应徽章（如【⟲反应·近战】），下方胶囊中不再重复显示
+        // 右上角已专设金色战术机制徽章（如【⟲反应·近战】、【舍身·近战】、【看破·法术】），下方胶囊中不再重复显示
         return;
       } else if (/^肃正(?::([^\]]+))?/i.test(mainPart)) {
         const m = mainPart.match(/^肃正(?::([^\]]+))?/i);
@@ -1392,12 +1429,11 @@
       } else if (/^召唤(?::([^\]]+))?/i.test(mainPart)) {
         const m = mainPart.match(/^召唤(?::([^\]]+))?/i);
         displayLabel = m && m[1] ? `召唤·${m[1]}` : '战术召唤';
-      } else if (/^单体\(([^)]+)\)/i.test(mainPart)) {
-        const m = mainPart.match(/^单体\(([^)]+)\)/i);
-        displayLabel = `单体(${m[1]})`;
-      } else if (/^穿透\(([^)]+)\)/i.test(mainPart)) {
-        const m = mainPart.match(/^穿透\(([^)]+)\)/i);
-        displayLabel = `穿透(${m[1]})`;
+      } else if (/^单体(?:\([^)]+\))?/i.test(mainPart)) {
+        // 括号备注（霰弹、光、火焰、枪击等）只是特效标签，技能栏统一改为【单体伤害】
+        displayLabel = '单体伤害';
+      } else if (/^穿透(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '单体穿透';
       } else if (mainPart === '他人' || mainPart === '友方' || mainPart === '友方目标') {
         displayLabel = '他人';
         displayVal = null;
@@ -1465,7 +1501,7 @@
     return '100%';
   }
 
-  /* 反应徽章文本判定（支持 [反应:近战] -> ⟲反应·近战） */
+  /* 特殊战术机制徽章文本判定（反应带⟲，舍身与看破独立显示如 舍身·近战、看破·法术） */
   function getReactionBadgeText(s) {
     if (!s) return null;
     const text = (s.rawText || '') + ' ' + (s.name || '');
@@ -1473,10 +1509,11 @@
     if (!m && !s.isReaction) return null;
     const act = m ? m[1] : '反应';
     const limit = (m && m[2]) ? m[2].trim() : null;
-    if (limit) {
-      return `⟲反应·${limit}`;
+    if (act === '反应') {
+      return limit ? `⟲反应·${limit}` : '⟲反应';
     }
-    return `⟲${act}`;
+    // 舍身与看破不是反应：独立显示如【舍身·近战】、【看破·法术】、【看破·远程】
+    return limit ? `${act}·${limit}` : act;
   }
 
   /* 技能阶级判定：普通 (Tier 1) / 高阶 (Tier 2) / 传奇 (Tier 3) */
