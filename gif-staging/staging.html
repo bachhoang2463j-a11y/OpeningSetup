@@ -49,19 +49,19 @@
   @keyframes blink { 50% { opacity: .25; } }
   #stage-wrap { flex: 1; position: relative; min-height: 0; }
   #stage { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #090d16; }
-  /* 1:1 取景参考框：将来 GIF 的裁剪范围预览 */
+  /* 1:1 取景参考框：将来 GIF 的裁剪范围预演（绿框，自动跟随战斗主体） */
   #frame-box {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    border: 2px dashed rgba(34, 211, 238, .85); border-radius: 6px; pointer-events: none;
-    box-shadow: 0 0 0 9999px rgba(3, 7, 18, .45); display: none;
+    border: 2px dashed rgba(34, 197, 94, .95); border-radius: 6px; pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(3, 7, 18, .35); display: none;
   }
   #frame-box.show { display: block; }
   #frame-box .tag {
-    position: absolute; top: -22px; left: 0; font-size: 10.5px; color: #67e8f9;
-    background: rgba(8, 20, 32, .85); border: 1px solid rgba(34, 211, 238, .5);
+    position: absolute; top: -22px; left: 0; font-size: 10.5px; color: #86efac;
+    background: rgba(6, 24, 14, .88); border: 1px solid rgba(34, 197, 94, .55);
     border-radius: 4px; padding: 1px 7px; white-space: nowrap;
   }
-  #frame-box .c { position: absolute; width: 14px; height: 14px; border: 2px solid #22d3ee; }
+  #frame-box .c { position: absolute; width: 14px; height: 14px; border: 2px solid #22c55e; }
   #frame-box .c1 { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
   #frame-box .c2 { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
   #frame-box .c3 { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
@@ -381,6 +381,7 @@ async function waitActor(heroId, timeoutMs = 60000) {
 
 /* ================= 场景运行 ================= */
 let running = false;
+let curSceneId = null;
 function hint(text, cls) {
   $('#hint').className = cls || 'busy';
   $('#hint-text').textContent = text;
@@ -388,7 +389,7 @@ function hint(text, cls) {
 
 async function playScene(scene) {
   if (running) return;
-  running = true;
+  running = true; curSceneId = scene.id;
   document.querySelectorAll('.scene-btn').forEach((b) => { b.disabled = true; b.classList.toggle('active', b.dataset.id === scene.id); });
   try {
     hint('重新挂载引擎，构建「' + scene.id + '·' + scene.model + '」战局…');
@@ -398,6 +399,9 @@ async function playScene(scene) {
     await sleep(400);
     if (!ev('!!heroesData && heroesData.length > 0')) throw new Error('战局构建失败（YAML 解析异常）');
     run('startGame();');
+    await sleep(1500);
+    fitFrameToScene();   // 开拍即自动取景（绿框跟随战斗主体）
+    setTimeout(fitFrameToScene, 4500);   // 入场动画结束后再校一次，消除漂移
     await scene.steps({
       sleep, run, hint: (t) => hint(t, 'busy'),
       waitActor,
@@ -427,16 +431,65 @@ const replay = document.createElement('button');
 replay.className = 'tool'; replay.textContent = '↻ 重播当前职业';
 replay.addEventListener('click', () => { const act = document.querySelector('.scene-btn.active'); if (act) playScene(SCENES.find((s) => s.id === act.dataset.id)); });
 toolbar.appendChild(replay);
+const tour = document.createElement('button');
+tour.className = 'tool'; tour.textContent = '▶ 依次巡演七职业（自动取景）';
+tour.addEventListener('click', async () => {
+  if (running || tour.disabled) return;
+  tour.disabled = true;
+  for (const s of SCENES) await playScene(s);
+  tour.disabled = false;
+});
+toolbar.appendChild(tour);
 
-/* 取景参考框 */
+/* 取景参考框：自动取景（绿框） */
 const frBox = $('#frame-box'), frCheck = $('#fr-check'), frSize = $('#fr-size');
+let framePos = null;   // 最近一次落位 {left, top}；null = 页面居中
 function applyFrame() {
-  const size = frSize.value;
+  const size = +frSize.value;
   frBox.classList.toggle('show', frCheck.checked);
   $('#fr-size-wrap').classList.toggle('show', frCheck.checked);
+  // 缩放时保持框中心不动（框当前 rect 的中心）
+  const r = frBox.getBoundingClientRect();
+  if (r.width > 2) {
+    const left = Math.max(0, Math.round(r.left + r.width / 2 - size / 2));
+    const top = Math.max(0, Math.round(r.top + r.height / 2 - size / 2));
+    framePos = { left, top };
+    frBox.style.transform = 'none';
+    frBox.style.left = left + 'px'; frBox.style.top = top + 'px';
+    $('#fr-dim').textContent = size + '×' + size + ' @ ' + left + ',' + top;
+  } else {
+    $('#fr-dim').textContent = size + '×' + size;
+  }
   frBox.style.width = size + 'px'; frBox.style.height = size + 'px';
   $('#fr-size-val').textContent = size + 'px';
-  $('#fr-dim').textContent = size + '×' + size;
+}
+/* 自动取景：时间轴头像 + 全部英雄卡 + 全部敌方精灵的外包络，加边距扩成正方形，夹在画面内 */
+function fitFrameToScene() {
+  const doc = win().document;
+  const rects = [];
+  const push = (el) => { if (!el) return; const r = el.getBoundingClientRect(); if (r.width > 2 && r.height > 2) rects.push(r); };
+  doc.querySelectorAll('#turn-order-container .turn-queue-item').forEach(push);
+  doc.querySelectorAll('[id^="hero-card-"]').forEach(push);
+  doc.querySelectorAll('[id$="-sprite"]').forEach(push);
+  if (!rects.length) return null;
+  const L = Math.min(...rects.map(r => r.left)), T = Math.min(...rects.map(r => r.top));
+  const R = Math.max(...rects.map(r => r.right)), B = Math.max(...rects.map(r => r.bottom));
+  const PAD = 42;
+  const vw = win().innerWidth, vh = win().innerHeight;
+  const side = Math.min(Math.max(R - L, B - T) + PAD * 2, vw, vh);
+  const cx = (L + R) / 2, cy = (T + B) / 2;
+  const left = Math.round(Math.max(0, Math.min(cx - side / 2, vw - side)));
+  const top = Math.round(Math.max(0, Math.min(cy - side / 2, vh - side)));
+  framePos = { left, top };
+  frBox.style.transform = 'none';
+  frBox.style.left = left + 'px'; frBox.style.top = top + 'px';
+  frBox.style.width = side + 'px'; frBox.style.height = side + 'px';
+  frSize.value = Math.round(side);
+  $('#fr-size-val').textContent = Math.round(side) + 'px';
+  $('#fr-dim').textContent = Math.round(side) + '×' + Math.round(side) + ' @ ' + left + ',' + top;
+  console.log('[取景]', curSceneId, Math.round(side) + '×' + Math.round(side), '@', left + ',' + top,
+    '主体并集', JSON.stringify({ l: Math.round(L), t: Math.round(T), r: Math.round(R), b: Math.round(B) }));
+  return { left, top, side };
 }
 frCheck.addEventListener('change', applyFrame);
 frSize.addEventListener('input', applyFrame);
