@@ -23,6 +23,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC = join(__dirname, 'OpeningSetup.html');
@@ -38,6 +39,12 @@ function fail(msg) {
   throw new Error('[build_regex] ' + msg);
 }
 
+// 前置：Tailwind 静态编译（幂等；改了类名无需单独跑 build-tailwind，本脚本先跑它）
+console.log('[build_regex] 前置：node build-tailwind.cjs');
+try {
+  execSync('node build-tailwind.cjs', { cwd: __dirname, stdio: 'inherit' });
+} catch (e) { fail('build-tailwind.cjs 失败，中止'); }
+
 let html = readFileSync(SRC, 'utf8');
 // 剥离源文件首尾可能残留的 markdown 围栏，避免破坏外层代码块
 html = html.replace(/^```[^\n]*\n/, '').replace(/\n```\s*$/, '');
@@ -52,7 +59,10 @@ if (html.includes('```')) fail('源码含裸三反引号，违反围栏纪律');
 // max(自然高, 100vh) 有平衡点不追逐；当年循环根源（流内 chrome 与 vh 元素并列叠高）
 // 已随 dock 拆除全部转 fixed，此豁免经结构核验后放行。
 {
-  const bad = html.match(/(?<!min-)h-screen|100vh|[0-9.]+vh\]/g) || [];
+  // Tailwind 编译块是构建生成的静态 <style>（.min-h-screen{min-height:100vh} 等工具类文本），
+  // 不属于流内 vh 元素；断言前先摘除，块内容质量由 build-tailwind.cjs 自查。
+  const htmlNoTw = html.replace(/<!-- TAILWIND-CSS-START[\s\S]*?<!-- TAILWIND-CSS-END -->/g, '');
+  const bad = htmlNoTw.match(/(?<!min-)h-screen|100vh|[0-9.]+vh\]/g) || [];
   if (bad.length) fail('源码含流式 vh/screen 高度（会与酒馆 iframe 自适应高度形成无限延伸循环）: ' + bad.join(', '));
 }
 

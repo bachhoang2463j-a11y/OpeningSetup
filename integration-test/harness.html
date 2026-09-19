@@ -122,6 +122,11 @@
     pickClass(ctx, 'c2', o.c2 || '圣职者');
     clickAction(ctx, 'c2-done');
     setName(ctx, o.name || '夜鸦');
+    if (o.storyItems) {
+      const si = ctx.doc.getElementById('story-items-input');
+      si.value = o.storyItems;
+      si.dispatchEvent(new ctx.win.Event('input', { bubbles: true }));
+    }
     if (o.portraitUrl) {
       ctx.doc.getElementById('custom-pname').value = o.portraitKey || '夜鸦';
       const pu = ctx.doc.getElementById('custom-purl');
@@ -217,6 +222,7 @@
         c1: '隐匿者', c2: '圣职者', c3: '灾厄使',
         skills: ['寂静指令', '烟尘迷眼'],        // 2 + 1 = 3 ≤ 4
         items: ['grenade', 'medkit'],            // 20 + 8 = 28 ≤ 40
+        storyItems: '银质怀表、半包烟',
       });
       const st = await submitAndWait(ctx1);
       assert('提交后进入归档完成页', () => st === 'done' ? true : st);
@@ -254,10 +260,16 @@
           && h.items[0].name === '破片手雷' && h.items[1].name === '战地急救包'
           && h.items[1].isOthers === true ? true : h;
       });
-      assert('叙事武器：威廉双持柯尔特M1911 与 冯法杖小刀 进 Status_block 物品徽章', () => {
+      assert('武器行：威廉隐匿者双持柯尔特、冯法杖小刀、主角灾厄使同款法杖小刀', () => {
         const m = ctx1.mock.created[0].message;
-        return m.indexOf('[柯尔特M1911][柯尔特M1911]') >= 0
-          && m.indexOf('[胡桃木法杖][炼金小刀]') >= 0 ? true : 'Status_block 缺叙事武器';
+        return m.indexOf('武器: "[柯尔特M1911][柯尔特M1911]"') >= 0
+          && (m.match(/武器: "\[胡桃木法杖\]\[炼金小刀\]"/g) || []).length === 2 ? true : (m.match(/武器: "[^"]*"/g) || []);
+      });
+      assert('物品行：威廉/冯 置空为「无」，主角自输叙事物品仍走物品行', () => {
+        const m = ctx1.mock.created[0].message;
+        const items = m.match(/物品: "([^"]*)"/g) || [];
+        return items.length === 3 && items[0] === '物品: "无"' && items[1] === '物品: "无"'
+          && items[2].indexOf('[银质怀表][半包烟]') >= 0 ? true : items;
       });
       assert('叙事武器不进战斗档案（威廉 items 仅标配弹药）', () => {
         const h = roster.heroes[0];
@@ -417,6 +429,11 @@
       clickAction(ctx, 'c3item-done');
       const st = await submitAndWait(ctx);
       assert('提交完成', () => st === 'done' ? true : st);
+      assert('武器行随职业：主角风行者→柯尔特M1917，威廉防守者→温切斯特+克虏伯', () => {
+        const m = ctx.mock.created[0].message;
+        return m.indexOf('武器: "[柯尔特M1917]"') >= 0
+          && m.indexOf('武器: "[温切斯特M1897][克虏伯1918型]"') >= 0 ? true : (m.match(/武器: "[^"]*"/g) || []);
+      });
       const h = ctx.mock.store.chat.rpg_combat_roster.heroes[2];
       assert('风行者标配弹匣追加新技能绑定（追风射击*1 + 暗巷快枪*3）', () => {
         const ammo = h.items.find(function (it) { return it.name === '.45子弹'; });

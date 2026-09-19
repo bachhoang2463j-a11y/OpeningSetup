@@ -12,7 +12,8 @@
 | 文件 | 说明 |
 |---|---|
 | `OpeningSetup.html` | 唯一源码：UI 向导 + OPENING_DATA 配置区 + 写入链路 |
-| `build_regex.mjs` | 构建：内嵌 HTML → 正则 JSON（围栏纪律 & 实体免疫断言） |
+| `build_regex.mjs` | 构建：内嵌 HTML → 正则 JSON（围栏纪律 & 实体免疫断言）；前置自动跑 `build-tailwind.cjs` |
+| `build-tailwind.cjs` | Tailwind 静态编译：Play CDN 运行时 JIT → 构建期内联 CSS（配套 `tailwind-in.css` / `tailwind.config.cjs`；改类名后重跑 `build_regex.mjs` 即可） |
 | `regex-开局初始化.json` | 产物：AI 消息中 `【开局引导】` → 整页向导 iframe |
 | `regex-开局引导清理[上下文].json` | 产物：promptOnly 剥离占位符（防 AI 模仿输出 + 省 token） |
 | `integration-test/harness.html` | 回归：mock 酒馆助手接口跑断言（不进真酒馆） |
@@ -68,6 +69,10 @@
 ```
 node build_regex.mjs
 ```
+
+（自动先跑 `build-tailwind.cjs` 把 Tailwind 编译成静态 CSS 内嵌进 `</head>` 前的标记块，
+消除楼层 iframe 对 `cdn.tailwindcss.com` 的外链依赖与运行时 JIT 编译税；改了 Tailwind 类名
+重跑本命令即可，无需单独执行 build-tailwind。）
 
 ## 回归测试（不进真酒馆）
 

@@ -1,0 +1,2536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开局初始化 · 视觉优化演示 (Demo Preview)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Serif+SC:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* 威廉 & 自定义主角专属：密教金辉 (Noir Arcane) */
+    --font-serif: 'Noto Serif SC', serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Cinzel', serif;
+    
+    --bg-base: #0a0d13;
+    --panel-bg: rgba(13, 17, 24, 0.76);
+    --panel-glass: rgba(17, 23, 33, 0.6);
+    --panel-border: rgba(198, 161, 84, 0.28);
+    --panel-border-bright: rgba(224, 185, 102, 0.85);
+    --accent: #d9b45c;
+    --accent-glow: rgba(217, 180, 92, 0.38);
+    --accent-dim: rgba(198, 161, 84, 0.16);
+    --text-main: #f0e6d2;
+    --text-muted: rgba(232, 220, 192, 0.7);
+    --slot-bg: rgba(9, 12, 18, 0.82);
+    --slot-border: rgba(198, 161, 84, 0.25);
+    --slot-glow: 0 0 15px rgba(217, 180, 92, 0.22);
+    --badge-limited: #d9b45c;
+    --badge-generic: #c084fc;
+    --card-hover: rgba(26, 34, 48, 0.75);
+    --btn-bg: linear-gradient(135deg, rgba(198, 161, 84, 0.24), rgba(198, 161, 84, 0.06));
+    --btn-border: rgba(198, 161, 84, 0.5);
+  }
+
+  /* 备用：战术全息 (Tactical Holo) */
+  body.theme-tactical {
+    --font-serif: 'Rajdhani', 'Noto Serif SC', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Rajdhani', sans-serif;
+
+    --bg-base: #060b12;
+    --panel-bg: rgba(8, 16, 26, 0.82);
+    --panel-glass: rgba(12, 24, 38, 0.65);
+    --panel-border: rgba(64, 180, 229, 0.32);
+    --panel-border-bright: rgba(80, 215, 255, 0.92);
+    --accent: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.45);
+    --accent-dim: rgba(56, 189, 248, 0.16);
+    --text-main: #e0f2fe;
+    --text-muted: rgba(186, 230, 253, 0.7);
+    --slot-bg: rgba(6, 14, 24, 0.88);
+    --slot-border: rgba(56, 189, 248, 0.28);
+    --slot-glow: 0 0 18px rgba(56, 189, 248, 0.3);
+    --badge-limited: #d9b45c;
+    --badge-generic: #c084fc;
+    --card-hover: rgba(14, 34, 52, 0.78);
+    --btn-bg: linear-gradient(135deg, rgba(56, 189, 248, 0.26), rgba(56, 189, 248, 0.06));
+    --btn-border: rgba(56, 189, 248, 0.6);
+  }
+
+  /* 冯专属：琉璃暗耀 (Gilded Crystal) */
+  body.theme-gilded {
+    --font-serif: 'Noto Serif SC', serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Cinzel', serif;
+
+    --bg-base: #110c1c;
+    --panel-bg: rgba(22, 15, 36, 0.8);
+    --panel-glass: rgba(30, 20, 50, 0.62);
+    --panel-border: rgba(236, 195, 110, 0.36);
+    --panel-border-bright: rgba(255, 222, 145, 0.95);
+    --accent: #f59e0b;
+    --accent-glow: rgba(245, 158, 11, 0.45);
+    --accent-dim: rgba(192, 132, 252, 0.18);
+    --text-main: #fdf4ff;
+    --text-muted: rgba(243, 232, 255, 0.7);
+    --slot-bg: rgba(18, 11, 30, 0.88);
+    --slot-border: rgba(216, 180, 254, 0.32);
+    --slot-glow: 0 0 20px rgba(192, 132, 252, 0.32);
+    --badge-limited: #d9b45c;
+    --badge-generic: #c084fc;
+    --card-hover: rgba(45, 28, 72, 0.78);
+    --btn-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(192, 132, 252, 0.16));
+    --btn-border: rgba(245, 158, 11, 0.6);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: var(--font-serif);
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  /* 背景环境光 */
+  #ambient-glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 20% 30%, rgba(217, 180, 92, 0.09) 0%, transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(56, 189, 248, 0.06) 0%, transparent 60%);
+    transition: all 0.5s ease;
+  }
+  body.theme-tactical #ambient-glow {
+    background: radial-gradient(circle at 25% 35%, rgba(56, 189, 248, 0.14) 0%, transparent 60%),
+                radial-gradient(circle at 75% 75%, rgba(30, 58, 138, 0.22) 0%, transparent 60%);
+  }
+  body.theme-gilded #ambient-glow {
+    background: radial-gradient(circle at 30% 25%, rgba(245, 158, 11, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(147, 51, 234, 0.16) 0%, transparent 60%);
+  }
+
+  /* 顶部方案对比悬浮切换器 (Fixed Style Switcher) */
+  .skill-style-switch-dock {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    pointer-events: auto;
+  }
+  .style-dock-inner {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    border-radius: 9999px;
+    background: rgba(10, 14, 22, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.8), 0 0 18px rgba(217, 180, 92, 0.2);
+  }
+  .style-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .style-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .style-btn.active {
+    background: linear-gradient(135deg, rgba(217, 180, 92, 0.28), rgba(217, 180, 92, 0.1));
+    border-color: rgba(217, 180, 92, 0.7);
+    color: #fce7b2;
+    box-shadow: 0 0 14px rgba(217, 180, 92, 0.35);
+    font-weight: bold;
+  }
+
+  /* 方案 A/B 现代晶体流光徽章 */
+  .tier-badge-modern-adv {
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(120, 53, 15, 0.35));
+    color: #fef08a;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  }
+  .tier-badge-modern-leg {
+    border: 1px solid rgba(248, 113, 113, 0.65);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.28), rgba(136, 19, 55, 0.45));
+    color: #fee2e2;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.38);
+  }
+
+  /* 右侧竖列极简悬浮 Dock（阶段跳转与全局BGM控制） */
+  .switch-dock {
+    position: fixed;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 6px;
+    border-radius: 24px;
+    background: rgba(10, 14, 22, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.75);
+  }
+  .dock-btn {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    color: rgba(255, 255, 255, 0.68);
+    background: transparent;
+    border: none;
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .dock-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .dock-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    font-weight: 700;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .dock-sep {
+    width: 22px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.18);
+    margin: 2px 0;
+  }
+
+  /* 玻璃拟态主面板 */
+  .ui-panel {
+    background: var(--panel-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+  .ui-panel-soft {
+    background: var(--panel-glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+  }
+
+  /* 现代游戏按钮 */
+  .ui-btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 20px;
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    border-radius: 8px;
+    color: var(--accent);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  }
+  .ui-btn-primary:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+  .ui-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .ui-btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+  }
+
+  /* ① 大尺寸角色立绘展台（1:1沉浸立绘，顶部完整不截断，底部向上渐变融入，环绕静谧氛围微粒） */
+  .portrait-podium {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: radial-gradient(circle at 50% 50%, var(--accent-dim) 0%, transparent 70%), var(--panel-bg);
+    border: 1px solid var(--panel-border);
+  }
+  .portrait-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
+    margin: 4px 0;
+  }
+  /* 像正式版一样：立绘底部加入向上渐变蒙层，消除任何底切硬边，丝滑融入底板 */
+  .portrait-wrapper:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: linear-gradient(to top, var(--panel-bg) 15%, rgba(13, 17, 24, 0.5) 60%, transparent 100%);
+    pointer-events: none;
+    z-index: 4;
+  }
+  .portrait-img {
+    height: 100%;
+    max-height: 480px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.88));
+    /* 正式版底部向上渐变：从 78% 处柔和向底部羽化融入 */
+    -webkit-mask-image: linear-gradient(to bottom, black 78%, transparent 99%);
+    mask-image: linear-gradient(to bottom, black 78%, transparent 99%);
+    transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: none;
+  }
+  .portrait-img.hero-swap-in {
+    animation: hero-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes hero-swap {
+    0% { opacity: 0; transform: scale(0.97) translateY(10px); filter: brightness(1.25) blur(3px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1) blur(0); }
+  }
+
+  /* 契合的微弱缓慢氛围粒子（静谧微粒缓慢漂浮升腾，不喧宾夺主） */
+  .portrait-ambient-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 2;
+  }
+  .p-dot {
+    position: absolute;
+    left: var(--p-x);
+    top: var(--p-y);
+    width: var(--p-sz, 2.5px);
+    height: var(--p-sz, 2.5px);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+    opacity: 0;
+    animation: p-drift var(--p-dur, 12s) ease-in-out infinite var(--p-del, 0s);
+  }
+  @keyframes p-drift {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.7);
+    }
+    20% {
+      opacity: var(--p-op, 0.5);
+    }
+    75% {
+      opacity: var(--p-op, 0.5);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--p-tx, 10px), var(--p-ty, -70px)) scale(1.2);
+    }
+  }
+
+  /* 语音跳动声波 */
+  .voice-wave {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+  }
+  .voice-bar {
+    width: 2.5px;
+    height: 100%;
+    background-color: var(--accent);
+    border-radius: 2px;
+    animation: wave-bar 0.8s ease-in-out infinite alternate;
+  }
+  .voice-bar:nth-child(1) { animation-delay: 0.1s; height: 35%; }
+  .voice-bar:nth-child(2) { animation-delay: 0.3s; height: 75%; }
+  .voice-bar:nth-child(3) { animation-delay: 0.15s; height: 100%; }
+  .voice-bar:nth-child(4) { animation-delay: 0.4s; height: 60%; }
+  .voice-bar:nth-child(5) { animation-delay: 0.25s; height: 40%; }
+  @keyframes wave-bar {
+    0% { transform: scaleY(0.25); }
+    100% { transform: scaleY(1); }
+  }
+  .voice-wave.paused .voice-bar {
+    animation-play-state: paused;
+    transform: scaleY(0.3);
+  }
+
+  /* ② 现代过渡动效：技能插槽阶梯式滑入（尺寸收缩紧凑） */
+  .skill-slot-chip {
+    background: var(--slot-bg);
+    border: 1px solid var(--slot-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    animation: slot-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--slot-idx, 0) * 0.04s);
+  }
+  @keyframes slot-slide-in {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .skill-slot-chip:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--slot-border);
+    transition: background 0.25s ease;
+  }
+  /* 威廉专属技能芯片：纯金流光镶边 + 密教金辉全光晕 (Gilded Arcane) */
+  .skill-slot-chip.theme-gold:before,
+  .skill-slot-chip.type-limited:before {
+    background: linear-gradient(to bottom, #fbbf24 0%, #d9b45c 50%, #92400e 100%);
+    box-shadow: 0 0 12px rgba(217, 180, 92, 0.75), 0 0 6px rgba(251, 191, 36, 0.5);
+  }
+  .skill-slot-chip.theme-gold {
+    border-color: rgba(217, 180, 92, 0.32);
+    background: linear-gradient(90deg, rgba(217, 180, 92, 0.06) 0%, rgba(26, 20, 14, 0.55) 22%, rgba(15, 12, 10, 0.78) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55), 0 0 10px rgba(217, 180, 92, 0.12);
+  }
+  .skill-slot-chip.theme-gold:hover {
+    border-color: rgba(217, 180, 92, 0.75);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 16px rgba(217, 180, 92, 0.35);
+  }
+
+  /* 冯专属技能芯片：金色点缀流光镶边 + 炼金深紫底色 (Alchemy Gilded) */
+  .skill-slot-chip.theme-purple:before {
+    background: linear-gradient(to bottom, #f59e0b 0%, #d9b45c 40%, #c084fc 100%);
+    box-shadow: 0 0 10px rgba(217, 180, 92, 0.65), 0 0 6px rgba(192, 132, 252, 0.4);
+  }
+  .skill-slot-chip.theme-purple {
+    border-color: rgba(217, 180, 92, 0.28);
+    background: linear-gradient(90deg, rgba(217, 180, 92, 0.05) 0%, rgba(28, 18, 45, 0.55) 22%, rgba(16, 12, 28, 0.75) 100%);
+  }
+  .skill-slot-chip.theme-purple:hover {
+    border-color: rgba(217, 180, 92, 0.65);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(217, 180, 92, 0.25);
+  }
+  .skill-slot-chip.type-generic:before {
+    background: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+  }
+
+  /* 高阶技能 (Tier 2 / Advanced)：继承原传奇金色跑马流光与璀璨耀芒横扫动效 */
+  .skill-slot-chip.tier-advanced {
+    border-color: rgba(251, 191, 36, 0.7);
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.16) 0%, rgba(38, 26, 12, 0.72) 32%, rgba(18, 14, 8, 0.88) 100%);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.75), 0 0 20px rgba(245, 158, 11, 0.35);
+    position: relative;
+    overflow: hidden;
+    animation: tier-adv-glow 2.8s ease-in-out infinite alternate;
+  }
+  @keyframes tier-adv-glow {
+    0% {
+      border-color: rgba(245, 158, 11, 0.55);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(245, 158, 11, 0.25);
+    }
+    100% {
+      border-color: rgba(251, 191, 36, 0.95);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(251, 191, 36, 0.55);
+    }
+  }
+  .skill-slot-chip.tier-advanced:before {
+    background: linear-gradient(to bottom, #fffbeb 0%, #fbbf24 45%, #d97706 100%);
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.95), 0 0 8px #fff;
+    width: 3.5px;
+  }
+  /* 高阶专属流光横扫（每 4.4 秒一道金色光芒掠过卡片） */
+  .skill-slot-chip.tier-advanced:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.18) 50%, rgba(251, 191, 36, 0.3) 65%, transparent 100%);
+    transform: skewX(-24deg);
+    animation: advanced-shimmer 4.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes advanced-shimmer {
+    0% { left: -120%; }
+    30% { left: 180%; }
+    100% { left: 180%; }
+  }
+  .skill-slot-chip.tier-advanced .tier-badge {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(180, 83, 9, 0.55) 100%);
+    border: 1px solid rgba(251, 191, 36, 0.85);
+    color: #fef08a;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+    font-weight: 700;
+  }
+
+  /* 传奇技能 (Tier 3 / Legendary)：赤红传说炽烈光焰与猩红烈焰横扫动效 */
+  .skill-slot-chip.tier-legendary {
+    border-color: rgba(239, 68, 68, 0.8);
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(48, 12, 16, 0.78) 32%, rgba(24, 8, 10, 0.92) 100%);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.8), 0 0 24px rgba(239, 68, 68, 0.45);
+    position: relative;
+    overflow: hidden;
+    animation: tier-legend-red-glow 2.6s ease-in-out infinite alternate;
+  }
+  @keyframes tier-legend-red-glow {
+    0% {
+      border-color: rgba(239, 68, 68, 0.6);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 16px rgba(239, 68, 68, 0.3);
+    }
+    100% {
+      border-color: rgba(248, 113, 113, 0.98);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 28px rgba(239, 68, 68, 0.75);
+    }
+  }
+  .skill-slot-chip.tier-legendary:before {
+    background: linear-gradient(to bottom, #fee2e2 0%, #ef4444 45%, #991b1b 100%);
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.95), 0 0 8px #fff;
+    width: 3.5px;
+  }
+  /* 传奇专属猩红流光横扫（每 4.0 秒一道绯红烈焰光芒掠过卡片） */
+  .skill-slot-chip.tier-legendary:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, rgba(239, 68, 68, 0.45) 65%, transparent 100%);
+    transform: skewX(-24deg);
+    animation: legendary-red-shimmer 4.0s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes legendary-red-shimmer {
+    0% { left: -120%; }
+    30% { left: 180%; }
+    100% { left: 180%; }
+  }
+  .skill-slot-chip.tier-legendary .tier-badge {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.4) 0%, rgba(153, 27, 27, 0.7) 100%);
+    border: 1px solid rgba(248, 113, 113, 0.9);
+    color: #fee2e2;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.85);
+    font-weight: 700;
+  }
+
+  /* ③ 职业介绍卡片与悬浮 GIF 块 */
+  .class-tab-card {
+    background: var(--panel-glass);
+    border: 1px solid var(--slot-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .class-tab-card:hover {
+    border-color: var(--panel-border-bright);
+    background: var(--card-hover);
+    transform: translateY(-2px);
+  }
+  .class-tab-card.active {
+    border-color: var(--accent);
+    background: linear-gradient(150deg, var(--card-hover), var(--accent-dim));
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .class-tab-card.active:before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 8px;
+    right: 8px;
+    height: 2.5px;
+    border-radius: 9999px;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 */
+  .class-hover-gif-box {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(8px) scale(0.95);
+    width: 140px;
+    height: 140px;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 999;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0.85) 65%, rgba(0,0,0,0) 96%);
+    mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0.85) 65%, rgba(0,0,0,0) 96%);
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.95));
+    background: transparent;
+  }
+  .class-tab-card:hover .class-hover-gif-box {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  .class-hover-gif-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
+
+  /* 技能备选卡片（购点） */
+  .skill-pick-card {
+    background: var(--slot-bg);
+    border: 1px solid var(--slot-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+  .skill-pick-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--slot-glow);
+  }
+  .skill-pick-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .skill-pick-card.selected:after {
+    content: 'EQUIPPED';
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--accent);
+    pointer-events: none;
+  }
+
+  /* 悬浮台词气泡（紧凑排版，仅在语音播放时浮现，不抢占立绘画幅与面部视野） */
+  .floating-speech-bubble {
+    position: absolute;
+    top: 48px;
+    left: 14px;
+    right: 14px;
+    z-index: 40;
+    background: rgba(10, 14, 22, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border-bright);
+    border-radius: 10px;
+    padding: 7px 12px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85), 0 0 14px var(--accent-glow);
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .floating-speech-bubble.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .floating-speech-bubble:after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 32px;
+    width: 10px;
+    height: 10px;
+    background: rgba(10, 14, 22, 0.92);
+    border-right: 1px solid var(--panel-border-bright);
+    border-bottom: 1px solid var(--panel-border-bright);
+    transform: rotate(45deg);
+  }
+  #hero-dialogue-quote {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.45;
+  }
+
+  /* 能量点数条 */
+  .energy-meter {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .energy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #fff);
+    border-radius: 9999px;
+    box-shadow: 0 0 10px var(--accent);
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* 跨阶段电影级柔和转场动效 (250ms 淡出 + 300ms 淡入) */
+  .stage-fade-out {
+    opacity: 0 !important;
+    transform: translateY(-8px) scale(0.995) !important;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    pointer-events: none;
+  }
+  .stage-fade-in {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  /* 插槽增量插入轻柔弹入动效 */
+  .slot-chip-pop {
+    animation: slot-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes slot-pop {
+    0% { opacity: 0; transform: scale(0.94) translateY(6px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* 局部文字与属性平滑过渡 */
+  .smooth-fade-transition {
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+
+  /* 全局进场微动效 */
+  .view-transition-in {
+    animation: view-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes view-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body class="theme-arcane">
+
+<div id="ambient-glow"></div>
+
+<!-- 顶部技能标签多方案对比无感切换条 (Fixed Style Switch Dock) -->
+<div class="skill-style-switch-dock">
+  <div class="style-dock-inner">
+    <button class="style-btn" data-style-set="v0" onclick="window.demoActions.setSkillStyle('v0')">
+      <span>现行原版</span>
+    </button>
+    <button class="style-btn active" data-style-set="va" onclick="window.demoActions.setSkillStyle('va')">
+      <span class="text-amber-400">✦</span>
+      <span>方案 A · 暗夜微光 (推荐)</span>
+    </button>
+    <button class="style-btn" data-style-set="vb" onclick="window.demoActions.setSkillStyle('vb')">
+      <span class="text-sky-400">●</span>
+      <span>方案 B · 全息微晶</span>
+    </button>
+    <button class="style-btn" data-style-set="vc" onclick="window.demoActions.setSkillStyle('vc')">
+      <span class="text-amber-300/80">📜</span>
+      <span>方案 C · 秘契铭文</span>
+    </button>
+  </div>
+</div>
+
+<!-- 右侧竖列极简悬浮胶囊（阶段跳转与全局BGM控制） -->
+<div class="switch-dock">
+  <button class="dock-btn active" data-stage-jump="c1">威廉</button>
+  <button class="dock-btn" data-stage-jump="c2">冯</button>
+  <button class="dock-btn" data-stage-jump="c3class">主角</button>
+  <button class="dock-btn" data-stage-jump="c3skill">技能</button>
+  <div class="dock-sep"></div>
+  <!-- 全局 BGM 开关按钮 -->
+  <button id="bgm-toggle-btn" class="dock-btn" onclick="window.demoActions.toggleBgm()" title="切换背景音乐">
+    <span id="bgm-icon">🎵</span>
+    <span id="bgm-label" class="text-[0.58rem] mt-0.5">BGM</span>
+  </button>
+</div>
+
+<!-- 主界面容器（长宽扩大贴合屏幕绿框，消除外部冗余空白） -->
+<div id="demo-app" class="relative z-10 w-full max-w-[1560px] mx-auto pl-3 sm:pl-6 pr-14 sm:pr-18 py-2 min-h-screen flex flex-col justify-center">
+  <!-- 动态挂载区 -->
+</div>
+
+<!-- 底层战斗数据源（单一样式来源，完全沿用原项目） -->
+<script type="text/plain" id="combat-data"><Combat_block>
+战斗数据栏:
+  我方列表(场地:有备而来):
+    - 角色:
+        名字: "隐匿者"
+        属性: "[HP:140/140][MP:16/16][Atk:40][Armor:40][Speed:80][职业:隐匿者]"
+        技能:
+          - "【烟尘迷眼】[通用][价:1][单盲;power:40][Aim:100]"
+          - "【寂静指令】[通用][价:2][群增;power:10][群瞄;power:20][MP:2]"
+          - "【暗巷快枪】[通用][价:2][单体(枪击);power:65][单体(枪击);power:65][单体(枪击);power:65][远程][Aim:110]"
+          - "【无迹可寻】[限定][价:1][嘲讽;power:-30][单避;power:10][MP:2][限1次]"
+          - "【唯快不破】[限定][价:2][回避;power:240][MP:1][反应:近战]"
+          - "【死亡编织】[限定][群攻;power:110][TP:5][MP:2][Aim:120][远程][特效:连续扫射][高阶]"
+        物品:
+          - "【.45子弹】[弹药][数量:40][绑定:暗巷快枪*3;死亡编织*14]"
+    - 角色:
+        名字: "狂战士"
+        属性: "[HP:200/200][MP:8/8][Atk:60][Armor:60][Speed:50][职业:狂战士]"
+        技能:
+          - "【战意激增】[通用][价:2][MP:2][单增;power:50][自盲;power:10]"
+          - "【碎骨连打】[通用][价:1][单体;power:60][单体;power:60][Aim:100][转火][近战]"
+          - "【鲁莽挥击】[通用][价:2][单体;power:180][HP:20][Aim:120][近战]"
+          - "【沸血之躯】[限定][价:3][免伤;power:120][HP:20][反应][MP:2]"
+          - "【双管猎象枪】[限定][价:3][单体(枪击);power:240][单降;power:20][自盲;power:30;turns:2][暴击:5%][Aim:85][TP:10][远程][特效:远程重击][高阶]"
+          - "【重击推撞】[限定][价:3][眩晕;power:140][嘲讽;power:50][Aim:160][MP:3][TP:30][近战][特效:近战重击][高阶]"
+        物品:
+          - "【.577子弹】[弹药][数量:5][绑定:双管猎象枪*1]"
+    - 角色:
+        名字: "防守者"
+        属性: "[HP:180/180][MP:12/12][Atk:60][Armor:60][Speed:65][职业:防守者]"
+        技能:
+          - "【温切斯特M1897】[通用][价:1][单体(霰弹);power:115][单降;power:10][Turns:2][Aim:110][远程]"
+          - "【屏息瞄准】[通用][价:1][MP:2][单瞄;power:60][Turns:2]"
+          - "【掩体包扎】[通用][价:1][单回;power:20][单防;power:10][Turns:2][MP:1]"
+          - "【乌里的猎人】[限定][价:2][回避;power:200][MP:1][反应:近战]"
+          - "【紧急援护】[限定][价:2][舍身:近战]"
+          - "【克虏伯1918型】[限定][价:3][穿透;power:240][自盲;power:120;turns:2][Aim:200][远程][暴击:5%][延迟:3][加速:3][特效:克虏伯重狙][传奇]"
+        物品:
+          - "【12号鹿弹】[弹药][数量:12][绑定:温切斯特M1897*1]"
+          - "【反坦克子弹】[弹药][数量:2][绑定:克虏伯1918型*1]"
+    - 角色:
+        名字: "风行者"
+        属性: "[HP:120/120][MP:20/20][Atk:40][Armor:40][Speed:90][职业:风行者]"
+        技能:
+          - "【跟腱切割】[通用][价:1][单体;power:40][单缓;power:15][Aim:80][近战]"
+          - "【潜能激发】[通用][价:1][单冲:20][MP:5][他人][限2次]"
+          - "【追风射击】[通用][价:2][穿透;power:40][单弱;power:10][暴击:20%][Turns:2][Aim:200][MP:3][远程][特效:枪击穿透]"          
+          - "【疾风连击】[限定][价:2][单体;power:55][单体;power:55][再动;power:1][MP:2][TP:5][转火][近战]"
+          - "【折影步】[限定][价:2][回避;power:180][MP:3][反应]"
+          - "【生体流转】[限定][再动;power:2][HP:20][TP:10][限2次][特效:生体流转][高阶]"
+        物品:
+          - "【.45子弹】[弹药][数量:40][绑定:追风射击*1]"
+    - 角色:
+        名字: "施法者"
+        属性: "[HP:90/90][MP:100/100][Atk:20][Armor:40][Speed:50][职业:施法者]"
+        技能:
+          - "【精准流火】[通用][价:1][穿透(火焰);power:20][燃烧;power:10][Aim:160][MP:3][法术]"
+          - "【压缩爆燃】[通用][价:2][群攻;power:50][群燃烧;power:10][Aim:100][MP:7][法术][特效:火焰01]"
+          - "【灵风术】[通用][价:2][单避;power:40][单速;power:20][Turns:5][MP:10][法术][他人][限1次]"
+          - "【巫师护盾】[限定][价:2][单盾;power:80][MP:5][反应][暴击:5%][法术]"
+          - "【圣域帷幕】[限定][肃正:法术;power:300;Armor:40][MP:20][法术][限1次][延迟:1][传奇][特效:圣域帷幕]"
+          - "【召雷术】[限定][价:3][群攻;power:200][群麻痹;power:10][群麻痹;power:10][Aim:300][MP:10][TP:10][法术][特效:雷击01][延迟:2][高阶]"
+    - 角色:
+        名字: "圣职者"
+        属性: "[HP:100/100][MP:60/60][Atk:20][Armor:40][Speed:50][职业:圣职者]"
+        技能:
+          - "【迅捷愈合法】[通用][价:2][单回;power:30][再动;power:1][MP:3][法术][他人][限3次]"
+          - "【破罪圣言】[通用][价:1][单体(光);power:60][MP:3][Aim:150][法术]"
+          - "【飞沙化甲】[通用][价:2][单防;power:40][单瞄:20][MP:10][Turns:5][法术][他人][限1次]"
+          - "【净蚀反冲】[限定][价:3][MP:10][TP:10][看破:法术][法术][限3次][高阶]"
+          - "【净化颂歌】[限定][价:3][群回;power:100][群驱散:1][MP:10][法术]"
+          - "【归尘礼赞】[限定][穿透;power:100][单降;power:20][Aim:999][MP:10][HP:10][TP:10][法术][特效:圣光01][限3次][必中][延迟:1][传奇]"
+    - 角色:
+        名字: "灾厄使"
+        属性: "[HP:120/100][MP:40/40][Atk:20][Armor:40][Speed:70][职业:灾厄使]"
+        技能:
+          - "【蚀骨毒刃】[通用][价:1][单体;power:20][中毒;power:10][Aim:160][MP:3][近战]"
+          - "【拉莱耶造雾术】[通用][价:1][群盲;power:15;turns:4][自盲;power:15;turns:2][MP:2][法术][限1次][必中][特效:造雾术]"
+          - "【静默之域】[通用][价:1][群滞;power:15][Aim:160][MP:2][法术]"
+          - "【灾厄降临】[限定][价:3][MP:10][TP:10][看破:远程][限3次]"
+          - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][法术][特效:高阶召唤术]"
+          - "【异种坏死雾】[限定][价:3][群中毒;power:30][群弱;power:20][群滞;power:20][远程][Aim:300][TP:20][MP:5][高阶][特效:异种坏死雾]"
+</Combat_block></script>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ④ 资源与音频配置（严格对齐根目录 本地资源链接.txt 与 台词文本.txt） */
+  const DEMO_CONFIG = {
+    bgmUrl: "http://127.0.0.1:8766/The%20Ecstasy%20Of%20Gold%20-%20Ennio%20Morricone.mp3",
+    party: {
+      hero1: {
+        id: 'hero1',
+        name: '威廉·退尔',
+        title: '雾港神射手',
+        emoji: '🎯',
+        portraitUrl: 'http://127.0.0.1:8766/OS/威廉·退尔.png',
+        classes: ['隐匿者', '狂战士', '防守者'],
+        classVoiceMap: {
+          '隐匿者': {
+            quote: '「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
+            audioUrl: 'http://127.0.0.1:8766/OS/威廉退尔（隐匿者）.mp3'
+          },
+          '狂战士': {
+            quote: '「那我就——稍微来点大手笔的吧！」',
+            audioUrl: 'http://127.0.0.1:8766/OS/威廉退尔（狂战士）.mp3'
+          },
+          '防守者': {
+            quote: '「看来，现在已经没空计较一些小事了。尽管负伤的野兽非常可怕……但必须让那野兽知道，负伤的猎人更可怕才行哦？」',
+            audioUrl: 'http://127.0.0.1:8766/OS/威廉退尔（防守者）.mp3'
+          }
+        }
+      },
+      hero2: {
+        id: 'hero2',
+        name: '冯·霍恩海姆',
+        title: '炼金术士',
+        emoji: '⚗️',
+        portraitUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆.png',
+        classes: ['施法者', '圣职者', '灾厄使'],
+        classVoiceMap: {
+          '施法者': {
+            quote: '「好好领教五大元素使之魔术是何等的存在吧——」',
+            audioUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆（施法者）.mp3'
+          },
+          '圣职者': {
+            quote: '「所有遍布于大地的心爱之子，都是高贵星辰的闪耀。」',
+            audioUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆（圣职者）.mp3'
+          },
+          '灾厄使': {
+            quote: '「这么说来，人工生命体的素材还不够呢……」',
+            audioUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆（灾厄使）.mp3'
+          }
+        }
+      }
+    },
+    // ③ 职业介绍文字详尽完整，去除截断
+    classIntro: {
+      '隐匿者': {
+        intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。',
+        passive: '低仇恨 · 隐匿加成 · 暗袭眩晕',
+        role: '敏捷 / 刺客',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_隐匿者.gif'
+      },
+      '狂战士': {
+        intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留存最后一口气。',
+        passive: '损血增攻 · 濒死穿透 · 毅力留存',
+        role: '强攻 / 绝地',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_狂战士.gif'
+      },
+      '防守者': {
+        intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。',
+        passive: '高仇恨嘲讽 · 致命留存 · 受击反打',
+        role: '防御 / 坚壁',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/威廉_防守者.gif'
+      },
+      '风行者': {
+        intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。',
+        passive: '闪避成长 · 多重施法 · 回避致命',
+        role: '极速 / 连击',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/主角_风行者.gif'
+      },
+      '施法者': {
+        intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。',
+        passive: '开场护盾 · 法力回响',
+        role: '爆发 / 护盾',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_施法者.gif'
+      },
+      '圣职者': {
+        intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。',
+        passive: '强治疗 · 团队祝福 · 支援爆发',
+        role: '支援 / 圣佑',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_圣职者.gif'
+      },
+      '灾厄使': {
+        intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。',
+        passive: '减益增伤 · 附带剧毒',
+        role: '减益 / 持续伤害',
+        gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_灾厄使.gif'
+      },
+    },
+    shop: {
+      skillPoints: 4,
+    }
+  };
+
+  /* 状态管理 */
+  const state = {
+    stage: 'c1', // c1, c2, c3class, c3skill
+    hero1Class: '隐匿者',
+    hero2Class: '施法者',
+    hero3: {
+      name: '亚瑟·格雷',
+      classType: '风行者',
+      skills: ['跟腱切割', '追风射击'], // 已购通用技能（1+2=3点，不超过4点预算）
+    },
+    audioPlaying: false,
+    audioMuted: false,
+    bgmPlaying: true,
+    currentAudioHero: null,
+    skillStyle: 'va', // 'v0':现行版, 'va':方案A暗夜微光(推荐), 'vb':方案B全息微晶, 'vc':方案C秘契铭文
+  };
+
+  /* 解析 combat-data YAML 与物品弹药绑定 */
+  let COMBAT_DATA = { classes: {}, genericPool: [] };
+  const GLOBAL_AMMO_BINDINGS = {
+    '暗巷快枪': { ammoName: '.45子弹', count: 3 },
+    '死亡编织': { ammoName: '.45子弹', count: 14 },
+    '双管猎象枪': { ammoName: '.577子弹', count: 1 },
+    '温切斯特M1897': { ammoName: '12号鹿弹', count: 1 },
+    '克虏伯1918型': { ammoName: '反坦克子弹', count: 1 },
+    '追风射击': { ammoName: '.45子弹', count: 1 }
+  };
+
+  function parseCombatBlock() {
+    const raw = document.getElementById('combat-data').textContent;
+    const blocks = raw.split(/- 角色:/);
+    blocks.shift();
+
+    // 动态扫描所有角色物品栏中的弹药绑定，打通枪械消耗
+    blocks.forEach(b => {
+      const itemSectionMatch = b.match(/物品:\s*([\s\S]*?)(?=(?:- 角色:|$))/);
+      const itemLines = itemSectionMatch ? (itemSectionMatch[1].match(/- "【[^"]+"/g) || []) : [];
+      itemLines.forEach(il => {
+        const itext = il.replace(/^- "/, '').replace(/"$/, '');
+        const inameM = itext.match(/【([^】]+)】/);
+        const ammoName = inameM ? inameM[1] : '';
+        const bindM = itext.match(/\[绑定:([^\]]+)\]/);
+        if (bindM) {
+          bindM[1].split(/[;；]/).forEach(pair => {
+            const pm = pair.trim().match(/^([^*×x]+)[*×x](\d+)/);
+            if (pm) {
+              const skillName = pm[1].trim();
+              const count = parseInt(pm[2], 10);
+              GLOBAL_AMMO_BINDINGS[skillName] = { ammoName, count };
+            }
+          });
+        }
+      });
+    });
+
+    blocks.forEach(b => {
+      const nameMatch = b.match(/名字:\s*"([^"]+)"/);
+      const attrMatch = b.match(/属性:\s*"([^"]+)"/);
+      if (!nameMatch || !attrMatch) return;
+      const clsName = nameMatch[1];
+      const attrStr = attrMatch[1];
+
+      const hpMatch = attrStr.match(/HP:(\d+)\/(\d+)/);
+      const mpMatch = attrStr.match(/MP:(\d+)\/(\d+)/);
+      const atkMatch = attrStr.match(/Atk:(\d+)/);
+      const armMatch = attrStr.match(/Armor:(\d+)/);
+      const spdMatch = attrStr.match(/Speed:(\d+)/);
+
+      const skillSectionMatch = b.match(/技能:\s*([\s\S]*?)(?=物品:|$)/);
+      const skillLines = skillSectionMatch ? (skillSectionMatch[1].match(/- "【[^"]+"/g) || []) : [];
+      const skills = skillLines.map(sl => {
+        const text = sl.replace(/^- "/, '').replace(/"$/, '');
+        const nameM = text.match(/【([^】]+)】/);
+        const name = nameM ? nameM[1] : '';
+        const scope = text.includes('[限定]') ? '限定' : '通用';
+        const costM = text.match(/\[价:(\d+)\]/);
+        const shopCost = costM ? parseInt(costM[1], 10) : 1;
+        const mpM = text.match(/\[MP:(\d+)\]/i);
+        const hpM = text.match(/\[HP:(\d+)\]/i);
+        const tpM = text.match(/\[TP:(\d+)\]/i);
+        const powerM = text.match(/power:(-?\d+)/i);
+        const isReaction = text.includes('[反应') || text.includes('[舍身') || text.includes('[看破');
+        const isMelee = text.includes('[近战]');
+        const isRanged = text.includes('[远程]');
+        const isSpell = text.includes('[法术]');
+        let typeTag = '战术';
+        if (isSpell) typeTag = '法术';
+        else if (isMelee) typeTag = '近战';
+        else if (isRanged) typeTag = '远程';
+        else if (isReaction) typeTag = '反应';
+
+        const ammoCost = GLOBAL_AMMO_BINDINGS[name] || null;
+
+        return {
+          name,
+          rawText: text,
+          scope,
+          shopCost,
+          mpCost: mpM ? mpM[1] : null,
+          hpCost: hpM ? hpM[1] : null,
+          tpCost: tpM ? tpM[1] : null,
+          power: powerM ? powerM[1] : null,
+          ammoCost,
+          typeTag,
+          isReaction,
+          srcClass: clsName
+        };
+      });
+
+      COMBAT_DATA.classes[clsName] = {
+        name: clsName,
+        hp: hpMatch ? hpMatch[2] : '100',
+        mp: mpMatch ? mpMatch[2] : '40',
+        atk: atkMatch ? atkMatch[1] : '10',
+        armor: armMatch ? armMatch[1] : '3',
+        speed: spdMatch ? spdMatch[1] : '100',
+        skills: skills
+      };
+
+      skills.filter(s => s.scope === '通用').forEach(s => {
+        COMBAT_DATA.genericPool.push(s);
+      });
+    });
+  }
+
+  /* 音频控制器：BGM 与 角色语音 */
+  const voiceAudio = new Audio();
+  voiceAudio.preload = 'auto';
+
+  const bgmAudio = new Audio();
+  bgmAudio.src = DEMO_CONFIG.bgmUrl;
+  bgmAudio.loop = true;
+  bgmAudio.volume = 0.35;
+
+  function initBgm() {
+    bgmAudio.play().then(() => {
+      state.bgmPlaying = true;
+      updateBgmUi();
+    }).catch(() => {
+      state.bgmPlaying = false;
+      updateBgmUi();
+    });
+  }
+
+  function toggleBgm() {
+    if (bgmAudio.paused) {
+      bgmAudio.play().then(() => {
+        state.bgmPlaying = true;
+        updateBgmUi();
+      }).catch(() => {});
+    } else {
+      bgmAudio.pause();
+      state.bgmPlaying = false;
+      updateBgmUi();
+    }
+  }
+
+  function updateBgmUi() {
+    const lbl = document.getElementById('bgm-label');
+    const ico = document.getElementById('bgm-icon');
+    const btn = document.getElementById('bgm-toggle-btn');
+    if (!lbl || !ico || !btn) return;
+    if (state.bgmPlaying) {
+      lbl.textContent = 'BGM';
+      ico.textContent = '🎵';
+      btn.classList.add('active');
+    } else {
+      lbl.textContent = '静音';
+      ico.textContent = '🔇';
+      btn.classList.remove('active');
+    }
+  }
+
+  /* 播放当前角色的当前职业语音 */
+  function playHeroCurrentVoice(heroKey) {
+    if (state.audioMuted) return;
+    const hero = DEMO_CONFIG.party[heroKey];
+    if (!hero) return;
+
+    const currentClass = heroKey === 'hero1' ? state.hero1Class : state.hero2Class;
+    const voiceItem = hero.classVoiceMap[currentClass];
+    if (!voiceItem || !voiceItem.audioUrl) return;
+
+    state.currentAudioHero = heroKey;
+    voiceAudio.src = voiceItem.audioUrl;
+    voiceAudio.play().then(() => {
+      state.audioPlaying = true;
+      updateVoiceWave(true);
+      updateSpeechBubble(true);
+    }).catch(() => {
+      state.audioPlaying = false;
+      updateVoiceWave(false);
+      updateSpeechBubble(false);
+    });
+  }
+
+  voiceAudio.onended = () => {
+    state.audioPlaying = false;
+    updateVoiceWave(false);
+    updateSpeechBubble(false);
+  };
+  voiceAudio.onpause = () => {
+    state.audioPlaying = false;
+    updateVoiceWave(false);
+    updateSpeechBubble(false);
+  };
+
+  function updateVoiceWave(playing) {
+    const waves = document.querySelectorAll('.voice-wave');
+    waves.forEach(w => {
+      if (playing) w.classList.remove('paused');
+      else w.classList.add('paused');
+    });
+  }
+
+  function updateSpeechBubble(visible) {
+    const bubble = document.getElementById('hero-speech-bubble');
+    if (!bubble) return;
+    if (visible) {
+      bubble.classList.add('active');
+    } else {
+      bubble.classList.remove('active');
+    }
+  }
+
+  /* 通用技能装配与购点计算 */
+  function genericSkillUsed() {
+    return state.hero3.skills.reduce((sum, name) => {
+      const found = COMBAT_DATA.genericPool.find(s => s.name === name);
+      return sum + (found ? found.shopCost : 1);
+    }, 0);
+  }
+
+  /* 增量刷新：仅更新插槽面板、能量条与卡片高亮，不触发整页重绘 */
+  function incrementalUpdateC3Skill(skillName, isAdded) {
+    const slotsGrid = document.getElementById('c3-equipped-slots-grid');
+    if (!slotsGrid) {
+      renderStage(false);
+      return;
+    }
+
+    // 1. 增量重绘 6 槽插槽面板（新装配项带 slot-chip-pop 动效）
+    slotsGrid.innerHTML = renderC3SlotsHtml(isAdded ? skillName : null);
+
+    // 2. 增量更新剩余点数与能量进度条
+    const usedPoints = genericSkillUsed();
+    const maxPoints = DEMO_CONFIG.shop.skillPoints;
+    const remainPoints = maxPoints - usedPoints;
+    const pct = Math.min(100, Math.round((usedPoints / maxPoints) * 100));
+
+    const remainEl = document.getElementById('c3-remain-points');
+    if (remainEl) {
+      remainEl.textContent = `${remainPoints} / ${maxPoints} 点`;
+      if (remainPoints === 0) {
+        remainEl.className = 'font-bold text-amber-400';
+      } else {
+        remainEl.className = 'font-bold text-[var(--accent)]';
+      }
+    }
+
+    const energyFill = document.getElementById('c3-energy-fill');
+    if (energyFill) {
+      energyFill.style.width = pct + '%';
+    }
+
+    // 3. 增量更新被点击卡片的选中高亮态
+    const cardEl = document.querySelector(`[data-skill-card="${skillName}"]`);
+    if (cardEl) {
+      cardEl.classList.toggle('selected', isAdded);
+    }
+
+    // 4. 增量更新底部装配计数
+    const countEl = document.getElementById('c3-equipped-count');
+    if (countEl) {
+      countEl.textContent = `通用槽已装配: ${state.hero3.skills.length}/3`;
+    }
+  }
+
+  function toggleGenericSkill(skillName) {
+    const idx = state.hero3.skills.indexOf(skillName);
+    let isAdded = false;
+    if (idx >= 0) {
+      state.hero3.skills.splice(idx, 1);
+    } else {
+      if (state.hero3.skills.length >= 3) {
+        showFlashToast('通用技能槽位已满（最多装配 3 个）');
+        return;
+      }
+      const skill = COMBAT_DATA.genericPool.find(s => s.name === skillName);
+      const cost = skill ? skill.shopCost : 1;
+      if (genericSkillUsed() + cost > DEMO_CONFIG.shop.skillPoints) {
+        showFlashToast('通用技能点数不足（上限 ' + DEMO_CONFIG.shop.skillPoints + ' 点）');
+        return;
+      }
+      state.hero3.skills.push(skillName);
+      isAdded = true;
+    }
+    // 纯增量更新：绝不触发整页 DOM 重绘，消除生硬刷新
+    incrementalUpdateC3Skill(skillName, isAdded);
+  }
+
+  function showFlashToast(msg) {
+    let t = document.getElementById('flash-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'flash-toast';
+      t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:99999;padding:10px 22px;background:rgba(235,87,87,0.95);color:#fff;border-radius:8px;font-size:0.88rem;box-shadow:0 8px 24px rgba(0,0,0,0.5);letter-spacing:0.08em;transition:all 0.3s ease;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(-50%) translateY(10px)';
+    }, 2200);
+  }
+
+  /* 标签扩写映射表与低饱和克制胶囊生成器（RpgCombat 范式） */
+  const TAG_EXPAND_MAP = {
+    '单回': '单体回复',
+    '群回': '群体回复',
+    '单回蓝': '单体回蓝',
+    '群回蓝': '群体回蓝',
+    '吸蓝': '法力抽取',
+    '单降': '单体降防',
+    '群降': '群体降防',
+    '单防': '单体加防',
+    '群防': '群体加防',
+    '单盾': '单体护盾',
+    '群盾': '群体护盾',
+    '单体': '单体伤害',
+    '群攻': '群体伤害',
+    '穿透': '单体穿透',
+    '群穿透': '群体穿透',
+    '单弱': '单体降攻',
+    '群弱': '群体降攻',
+    '单滞': '单体延迟',
+    '群滞': '群体延迟',
+    '单速': '单体加速',
+    '群速': '群体加速',
+    '单缓': '单体缓速',
+    '群缓': '群体缓速',
+    '单盲': '单体致盲',
+    '群盲': '群体致盲',
+    '自盲': '自身致盲',
+    '单瞄': '单体瞄准',
+    '群瞄': '群体瞄准',
+    '单冲': '单体充能',
+    '群冲': '群体充能',
+    '单增': '单体增攻',
+    '群增': '群体增攻',
+    '单避': '单体闪避',
+    '群避': '群体闪避',
+    '嘲讽': '目标嘲讽',
+    '反击': '受击反击',
+    '群反击': '全体反击',
+    '再动': '额外行动',
+    '免伤': '绝对免伤',
+    '必中': '锁定必中',
+    '转火': '转火追击',
+    '回避': '紧急回避',
+    '眩晕': '击晕瘫痪',
+    '中毒': '毒素侵蚀',
+    '群中毒': '群体中毒',
+    '燃烧': '火焰灼烧',
+    '群燃烧': '群体灼烧',
+    '群麻痹': '群体麻痹',
+    '高阶': '高阶战技',
+    '传奇': '传奇秘术'
+  };
+
+  function getPillColorStyle(text) {
+    if (text === '他人' || text.includes('他人')) {
+      return 'bg-emerald-950/50 text-emerald-300 border-emerald-500/50';
+    }
+    if (text.includes('伤害') || text.includes('穿透') || text.includes('枪击') || text.includes('霰弹') || text.includes('光')) {
+      return 'bg-rose-950/40 text-rose-300/90 border-rose-800/40';
+    }
+    if (text.includes('回复') || text.includes('回蓝') || text.includes('充能') || text.includes('净化') || text.includes('抽取') || text.includes('驱散')) {
+      return 'bg-emerald-950/40 text-emerald-300/90 border-emerald-800/40';
+    }
+    if (text.includes('护盾') || text.includes('加防') || text.includes('闪避') || text.includes('免伤') || text.includes('回避') || text.includes('舍身') || text.includes('肃正')) {
+      return 'bg-sky-950/40 text-sky-300/90 border-sky-800/40';
+    }
+    if (text.includes('降防') || text.includes('降攻') || text.includes('缓速') || text.includes('致盲') || text.includes('中毒') || text.includes('燃烧') || text.includes('麻痹') || text.includes('眩晕') || text.includes('自盲') || text.includes('滞')) {
+      return 'bg-purple-950/40 text-purple-300/90 border-purple-800/40';
+    }
+    if (text.includes('持续') || text.includes('命中') || text.includes('加速') || text.includes('增攻') || text.includes('瞄准') || text.includes('嘲讽') || text.includes('暴击') || text.includes('必中') || text.includes('转火') || text.includes('再动') || text.includes('蓄力') || text.includes('高阶') || text.includes('传奇') || text.includes('召唤')) {
+      return 'bg-amber-950/40 text-amber-300/80 border-amber-800/40';
+    }
+    if (text.includes('反应') || text.includes('看破')) {
+      return 'bg-rose-950/50 text-rose-300/90 border-rose-700/40';
+    }
+    return 'bg-white/5 text-white/70 border-white/10';
+  }
+
+  function formatSkillEffectPills(rawText) {
+    if (!rawText) return '';
+    let clean = rawText.replace(/【[^】]+】/, '');
+    // 彻底剥离重复后台前缀
+    clean = clean.replace(/\[(限定|通用)\]/g, '');
+    clean = clean.replace(/\[价:\d+\]/g, '');
+    clean = clean.replace(/\[MP:\d+\]/g, '');
+    clean = clean.replace(/\[HP:\d+\]/g, '');
+    clean = clean.replace(/\[TP:\d+\]/g, '');
+    clean = clean.replace(/\[特效:[^\]]+\]/g, '');
+
+    const hasOthers = rawText.includes('[他人]') || rawText.includes('他人');
+    const targetOrSelf = hasOthers ? '目标' : '自身';
+
+    const tagMatches = clean.match(/\[([^\]]+)\]/g) || [];
+    if (tagMatches.length === 0) {
+      return '<span class="text-[0.65rem] text-white/30 font-mono">无特殊效果</span>';
+    }
+
+    const pills = [];
+    tagMatches.forEach(tagStr => {
+      const inner = tagStr.slice(1, -1).trim();
+      const parts = inner.split(/[;；]/);
+      const mainPart = parts[0].trim();
+      let powerVal = null;
+      let extraTurns = null;
+      parts.slice(1).forEach(p => {
+        const pm = p.match(/power:(-?\d+)/i);
+        if (pm) powerVal = pm[1];
+        const tm = p.match(/turns:(\d+)/i);
+        if (tm) extraTurns = tm[1];
+      });
+
+      let displayLabel = '';
+      let displayVal = powerVal;
+
+      if (/^持续[:：](\d+)/i.test(mainPart) || /^Turns[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^(?:持续|Turns)[:：](\d+)/i);
+        displayLabel = '持续';
+        displayVal = (m ? m[1] : '') + '回合';
+      } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart) || mainPart === '必中') {
+        // 右侧状态列已专设金色命中率栏，左侧胶囊彻底去除以防冗余
+        return;
+      } else if (/^加速[:：](\d+)/i.test(mainPart) || /^单速[:：](\d+)/i.test(mainPart) || mainPart === '单速') {
+        const m = mainPart.match(/^(?:加速|单速)[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}加速`;
+        displayVal = m ? `+${m[1]}` : (powerVal ? `+${powerVal}` : null);
+      } else if (/^单冲[:：](\d+)/i.test(mainPart) || mainPart === '单冲') {
+        const m = mainPart.match(/^单冲[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}充能`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单瞄[:：](\d+)/i.test(mainPart) || mainPart === '单瞄') {
+        const m = mainPart.match(/^单瞄[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}瞄准`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单防[:：](\d+)/i.test(mainPart) || mainPart === '单防') {
+        const m = mainPart.match(/^单防[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}加防`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单避[:：](\d+)/i.test(mainPart) || mainPart === '单避') {
+        const m = mainPart.match(/^单避[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}闪避`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单增[:：](\d+)/i.test(mainPart) || mainPart === '单增') {
+        const m = mainPart.match(/^单增[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}增攻`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单盾[:：](\d+)/i.test(mainPart) || mainPart === '单盾') {
+        const m = mainPart.match(/^单盾[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}护盾`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单回[:：](\d+)/i.test(mainPart) || mainPart === '单回') {
+        const m = mainPart.match(/^单回[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}回复`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (/^单回蓝[:：](\d+)/i.test(mainPart) || mainPart === '单回蓝') {
+        const m = mainPart.match(/^单回蓝[:：](\d+)/i);
+        displayLabel = `${targetOrSelf}回蓝`;
+        displayVal = m ? m[1] : powerVal;
+      } else if (mainPart === '嘲讽') {
+        displayLabel = `${targetOrSelf}嘲讽`;
+      } else if (/^延迟[:：](\d+)/i.test(mainPart)) {
+        const m = mainPart.match(/^延迟[:：](\d+)/i);
+        displayLabel = '蓄力';
+        displayVal = (m ? m[1] : '') + '回合';
+      } else if (/^暴击[:：](\d+)%?/i.test(mainPart)) {
+        const m = mainPart.match(/^暴击[:：](\d+)%?/i);
+        displayLabel = '暴击';
+        displayVal = (m ? m[1] : '') + '%';
+      } else if (/^限(\d+)次/i.test(mainPart)) {
+        const m = mainPart.match(/^限(\d+)次/i);
+        displayLabel = '限用';
+        displayVal = (m ? m[1] : '') + '次';
+      } else if (/^(?:反应|舍身|看破)(?::([^\]]+))?/i.test(mainPart)) {
+        // 右上角已专设金色战术机制徽章（如【⟲反应·近战】、【舍身·近战】、【看破·法术】），下方胶囊中不再重复显示
+        return;
+      } else if (/^肃正(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^肃正(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `肃正·${m[1]}` : '绝对肃正';
+      } else if (/^召唤(?::([^\]]+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^召唤(?::([^\]]+))?/i);
+        displayLabel = m && m[1] ? `召唤·${m[1]}` : '战术召唤';
+      } else if (/^单体(?:\([^)]+\))?/i.test(mainPart)) {
+        // 括号备注（霰弹、光、火焰、枪击等）只是特效标签，技能栏统一改为【单体伤害】
+        displayLabel = '单体伤害';
+      } else if (/^穿透(?:\([^)]+\))?/i.test(mainPart)) {
+        displayLabel = '单体穿透';
+      } else if (mainPart === '他人' || mainPart === '友方' || mainPart === '友方目标') {
+        displayLabel = '他人';
+        displayVal = null;
+      } else if (mainPart === '法术' || mainPart === '近战' || mainPart === '远程' || mainPart === '高阶' || mainPart === '传奇') {
+        // 头部与阶级徽章已标注伤害属性与阶级，效果行内无需重复
+        return;
+      } else if (/^(群驱散|驱散)(?::(\d+))?/i.test(mainPart)) {
+        const m = mainPart.match(/^(群驱散|驱散)(?::(\d+))?/i);
+        const isGroup = m[1].includes('群');
+        displayLabel = isGroup ? '群体净化' : '单体净化';
+        displayVal = m[2] ? m[2] + '层' : null;
+      } else if (TAG_EXPAND_MAP[mainPart]) {
+        displayLabel = TAG_EXPAND_MAP[mainPart];
+      } else {
+        displayLabel = mainPart;
+      }
+
+      if (extraTurns && displayVal != null) {
+        displayVal += ` (${extraTurns}T)`;
+      }
+
+      const currentStyle = (state && state.skillStyle) ? state.skillStyle : 'va';
+
+      // 属性语义分类
+      let cat = 'buff';
+      if (displayLabel === '他人' || displayLabel === '友方' || displayLabel === '持续' || displayLabel === '限用' || displayLabel === '蓄力') {
+        cat = 'aux';
+      } else if (displayLabel.includes('回复') || displayLabel.includes('回蓝') || displayLabel.includes('充能') || displayLabel.includes('净化') || displayLabel.includes('抽取') || displayLabel.includes('驱散')) {
+        cat = 'heal';
+      } else if (displayLabel.includes('伤害') || displayLabel.includes('穿透') || displayLabel.includes('枪击') || displayLabel.includes('霰弹') || displayLabel.includes('光')) {
+        cat = 'damage';
+      } else if (displayLabel.includes('护盾') || displayLabel.includes('加防') || displayLabel.includes('闪避') || displayLabel.includes('免伤') || displayLabel.includes('回避') || displayLabel.includes('舍身') || displayLabel.includes('肃正')) {
+        cat = 'defense';
+      } else if (displayLabel.includes('降防') || displayLabel.includes('降攻') || displayLabel.includes('缓速') || displayLabel.includes('致盲') || displayLabel.includes('中毒') || displayLabel.includes('燃烧') || displayLabel.includes('麻痹') || displayLabel.includes('眩晕') || displayLabel.includes('自盲') || displayLabel.includes('滞')) {
+        cat = 'debuff';
+      } else {
+        cat = 'buff';
+      }
+
+      if (currentStyle === 'v0') {
+        // ---- 现行原版：经典带框彩色胶囊 ----
+        const style = getPillColorStyle(displayLabel);
+        pills.push(`
+          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.64rem] font-mono border leading-none ${style}">
+            <span>${displayLabel}</span>
+            ${displayVal != null ? `<span class="font-bold opacity-90 font-mono">${displayVal}</span>` : ''}
+          </span>
+        `);
+      } else if (currentStyle === 'va') {
+        // ---- 方案 A：【暗夜微光·无界扁平流 (推荐)】----
+        // 彻底丢弃实线边框；辅助标签弱化为优雅浅灰；主收益带半透环境微光，主次分明
+        if (cat === 'aux') {
+          pills.push(`
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.61rem] font-mono leading-none bg-white/[0.04] text-white/45 select-none">
+              <span>${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold font-mono text-white/70 ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        } else {
+          let glowClass = 'bg-amber-500/12 text-amber-300/90';
+          if (cat === 'heal') glowClass = 'bg-emerald-500/14 text-emerald-300';
+          else if (cat === 'damage') glowClass = 'bg-rose-500/14 text-rose-300';
+          else if (cat === 'defense') glowClass = 'bg-sky-500/14 text-sky-300';
+          else if (cat === 'debuff') glowClass = 'bg-purple-500/14 text-purple-300';
+
+          pills.push(`
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.65rem] font-mono leading-none ${glowClass}">
+              <span class="opacity-85 font-sans">${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold font-mono text-white/95 ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        }
+      } else if (currentStyle === 'vb') {
+        // ---- 方案 B：【战术全息透镜·毛玻璃微晶】----
+        // 极细半透微晶描边 + 呼吸微光点指示类型，消除大面积杂乱色块
+        if (cat === 'aux') {
+          pills.push(`
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none">
+              <span>${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold font-mono text-white/60 ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        } else {
+          let dotClass = 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]';
+          if (cat === 'heal') dotClass = 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]';
+          else if (cat === 'damage') dotClass = 'bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)]';
+          else if (cat === 'defense') dotClass = 'bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.9)]';
+          else if (cat === 'debuff') dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
+
+          pills.push(`
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
+              <span class="tracking-wide">${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold text-amber-200 font-mono ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        }
+      } else if (currentStyle === 'vc') {
+        // ---- 方案 C：【古典秘契铭文·纯净排版流】----
+        // 彻底丢弃胶囊/Pill形态，由古典星符 ✦ 连缀成古典典籍铭文
+        if (cat === 'aux') {
+          pills.push(`
+            <span class="inline-flex items-center text-[0.62rem] font-mono text-[#d9b45c]/45 mr-1 select-none leading-normal">
+              [${displayLabel}${displayVal != null ? ' ' + displayVal : ''}]
+            </span>
+          `);
+        } else {
+          pills.push(`
+            <span class="inline-flex items-center gap-1 text-[0.68rem] font-serif text-[#e8dcc0]/85 mr-2 leading-normal">
+              <span class="text-[0.52rem] text-[#d9b45c]/50 font-mono select-none">✦</span>
+              <span>${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-mono text-[0.72rem] font-bold text-[#f5d78e] ml-0.5 tracking-tight">${displayVal}</span>` : ''}
+            </span>
+          `);
+        }
+      }
+    });
+
+    return pills.join('');
+  }
+
+  /* 技能类型判定：近战(⚔️)、远程(🏹)、法术(🔮)、战术(♟️) */
+  function getSkillTypeEmoji(s) {
+    if (!s) return '✦';
+    const text = (s.rawText || '') + ' ' + (s.name || '') + ' ' + (s.typeTag || '');
+    if (text.includes('[法术]') || text.includes('法术')) return '🔮';
+    if (text.includes('[近战]') || text.includes('近战')) return '⚔️';
+    if (text.includes('[远程]') || text.includes('远程')) return '🏹';
+    return '♟️';
+  }
+
+  function getSkillTypeTitle(s) {
+    if (!s) return '战技';
+    const text = (s.rawText || '') + ' ' + (s.name || '') + ' ' + (s.typeTag || '');
+    if (text.includes('[法术]') || text.includes('法术')) return '法术';
+    if (text.includes('[近战]') || text.includes('近战')) return '近战';
+    if (text.includes('[远程]') || text.includes('远程')) return '远程';
+    return '战术';
+  }
+
+  /* 命中率判定 */
+  function getSkillAimText(s) {
+    if (!s) return '100%';
+    const text = (s.rawText || '') + ' ' + (s.name || '');
+    if (text.includes('[必中]') || text.includes('必中')) return '必中';
+    const aimM = text.match(/\[Aim:(\d+)%?\]/i) || text.match(/Aim:(\d+)%?/i);
+    if (aimM) return `${aimM[1]}%`;
+    const hitM = text.match(/\[命中\s*(\d+)%?\]/) || text.match(/命中\s*(\d+)%?/);
+    if (hitM) return `${hitM[1]}%`;
+    if (text.includes('[单盾]') || text.includes('[群回]') || text.includes('[单回]') || text.includes('[回避]') || text.includes('[单避]') || text.includes('肃正') || text.includes('单盾') || text.includes('单防')) {
+      return '自身';
+    }
+    return '100%';
+  }
+
+  /* 特殊战术机制徽章文本判定（反应带⟲，舍身与看破独立显示如 舍身·近战、看破·法术） */
+  function getReactionBadgeText(s) {
+    if (!s) return null;
+    const text = (s.rawText || '') + ' ' + (s.name || '');
+    const m = text.match(/\[(反应|舍身|看破)(?::([^\]]+))?\]/);
+    if (!m && !s.isReaction) return null;
+    const act = m ? m[1] : '反应';
+    const limit = (m && m[2]) ? m[2].trim() : null;
+    if (act === '反应') {
+      return limit ? `⟲反应·${limit}` : '⟲反应';
+    }
+    // 舍身与看破不是反应：独立显示如【舍身·近战】、【看破·法术】、【看破·远程】
+    return limit ? `${act}·${limit}` : act;
+  }
+
+  /* 技能阶级判定：普通 (Tier 1) / 高阶 (Tier 2) / 传奇 (Tier 3) */
+  function getSkillTier(s) {
+    if (!s) return 1;
+    const text = (s.rawText || '') + ' ' + (s.name || '');
+    if (text.includes('[传奇]') || text.includes('传奇')) return 3;
+    if (text.includes('[高阶]') || text.includes('高阶') || text.includes('净蚀反冲')) return 2;
+    return 1;
+  }
+
+  /* 渲染：技能芯片卡片 (带技能类型 emoji 标记、阶级动效、金色光晕与命中率展示) */
+  function renderSkillSlotChip(s, isSlotEmpty = false, slotIdx = 0, canRemove = false, heroTheme = null) {
+    if (isSlotEmpty) {
+      return `
+        <div class="skill-slot-chip border-dashed border-opacity-40" style="--slot-idx:${slotIdx}; border-color:var(--slot-border); background:rgba(0,0,0,0.3);">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded bg-white/5 flex items-center justify-center font-mono text-xs text-white/40">✦</span>
+            <span class="text-xs tracking-wider text-white/35">空置通用插槽 · 待购点装配</span>
+          </div>
+          <span class="font-mono text-[0.68rem] text-white/30">[SLOT OPEN]</span>
+        </div>
+      `;
+    }
+
+    const typeEmoji = getSkillTypeEmoji(s);
+    const typeTitle = getSkillTypeTitle(s);
+    const aimText = getSkillAimText(s);
+    const aimDisplayText = aimText === '必中' ? '必中' : (aimText === '自身' ? '自身' : `命中 ${aimText}`);
+    const tier = getSkillTier(s);
+
+    const currentStyle = (state && state.skillStyle) ? state.skillStyle : 'va';
+
+    let tierClass = '';
+    let tierBadgeHtml = '';
+    if (tier === 3) {
+      tierClass = 'tier-legendary';
+      if (currentStyle === 'v0') {
+        tierBadgeHtml = `<span class="tier-badge text-[0.56rem] px-1.5 py-0.2 rounded font-mono shrink-0">★ 传奇</span>`;
+      } else if (currentStyle === 'vc') {
+        tierBadgeHtml = `<span class="text-[0.62rem] font-serif font-bold text-rose-300 px-1.5 py-0.5 border border-rose-500/40 bg-rose-950/20 rounded tracking-wider shrink-0">★ III · 传奇秘术</span>`;
+      } else {
+        tierBadgeHtml = `<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>`;
+      }
+    } else if (tier === 2) {
+      tierClass = 'tier-advanced';
+      if (currentStyle === 'v0') {
+        tierBadgeHtml = `<span class="tier-badge text-[0.56rem] px-1.5 py-0.2 rounded font-mono shrink-0">✦ 高阶</span>`;
+      } else if (currentStyle === 'vc') {
+        tierBadgeHtml = `<span class="text-[0.62rem] font-serif font-bold text-[#fbbf24] px-1.5 py-0.5 border border-[#d9b45c]/40 bg-[#d9b45c]/10 rounded tracking-wider shrink-0">✦ II · 高阶</span>`;
+      } else {
+        tierBadgeHtml = `<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>`;
+      }
+    }
+
+    let chipClass = '';
+    let badgeBoxClass = '';
+    let badgeContent = '';
+    let costRightText = '';
+
+    if (heroTheme === 'gold') {
+      // 威廉：专属金色主题（带四角星和金色光晕，右侧显示命中率）
+      chipClass = 'theme-gold';
+      badgeBoxClass = 'border-amber-500/60 bg-amber-950/40 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]';
+      badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
+      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+    } else if (heroTheme === 'purple') {
+      // 冯：金紫交辉炼金秘术风格（带四角星和金色光晕，右侧显示命中率）
+      chipClass = 'theme-purple';
+      badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
+      badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
+      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+    } else {
+      // 主角：技能插槽
+      chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
+      badgeBoxClass = s.scope === '限定'
+        ? 'border-amber-500/50 bg-amber-950/30 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.25)]'
+        : 'border-purple-500/50 bg-purple-950/30 text-purple-300 shadow-[0_0_6px_rgba(192,132,252,0.25)]';
+      badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
+      costRightText = s.scope === '限定'
+        ? `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`
+        : `<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1"><span class="text-purple-400 text-xs">✦</span> ${aimDisplayText} · ${s.shopCost} 点</span>`;
+    }
+
+    const ammoCost = s.ammoCost || GLOBAL_AMMO_BINDINGS[s.name] || null;
+
+    const costs = [];
+    if (s.mpCost) costs.push(`${s.mpCost} MP`);
+    if (s.hpCost) costs.push(`${s.hpCost} HP`);
+    if (s.tpCost) costs.push(`${s.tpCost} TP`);
+    if (ammoCost) costs.push(`${ammoCost.ammoName}*${ammoCost.count}`);
+    const costText = costs.length > 0 ? costs.join(' / ') : '无消耗';
+
+    // 反应类型限制判定（例如 [反应:近战] -> ⟲反应·近战，只保留右上角金色徽章）
+    const reactionBadgeText = getReactionBadgeText(s);
+    let reactionBadge = '';
+    if (reactionBadgeText) {
+      if (currentStyle === 'v0') {
+        reactionBadge = `<span class="text-[0.58rem] px-1.5 py-0.5 rounded font-mono shrink-0 bg-amber-950/70 border border-amber-500/50 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]">${reactionBadgeText}</span>`;
+      } else if (currentStyle === 'vc') {
+        reactionBadge = `<span class="text-[0.62rem] px-1.5 py-0.5 rounded border border-[#d9b45c]/40 text-[#f5d78e] font-serif shrink-0">[${reactionBadgeText}]</span>`;
+      } else {
+        reactionBadge = `<span class="text-[0.58rem] px-1.5 py-0.5 rounded font-mono shrink-0 bg-amber-950/40 border border-amber-500/40 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.2)]">${reactionBadgeText}</span>`;
+      }
+    }
+
+    // 技能类型角标（如“法术”）：去除突兀黑框
+    let typeTagHtml = '';
+    if (s.typeTag && s.typeTag !== '反应') {
+      if (currentStyle === 'v0') {
+        typeTagHtml = `<span class="text-[0.62rem] px-1 py-0.2 rounded bg-white/5 text-white/60 font-mono shrink-0">${s.typeTag}</span>`;
+      } else if (currentStyle === 'vc') {
+        typeTagHtml = `<span class="text-[0.62rem] text-[#c6a154]/55 font-serif tracking-widest shrink-0">〔${s.typeTag}〕</span>`;
+      } else {
+        typeTagHtml = `<span class="text-[0.6rem] px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.03] text-white/45 font-mono tracking-wider shrink-0">${s.typeTag}</span>`;
+      }
+    }
+
+    return `
+      <div class="skill-slot-chip ${chipClass} ${tierClass}" style="--slot-idx:${slotIdx};">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded ${badgeBoxClass} border flex items-center justify-center shrink-0">
+            ${badgeContent}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 truncate">
+              <span class="text-xs sm:text-sm font-bold tracking-wider text-[var(--text-main)] truncate">${s.name}</span>
+              ${tierBadgeHtml}
+              ${reactionBadge}
+              ${typeTagHtml}
+            </div>
+            <div class="flex items-center gap-1 flex-wrap mt-0.5">
+              ${formatSkillEffectPills(s.rawText)}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="text-right">
+            <div class="font-mono text-[0.72rem] font-bold text-[var(--accent)] whitespace-nowrap">${costText}</div>
+            <div class="font-mono text-[0.62rem] text-white/40">${costRightText}</div>
+          </div>
+          ${canRemove ? `
+            <button onclick="window.demoActions.removeSkill('${s.name}')" class="text-xs text-rose-400/80 hover:text-rose-300 p-1 rounded hover:bg-rose-950/40 transition-colors" title="卸下插槽">✕</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /* ① & ④ 渲染：左侧大立绘展台（1:1沉浸大画幅立绘、紧凑身份卡与五维属性） */
+  function renderHeroStage(hero, selectedClass) {
+    const clsInfo = DEMO_CONFIG.classIntro[selectedClass] || {};
+    const clsData = COMBAT_DATA.classes[selectedClass] || { hp: 100, mp: 40, atk: 12, armor: 3, speed: 100 };
+    const voiceData = hero.classVoiceMap[selectedClass] || { quote: '', audioUrl: '' };
+
+    return `
+      <div class="ui-panel portrait-podium h-full flex flex-col justify-between relative">
+        <!-- 契合的微弱缓慢氛围粒子（静谧微粒缓慢漂浮升腾，不喧宾夺主） -->
+        <div class="portrait-ambient-particles" aria-hidden="true">
+          <div class="p-dot" style="--p-x: 14%; --p-y: 72%; --p-tx: 8px; --p-ty: -75px; --p-dur: 11s; --p-del: 0s; --p-sz: 3px; --p-op: 0.55;"></div>
+          <div class="p-dot" style="--p-x: 82%; --p-y: 65%; --p-tx: -10px; --p-ty: -80px; --p-dur: 13.5s; --p-del: 2s; --p-sz: 2px; --p-op: 0.45;"></div>
+          <div class="p-dot" style="--p-x: 24%; --p-y: 48%; --p-tx: 12px; --p-ty: -65px; --p-dur: 9.5s; --p-del: 4s; --p-sz: 2.5px; --p-op: 0.5;"></div>
+          <div class="p-dot" style="--p-x: 74%; --p-y: 38%; --p-tx: -14px; --p-ty: -70px; --p-dur: 12s; --p-del: 1s; --p-sz: 3px; --p-op: 0.55;"></div>
+          <div class="p-dot" style="--p-x: 48%; --p-y: 84%; --p-tx: -6px; --p-ty: -90px; --p-dur: 15s; --p-del: 3s; --p-sz: 2px; --p-op: 0.4;"></div>
+          <div class="p-dot" style="--p-x: 10%; --p-y: 30%; --p-tx: 10px; --p-ty: -55px; --p-dur: 10s; --p-del: 5s; --p-sz: 3px; --p-op: 0.45;"></div>
+          <div class="p-dot" style="--p-x: 88%; --p-y: 25%; --p-tx: -8px; --p-ty: -60px; --p-dur: 14s; --p-del: 2.5s; --p-sz: 2.5px; --p-op: 0.5;"></div>
+          <div class="p-dot" style="--p-x: 32%; --p-y: 18%; --p-tx: 10px; --p-ty: -50px; --p-dur: 8.5s; --p-del: 1.5s; --p-sz: 2px; --p-op: 0.35;"></div>
+        </div>
+
+        <!-- 顶部身份信息与语音条（同行精炼微排版，小字称号与名字一行） -->
+        <div class="w-full z-10">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">${hero.emoji}</span>
+              <div class="flex items-baseline gap-2">
+                <h2 class="text-lg sm:text-xl font-bold tracking-wide text-[var(--text-main)]">${hero.name}</h2>
+                <span class="text-xs font-serif font-bold text-[var(--accent)] tracking-wider">${hero.title}</span>
+              </div>
+            </div>
+
+            <!-- 语音触发与声波组件 -->
+            <div class="flex items-center gap-2 bg-black/40 px-2.5 py-1 rounded-full border border-white/10">
+              <button onclick="window.demoActions.playVoice('${hero.id}')" class="flex items-center gap-1 text-xs text-[var(--accent)] hover:text-white transition-colors cursor-pointer" title="重播台词语音">
+                <span>🔊</span>
+                <span class="font-mono text-[0.68rem] hidden sm:inline">VOICE</span>
+              </button>
+              <div class="voice-wave ${state.audioPlaying && state.currentAudioHero === hero.id ? '' : 'paused'}">
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 悬浮台词气泡（仅在播放台词语音时浮现，绝对定位不抢占立绘画幅） -->
+        <div id="hero-speech-bubble" class="floating-speech-bubble ${state.audioPlaying && state.currentAudioHero === hero.id ? 'active' : ''}">
+          <p id="hero-dialogue-quote" class="text-xs sm:text-[0.78rem] text-[var(--text-main)] italic leading-relaxed">${voiceData.quote}</p>
+        </div>
+
+        <!-- 中部大尺寸立绘展台（占满可用高度，消除大片空白，1:1沉浸呈现） -->
+        <div class="portrait-wrapper my-1">
+          <img src="${hero.portraitUrl}" alt="${hero.name}" class="portrait-img hero-swap-in">
+        </div>
+
+        <!-- 底部角色五维属性面板（微型紧凑胶囊，极简不抢占纵深） -->
+        <div class="w-full z-10 ui-panel-soft py-1.5 px-2.5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-[0.6rem] text-white/50 tracking-wider">BASE ATTRIBUTES</span>
+            <span id="hero-attr-profile-tag" class="font-mono text-[0.62rem] text-[var(--accent)] font-bold smooth-fade-transition">PROFILE // ${selectedClass}</span>
+          </div>
+          <div class="grid grid-cols-5 gap-1 text-center font-mono">
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-rose-400/80">HP</div>
+              <div id="hero-attr-hp" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.hp}</div>
+            </div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-sky-400/80">MP</div>
+              <div id="hero-attr-mp" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.mp}</div>
+            </div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-amber-400/80">ATK</div>
+              <div id="hero-attr-atk" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.atk}</div>
+            </div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-emerald-400/80">DEF</div>
+              <div id="hero-attr-armor" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.armor}</div>
+            </div>
+            <div class="bg-black/35 py-0.5 px-1 rounded border border-white/5">
+              <div class="text-[0.56rem] text-purple-400/80">SPD</div>
+              <div id="hero-attr-speed" class="text-xs font-bold text-white mt-0.5 smooth-fade-transition">${clsData.speed}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* 战技列表排序：严格按 普通(Tier 1) → 高阶(Tier 2) → 传奇(Tier 3) 阶梯升序排列 */
+  function getSortedHeroSkills(skills) {
+    return [...skills].sort((a, b) => {
+      const tierA = getSkillTier(a);
+      const tierB = getSkillTier(b);
+      if (tierA !== tierB) {
+        return tierA - tierB;
+      }
+      return 0;
+    });
+  }
+
+  /* 渲染：角色 1 职业选择 (威廉) */
+  function viewC1() {
+    const hero = DEMO_CONFIG.party.hero1;
+    const curCls = state.hero1Class;
+    const clsObj = COMBAT_DATA.classes[curCls];
+    const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
+
+    // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
+    const classCards = hero.classes.map(cName => {
+      const info = DEMO_CONFIG.classIntro[cName] || {};
+      const active = cName === curCls;
+      const gifSrc = info.gifUrl || '';
+      return `
+        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass1('${cName}')">
+          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
+          <div class="class-hover-gif-box">
+            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23080d18\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23d9b45c\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23d9b45c\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 class="text-sm font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
+              <span class="font-mono text-[0.62rem] px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[var(--accent)] font-bold">${info.role || '战术'}</span>
+            </div>
+            <p class="text-[0.7rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
+          </div>
+          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-start gap-1 leading-snug">
+            <span class="text-xs shrink-0 mt-[-1px]">✦</span>
+            <span class="break-words">${info.passive}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // ② 技能阶梯滑入芯片 (威廉：专属金色主题，隐藏EX/TAC标签)
+    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, 'gold')).join('');
+
+    return `
+      <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
+        <!-- 左半屏：大尺寸展台 -->
+        <div class="lg:col-span-5 flex flex-col">
+          ${renderHeroStage(hero, curCls)}
+        </div>
+
+        <!-- 右半屏：职业挑选与 6 技能列表 -->
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-4 sm:p-5">
+          <div>
+            <!-- ① 把顶在外面的重复标题直接合并到框里 -->
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">PARTY 1 / 3</span>
+                  <span class="text-white/20 text-xs font-mono">/</span>
+                  <span class="font-mono text-xs text-white/50 tracking-wider">CHARACTER DOSSIER</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
+              </div>
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold text-[var(--accent)]">WILLIAM TELL</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">${hero.title}</div>
+              </div>
+            </div>
+
+            <!-- ③ 候选职业卡组（悬浮时浮现边缘模糊实机 GIF） -->
+            <div class="grid sm:grid-cols-3 gap-2.5 mb-3">
+              ${classCards}
+            </div>
+
+            <!-- ② 当前职业 6 槽技能装配（尺寸收缩，去除多余留白） -->
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 6 CLASS COMBAT ARTS ]</span>
+              </div>
+              <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
+                ${skillChips}
+              </div>
+            </div>
+          </div>
+
+          <!-- ② 下一步导航按钮（高度紧凑） -->
+          <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
+            <div class="text-[0.7rem] text-[var(--text-muted)] font-mono">整组 6 技能随职业自动上阵</div>
+            <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c2')">
+              <span>确认配置 · 下一位 (冯)</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* 渲染：角色 2 职业选择 (冯) */
+  function viewC2() {
+    const hero = DEMO_CONFIG.party.hero2;
+    const curCls = state.hero2Class;
+    const clsObj = COMBAT_DATA.classes[curCls];
+    const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
+
+    // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
+    const classCards = hero.classes.map(cName => {
+      const info = DEMO_CONFIG.classIntro[cName] || {};
+      const active = cName === curCls;
+      const gifSrc = info.gifUrl || '';
+      return `
+        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass2('${cName}')">
+          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
+          <div class="class-hover-gif-box">
+            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23120b22\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23f59e0b\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23f59e0b\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 class="text-sm font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
+              <span class="font-mono text-[0.62rem] px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[var(--accent)] font-bold">${info.role || '炼金秘术'}</span>
+            </div>
+            <p class="text-[0.7rem] text-[var(--text-muted)] leading-relaxed mb-2">${info.intro}</p>
+          </div>
+          <div class="pt-1.5 border-t border-white/10 text-[0.66rem] text-[var(--accent)] font-mono flex items-start gap-1 leading-snug">
+            <span class="text-xs shrink-0 mt-[-1px]">✦</span>
+            <span class="break-words">${info.passive}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // ② 技能阶梯滑入芯片 (冯：专属紫色主题，隐藏EX/TAC标签)
+    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, 'purple')).join('');
+
+    return `
+      <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
+        <!-- 左半屏：大尺寸展台 -->
+        <div class="lg:col-span-5 flex flex-col">
+          ${renderHeroStage(hero, curCls)}
+        </div>
+
+        <!-- 右半屏：职业挑选与技能全插槽 -->
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-4 sm:p-5">
+          <div>
+            <!-- ① 把顶在外面的重复标题直接合并到框里 -->
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">PARTY 2 / 3</span>
+                  <span class="text-white/20 text-xs font-mono">/</span>
+                  <span class="font-mono text-xs text-white/50 tracking-wider">CHARACTER DOSSIER</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>
+              </div>
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold text-[var(--accent)]">VON HOHENHEIM</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">${hero.title}</div>
+              </div>
+            </div>
+
+            <!-- ③ 候选职业卡组 -->
+            <div class="grid sm:grid-cols-3 gap-2.5 mb-3">
+              ${classCards}
+            </div>
+
+            <!-- ② 当前职业技能 6 槽（尺寸收缩，去除多余留白） -->
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 6 CLASS COMBAT ARTS ]</span>
+              </div>
+              <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
+                ${skillChips}
+              </div>
+            </div>
+          </div>
+
+          <!-- ② 导航按钮（高度紧凑） -->
+          <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
+            <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c1')">← 返回威廉</button>
+            <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3class')">
+              <span>确认配置 · 前往主角职业</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* 渲染：角色 3 职业选择 */
+  function viewC3class() {
+    const allClasses = Object.keys(COMBAT_DATA.classes);
+    const curCls = state.hero3.classType;
+    const clsObj = COMBAT_DATA.classes[curCls];
+    const limitedSkills = clsObj ? getSortedHeroSkills(clsObj.skills.filter(s => s.scope === '限定')) : [];
+
+    const cards = allClasses.map(cName => {
+      const info = DEMO_CONFIG.classIntro[cName] || {};
+      const active = cName === curCls;
+      const gifSrc = info.gifUrl || '';
+      return `
+        <div class="class-tab-card ${active ? 'active' : ''}" onclick="window.demoActions.pickClass3('${cName}')">
+          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
+          <div class="class-hover-gif-box">
+            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23080d18\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23d9b45c\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23d9b45c\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs sm:text-sm text-[var(--text-main)]">${cName}</span>
+              <span class="font-mono text-[0.6rem] text-[var(--accent)] font-bold">${info.role ? info.role.split('/')[0] : ''}</span>
+            </div>
+            <p class="text-[0.68rem] text-[var(--text-muted)] leading-relaxed mb-1.5 line-clamp-2">${info.intro}</p>
+          </div>
+          <div class="pt-1 border-t border-white/10 text-[0.62rem] text-[var(--accent)] font-mono flex items-start gap-1 leading-tight">
+            <span class="shrink-0">✦</span>
+            <span class="break-words">${info.passive}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const limitedChips = limitedSkills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+
+    return `
+      <div class="ui-panel p-5 sm:p-6 view-transition-in">
+        <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">PARTY 3 / 3</span>
+              <span class="text-white/20 text-xs font-mono">/</span>
+              <span class="font-mono text-xs text-white/50 tracking-wider">PROTAGONIST</span>
+            </div>
+            <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">登记主角职能核心</h2>
+          </div>
+          <div class="text-right">
+            <div class="font-mono text-xs font-bold text-[var(--accent)]">${state.hero3.name}</div>
+            <div class="font-mono text-[0.68rem] text-white/40">PARTY LEADER</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="font-mono text-[0.68rem] text-[var(--accent)] mb-2">SELECT CLASS SPECIFICATION (7 CLASSES)</div>
+          <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+            ${cards}
+          </div>
+        </div>
+
+        <!-- 职业限定槽位展示 -->
+        <div class="ui-panel-soft p-3 mt-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-xs tracking-wider text-[var(--text-main)]">3 个职业限定战技（随职业自动锁定生效）</span>
+            <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ LOCKED EXCLUSIVE ]</span>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            ${limitedChips}
+          </div>
+        </div>
+
+        <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
+          <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c2')">← 返回冯</button>
+          <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3skill')">
+            <span>前往自由通用技能购点插槽</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  /* 生成主角 6 插槽 HTML（前 3 锁定，后 3 通用装配） */
+  function renderC3SlotsHtml(justAddedName = null) {
+    const curCls = state.hero3.classType;
+    const clsObj = COMBAT_DATA.classes[curCls];
+    const limitedSkills = clsObj ? clsObj.skills.filter(s => s.scope === '限定') : [];
+    const genericEquipped = state.hero3.skills.map(name => COMBAT_DATA.genericPool.find(s => s.name === name)).filter(Boolean);
+
+    let slotHtml = '';
+    limitedSkills.forEach((s, i) => {
+      slotHtml += renderSkillSlotChip(s, false, i + 1);
+    });
+    for (let i = 0; i < 3; i++) {
+      const s = genericEquipped[i];
+      if (s) {
+        const isPop = justAddedName && s.name === justAddedName;
+        slotHtml += `<div class="${isPop ? 'slot-chip-pop' : ''}">${renderSkillSlotChip(s, false, i + 4, true)}</div>`;
+      } else {
+        slotHtml += renderSkillSlotChip(null, true, i + 4);
+      }
+    }
+    return slotHtml;
+  }
+
+  /* 渲染：角色 3 自由通用技能购点（插槽装配式） */
+  function viewC3skill() {
+    const curCls = state.hero3.classType;
+    const genericEquipped = state.hero3.skills.map(name => COMBAT_DATA.genericPool.find(s => s.name === name)).filter(Boolean);
+    const usedPoints = genericSkillUsed();
+    const maxPoints = DEMO_CONFIG.shop.skillPoints;
+    const remainPoints = maxPoints - usedPoints;
+    const pct = Math.min(100, Math.round((usedPoints / maxPoints) * 100));
+
+    // 备选技能卡片网格
+    const poolCards = COMBAT_DATA.genericPool.map(s => {
+      const isSelected = state.hero3.skills.includes(s.name);
+      const reactText = getReactionBadgeText(s);
+      return `
+        <div class="skill-pick-card ${isSelected ? 'selected' : ''}" data-skill-card="${s.name}" onclick="window.demoActions.toggleSkill('${s.name}')">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-sm text-[var(--text-main)]">${s.name}</span>
+            <span class="font-mono text-xs font-bold text-[var(--accent)]">${s.shopCost} 点</span>
+          </div>
+          <div class="flex items-center gap-2 font-mono text-[0.65rem] text-white/50 mb-1.5">
+            <span>来源: ${s.srcClass}</span>
+            ${(s.typeTag && s.typeTag !== '反应') ? `<span>·</span><span>${s.typeTag}</span>` : ''}
+            ${reactText ? `<span>·</span><span class="text-amber-300 font-bold">${reactText}</span>` : ''}
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
+            ${formatSkillEffectPills(s.rawText)}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="ui-panel p-5 sm:p-6 view-transition-in">
+        <!-- 顶栏与能量条 -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 mb-3 border-b border-white/10 gap-3">
+          <div>
+            <span class="font-mono text-xs text-[var(--accent)] tracking-widest">TACTICAL CHIP SLOTS // SKILL BUDGET</span>
+            <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">主角自由通用战技插槽装配</h2>
+          </div>
+
+          <!-- 购点预算刻度指示 -->
+          <div class="bg-black/40 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 min-w-[220px]">
+            <div class="flex items-center justify-between font-mono text-[0.68rem] mb-1">
+              <span class="text-white/60">REMAINING BUDGET</span>
+              <span id="c3-remain-points" class="font-bold ${remainPoints === 0 ? 'text-amber-400' : 'text-[var(--accent)]'}">${remainPoints} / ${maxPoints} 点</span>
+            </div>
+            <div class="energy-meter">
+              <div id="c3-energy-fill" class="energy-fill" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 当前 6 槽装配全景面板 -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-mono text-[0.68rem] text-[var(--accent)] tracking-wider">CURRENT 6 SKILL SLOTS [ 3 EXCLUSIVE + 3 GENERIC CHIPS ]</span>
+            <span class="font-mono text-[0.65rem] text-white/40">点击装配槽 ✕ 可快速卸下</span>
+          </div>
+          <div class="grid md:grid-cols-2 gap-2" id="c3-equipped-slots-grid">
+            ${renderC3SlotsHtml()}
+          </div>
+        </div>
+
+        <!-- 备选池：21 个战术通用技能芯片 -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-mono text-[0.68rem] text-[var(--text-main)] tracking-wider">ALL AVAILABLE GENERIC SKILL CHIPS (点击安装 / 移除)</span>
+            <span class="font-mono text-[0.65rem] text-[var(--text-muted)]">最多选择 3 个 · 预算不超 ${maxPoints} 点</span>
+          </div>
+          <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            ${poolCards}
+          </div>
+        </div>
+
+        <!-- 导航按钮 -->
+        <div class="pt-2.5 mt-3 border-t border-white/10 flex items-center justify-between">
+          <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c3class')">← 返回主角职业</button>
+          <div class="flex items-center gap-3">
+            <span id="c3-equipped-count" class="font-mono text-[0.68rem] text-[var(--text-muted)]">通用槽已装配: ${genericEquipped.length}/3</span>
+            <button class="ui-btn-primary" onclick="alert('恭喜！视觉 Demo 交互流验证成功。\\n\\n三位角色的技能槽位与属性档案已装配完毕。')">
+              <span>完成配置 · 查看最终档案</span>
+              <span>✓</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* 核心路由渲染器 */
+  function renderStage(shouldPlayVoice = true) {
+    const appEl = document.getElementById('demo-app');
+    if (!appEl) return;
+
+    switch (state.stage) {
+      case 'c1':
+        appEl.innerHTML = viewC1();
+        if (shouldPlayVoice) playHeroCurrentVoice('hero1');
+        break;
+      case 'c2':
+        appEl.innerHTML = viewC2();
+        if (shouldPlayVoice) playHeroCurrentVoice('hero2');
+        break;
+      case 'c3class':
+        appEl.innerHTML = viewC3class();
+        voiceAudio.pause();
+        break;
+      case 'c3skill':
+        appEl.innerHTML = viewC3skill();
+        voiceAudio.pause();
+        break;
+      default:
+        appEl.innerHTML = viewC1();
+        break;
+    }
+  }
+
+  /* 职业切换：局部精准淡入淡出（立绘展台框架保持稳定不动） */
+  function switchHeroClassLocally(heroKey, newClass) {
+    const hero = DEMO_CONFIG.party[heroKey];
+    if (!hero) return;
+
+    if (heroKey === 'hero1') state.hero1Class = newClass;
+    else state.hero2Class = newClass;
+
+    const clsData = COMBAT_DATA.classes[newClass] || { hp: 100, mp: 40, atk: 12, armor: 3, speed: 100 };
+    const voiceData = hero.classVoiceMap[newClass] || { quote: '', audioUrl: '' };
+
+    // 1. 职业选项卡高亮增量切换
+    document.querySelectorAll('[data-class-tab]').forEach(tab => {
+      tab.classList.toggle('active', tab.getAttribute('data-class-tab') === newClass);
+    });
+
+    // 2. 左侧台词气泡平滑过渡
+    const quoteEl = document.getElementById('hero-dialogue-quote');
+    if (quoteEl) {
+      quoteEl.style.opacity = '0';
+      quoteEl.style.transform = 'translateY(4px)';
+      setTimeout(() => {
+        quoteEl.textContent = voiceData.quote;
+        quoteEl.style.opacity = '1';
+        quoteEl.style.transform = 'translateY(0)';
+      }, 160);
+    }
+
+    // 3. 五维属性面板平滑更新
+    const attrTitle = document.getElementById('hero-attr-profile-tag');
+    if (attrTitle) attrTitle.textContent = `PROFILE // ${newClass}`;
+
+    const attrs = [
+      { id: 'hero-attr-hp', val: clsData.hp },
+      { id: 'hero-attr-mp', val: clsData.mp },
+      { id: 'hero-attr-atk', val: clsData.atk },
+      { id: 'hero-attr-armor', val: clsData.armor },
+      { id: 'hero-attr-speed', val: clsData.speed },
+    ];
+    attrs.forEach(({ id, val }) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.opacity = '0.2';
+        setTimeout(() => {
+          el.textContent = val;
+          el.style.opacity = '1';
+        }, 120);
+      }
+    });
+
+    // 4. 右侧 6 技能栏重新渲染并依次阶梯滑入
+    const skillsContainer = document.getElementById('hero-skill-chips-container');
+    if (skillsContainer) {
+      skillsContainer.style.opacity = '0';
+      skillsContainer.style.transform = 'translateY(6px)';
+      setTimeout(() => {
+        const sorted = getSortedHeroSkills(clsData.skills);
+        const heroTheme = heroKey === 'hero1' ? 'gold' : (heroKey === 'hero2' ? 'purple' : null);
+        skillsContainer.innerHTML = sorted.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, heroTheme)).join('');
+        skillsContainer.style.opacity = '1';
+        skillsContainer.style.transform = 'translateY(0)';
+      }, 150);
+    }
+
+    // 5. 播放专属台词音频与声波动画
+    playHeroCurrentVoice(heroKey);
+  }
+
+  /* 跨阶段导航：柔和沉浸淡出淡入转场（250ms 淡出 + 300ms 淡入） */
+  let isStageTransitioning = false;
+
+  function gotoStageWithCrossfade(st) {
+    if (isStageTransitioning) return;
+    if (state.stage === st) return;
+
+    const appEl = document.getElementById('demo-app');
+    if (!appEl) {
+      state.stage = st;
+      renderStage(true);
+      return;
+    }
+
+    isStageTransitioning = true;
+
+    // 1. 触发柔和淡出 (250ms)
+    appEl.classList.remove('stage-fade-in');
+    appEl.classList.add('stage-fade-out');
+
+    setTimeout(() => {
+      // 2. 淡出完成时切换阶段与专属主题
+      state.stage = st;
+      if (st === 'c2') {
+        document.body.className = 'theme-gilded';
+      } else {
+        document.body.className = 'theme-arcane';
+      }
+
+      // 同步顶部 dock 激活态
+      document.querySelectorAll('[data-stage-jump]').forEach(btn => {
+        if (btn.getAttribute('data-stage-jump') === st) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      // 渲染目标阶段 DOM
+      renderStage(true);
+
+      // 3. 触发平滑淡入 (300ms)
+      appEl.classList.remove('stage-fade-out');
+      appEl.classList.add('stage-fade-in');
+
+      setTimeout(() => {
+        appEl.classList.remove('stage-fade-in');
+        isStageTransitioning = false;
+      }, 300);
+    }, 250);
+  }
+
+  /* 挂载到 window 供页面交互调用 */
+  window.demoActions = {
+    pickClass1: (cls) => {
+      switchHeroClassLocally('hero1', cls);
+    },
+    pickClass2: (cls) => {
+      switchHeroClassLocally('hero2', cls);
+    },
+    pickClass3: (cls) => {
+      state.hero3.classType = cls;
+      document.querySelectorAll('.class-tab-card').forEach(tab => {
+        tab.classList.toggle('active', tab.innerText.includes(cls));
+      });
+      const clsObj = COMBAT_DATA.classes[cls];
+      const limitedSkills = clsObj ? getSortedHeroSkills(clsObj.skills.filter(s => s.scope === '限定')) : [];
+      const limitedContainer = document.querySelector('.ui-panel-soft .flex-col');
+      if (limitedContainer) {
+        limitedContainer.style.opacity = '0';
+        setTimeout(() => {
+          limitedContainer.innerHTML = limitedSkills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1)).join('');
+          limitedContainer.style.opacity = '1';
+        }, 120);
+      }
+    },
+    toggleSkill: (skillName) => {
+      toggleGenericSkill(skillName);
+    },
+    removeSkill: (skillName) => {
+      toggleGenericSkill(skillName);
+    },
+    gotoStage: (st) => {
+      gotoStageWithCrossfade(st);
+    },
+    playVoice: (heroId) => {
+      playHeroCurrentVoice(heroId);
+    },
+    toggleBgm: () => {
+      toggleBgm();
+    },
+    setSkillStyle: (styleKey) => {
+      state.skillStyle = styleKey;
+      document.querySelectorAll('[data-style-set]').forEach(btn => {
+        if (btn.getAttribute('data-style-set') === styleKey) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      renderStage(false);
+    }
+  };
+
+  /* 快捷跳转监听 */
+  function initDockEvents() {
+    document.querySelectorAll('[data-stage-jump]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const stage = btn.getAttribute('data-stage-jump');
+        window.demoActions.gotoStage(stage);
+      });
+    });
+  }
+
+  /* 初始化启动 */
+  parseCombatBlock();
+  initDockEvents();
+  // 默认启动进入威廉阶段，绑定密教金辉主题
+  document.body.className = 'theme-arcane';
+  renderStage(true);
+  initBgm();
+
+})();
+</script>
+</body>
+</html>
