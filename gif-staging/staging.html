@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职业被动摆拍 · GIF 取景预演</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0b0f17; color: #cbd5e1;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  header {
+    flex: none; padding: 8px 14px; border-bottom: 1px solid #1e293b;
+    background: linear-gradient(180deg, #101726, #0b0f17);
+  }
+  .title-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .title-row h1 { margin: 0; font-size: 15px; color: #e2e8f0; letter-spacing: 1px; }
+  .title-row .sub { font-size: 11px; color: #64748b; }
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-top: 7px; flex-wrap: wrap; }
+  .scene-btn {
+    padding: 5px 11px; border-radius: 9px; border: 1px solid #334155; background: #131c2e;
+    color: #cbd5e1; font-size: 12px; cursor: pointer; line-height: 1.25; text-align: left;
+  }
+  .scene-btn b { display: block; font-size: 12.5px; color: #e2e8f0; }
+  .scene-btn span { font-size: 10px; color: #7c8aa0; }
+  .scene-btn:hover:not(:disabled) { border-color: #38bdf8; }
+  .scene-btn.active { border-color: #38bdf8; background: #0c2438; box-shadow: 0 0 8px rgba(56,189,248,.25) inset; }
+  .scene-btn:disabled { opacity: .45; cursor: wait; }
+  .tool {
+    padding: 5px 10px; border-radius: 8px; border: 1px solid #334155; background: #131c2e;
+    color: #cbd5e1; font-size: 12px; cursor: pointer;
+  }
+  .tool.on { border-color: #22d3ee; color: #67e8f9; }
+  .tool:disabled { opacity: .45; cursor: wait; }
+  .fr-size { display: none; align-items: center; gap: 6px; font-size: 11px; color: #7c8aa0; }
+  .fr-size.show { display: inline-flex; }
+  .fr-size input { width: 110px; accent-color: #22d3ee; }
+  #hint {
+    flex: none; min-height: 30px; padding: 5px 14px; font-size: 12.5px; color: #93c5fd;
+    background: #0d1524; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 10px;
+  }
+  #hint .dot { width: 7px; height: 7px; border-radius: 50%; background: #475569; flex: none; }
+  #hint.busy .dot { background: #38bdf8; animation: blink 1s infinite; }
+  #hint.done .dot { background: #34d399; }
+  #hint.err .dot { background: #f87171; }
+  @keyframes blink { 50% { opacity: .25; } }
+  #stage-wrap { flex: 1; position: relative; min-height: 0; }
+  #stage { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #090d16; }
+  /* 1:1 取景参考框：将来 GIF 的裁剪范围预览 */
+  #frame-box {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    border: 2px dashed rgba(34, 211, 238, .85); border-radius: 6px; pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(3, 7, 18, .45); display: none;
+  }
+  #frame-box.show { display: block; }
+  #frame-box .tag {
+    position: absolute; top: -22px; left: 0; font-size: 10.5px; color: #67e8f9;
+    background: rgba(8, 20, 32, .85); border: 1px solid rgba(34, 211, 238, .5);
+    border-radius: 4px; padding: 1px 7px; white-space: nowrap;
+  }
+  #frame-box .c { position: absolute; width: 14px; height: 14px; border: 2px solid #22d3ee; }
+  #frame-box .c1 { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+  #frame-box .c2 { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+  #frame-box .c3 { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+  #frame-box .c4 { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1>职业被动摆拍 · GIF 取景预演</h1>
+    <span class="sub">RpgCombat 实机引擎 · Math.random 已导演化（概率被动必触发）· 每次切换职业重新开局</span>
+  </div>
+  <div class="toolbar" id="toolbar">
+    <label class="tool" id="fr-toggle"><input type="checkbox" id="fr-check" style="accent-color:#22d3ee"> 取景框</label>
+    <span class="fr-size" id="fr-size-wrap">边长 <input type="range" id="fr-size" min="240" max="680" step="10" value="420"> <span id="fr-size-val">420px</span></span>
+  </div>
+</header>
+<div id="hint"><span class="dot"></span><span id="hint-text">点上方职业按钮开始摆拍（头像依赖 127.0.0.1:8766 静态服务）</span></div>
+<div id="stage-wrap">
+  <iframe id="stage"></iframe>
+  <div id="frame-box"><span class="tag">GIF 取景 1:1 <span id="fr-dim"></span></span><i class="c c1"></i><i class="c c2"></i><i class="c c3"></i><i class="c c4"></i></div>
+</div>
+
+<script>
+'use strict';
+/* ================= 配置 ================= */
+const ENGINE_URL = '/RpgCombat/index.html';           // 临时静态服务根 = D:\Project
+const AV = {
+  威廉: 'http://127.0.0.1:8766/OS/威廉·退尔头像.png',
+  冯:   'http://127.0.0.1:8766/OS/冯·霍恩海姆头像.png',
+  索恩: 'http://127.0.0.1:8766/OS/索恩头像.png',
+};
+
+/* ================= 摆拍剧本 =================
+   每个场景：yaml（战斗数据栏） + steps（父页编排，经 ev/run 操作 iframe 内引擎全局）。
+   视觉主角均为引擎自带的被动飘字 / 徽章 / 特效，不做任何额外绘制。 */
+const SCENES = [
+  {
+    id: '隐匿者', model: '威廉·退尔', desc: '隐匿值跨80→【再动】插队；跨100→【隐匿急袭+50】；远程伤害随隐匿加深',
+    avatars: { '威廉·退尔': AV.威廉 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "威廉·退尔"
+        属性: "[HP:300/300][MP:100/100][Atk:80][Armor:30][Speed:100][职业:隐匿者]"
+        技能:
+          - "【暗巷快枪】[单体;power:65][远程][MP:8]"
+  敌方列表:
+    - 角色:
+        名字: "木桩"
+        属性: "[HP:1500/1500][MP:200/200][Atk:50][Armor:20][Speed:30]"`,
+    async steps(ctx) {
+      await ctx.waitActor('h0');
+      ctx.hint('隐匿值 50→80：触发【再动】（品红飘字 + 行动条金色爆闪 + 插队）');
+      await ctx.run(`CLASS_PASSIVES['隐匿者'].gainStealth(heroesData[0], 30, document.getElementById('hero-card-h0'))`);
+      await ctx.sleep(1300);
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.waitActor('h0');   // 再动插队：同一人立刻再行动
+      ctx.hint('隐匿值 80→110：触发【隐匿急袭+50】（橙色飘字 + 🎯徽章，随后隐匿回归50）');
+      await ctx.run(`CLASS_PASSIVES['隐匿者'].gainStealth(heroesData[0], 30, document.getElementById('hero-card-h0'))`);
+      await ctx.sleep(1300);
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(2600);
+    },
+  },
+  {
+    id: '狂战士', model: '威廉·退尔', desc: '损血增攻【🩸浴血】、濒死【💀死斗(穿透)】、致命一击触发【毅力留存】',
+    avatars: { '威廉·退尔': AV.威廉 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "威廉·退尔"
+        属性: "[HP:300/300][MP:100/100][Atk:70][Armor:30][Speed:120][职业:狂战士]"
+        技能:
+          - "【重击推撞】[单体;power:80][近战][MP:5]"
+  敌方列表:
+    - 角色:
+        名字: "屠夫"
+        属性: "[HP:2000/2000][MP:200/200][Atk:400][Armor:20][Speed:30]"`,
+    async steps(ctx) {
+      await ctx.setup(`heroesData[0].hp = Math.floor(heroesData[0].maxHp * 0.22); updateHeroUI(heroesData[0]); updateBuffUI(heroesData[0]);`);
+      ctx.hint('血量压到 22%：常驻徽章【🩸浴血+78%】【💀死斗(穿透)】亮起，攻击力同步飙升');
+      await ctx.waitActor('h0');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      ctx.hint('等待敌方回合：屠夫致命一击 → 触发【毅力留存！】（黄色飘字，强制保留1HP）');
+      await ctx.waitActor('h0');
+      ctx.hint('残血反击：死斗穿透真伤 + 浴血全额加攻（防御拉满+回一口血，保持死斗区但不被补刀）');
+      await ctx.run(`heroesData[0].def = 99999; heroesData[0].hp = 60; updateHeroUI(heroesData[0]);`);
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(2600);
+    },
+  },
+  {
+    id: '防守者', model: '威廉·退尔', desc: '天生高仇恨嘲讽拉怪；闪避敌方攻击后触发【强力反击】红色圆锥冲击波',
+    avatars: { '威廉·退尔': AV.威廉 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "威廉·退尔"
+        属性: "[HP:500/500][MP:100/100][Atk:70][Armor:50][Speed:20][职业:防守者]"
+        技能:
+          - "【温切斯特M1897】[单体;power:55][远程][MP:6]"
+  敌方列表:
+    - 角色:
+        名字: "强盗"
+        属性: "[HP:2000/2000][MP:200/200][Atk:120][Armor:20][Speed:300]"`,
+    async steps(ctx) {
+      await ctx.setup(`heroesData[0].evaBonus = 5000; heroesData[0].hitBonus = 5000; updateBuffUI(heroesData[0]);`);
+      ctx.hint('敌方先手进攻 → 被防守者闪避（烟尘 + 「闪避」飘字）→ 立刻触发【强力反击】');
+      await ctx.waitActor('h0');
+      ctx.hint('强力反击已打出：红色圆锥冲击波 + 「强力反击 -N」+「仇恨重置!」——现在防守者还击');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(2600);
+    },
+  },
+  {
+    id: '风行者', model: '索恩', desc: '闪避=身法+TP（TP越高越难被命中）；施放耗蓝技能概率【多重施法】获得额外行动',
+    avatars: { '索恩': AV.索恩 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "索恩"
+        属性: "[HP:280/280][MP:80/80][Atk:75][Armor:25][Speed:110][职业:风行者]"
+        技能:
+          - "【疾风连击】[单体;power:70][近战][MP:10]"
+  敌方列表:
+    - 角色:
+        名字: "山贼"
+        属性: "[HP:2000/2000][MP:200/200][Atk:100][Armor:20][Speed:220]"`,
+    async steps(ctx) {
+      await ctx.setup(`heroesData[0].tp = 80; heroesData[0].evaBonus = 3000; heroesData[0].hitBonus = 5000; updateHeroUI(heroesData[0]); updateBuffUI(heroesData[0]);`);
+      ctx.hint('TP 预置 80：徽章【💨风行避+80】亮起（闪避=身法+TP）；敌方先手攻击 → 被高速闪避');
+      await ctx.waitActor('h0');
+      ctx.hint('施放【疾风连击】（耗蓝10）→ 触发【多重施法！】品红飘字 → 额外行动');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.waitActor('h0');
+      ctx.hint('多重施法生效：风行者立刻再动，二次连击');
+      await ctx.run(`heroesData[0].hitBonus = 5000;`);   // 引擎在攻击结算后会清空必中Buff（index.html"清空必中Buff"机制），补回保证二连击必中
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(2600);
+    },
+  },
+  {
+    id: '施法者', model: '冯·霍恩海姆', desc: '开场自带半数法力的白盾；每次耗蓝概率触发【法力回响】→ ⚡加速+1 / ✦TP+15',
+    avatars: { '冯·霍恩海姆': AV.冯 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "冯·霍恩海姆"
+        属性: "[HP:260/260][MP:200/200][Atk:85][Armor:20][Speed:150][职业:施法者]"
+        技能:
+          - "【召雷术】[群攻;power:75][法术][MP:30]"
+  敌方列表:
+    - 角色:
+        名字: "木桩"
+        属性: "[HP:900/900][MP:200/200][Atk:40][Armor:20][Speed:30]"
+    - 角色:
+        名字: "木桩"
+        属性: "[HP:900/900][MP:200/200][Atk:40][Armor:20][Speed:30]"`,
+    async steps(ctx) {
+      ctx.hint('开场被动：法力200 → 自带 100 点白盾（血条白色段，开局即有）');
+      await ctx.waitActor('h0');
+      ctx.hint('施放【召雷术】群雷（耗蓝30）→ 法力回响：⚡加速+1 / ✦TP+15 青琥珀双飘字');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(3200);
+      await ctx.waitActor('h0');
+      ctx.hint('再次施放：法力回响再次触发，加速库存累积（⚡加速xN 徽章）');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(2600);
+    },
+  },
+  {
+    id: '圣职者', model: '冯·霍恩海姆', desc: '满TP点击自己激活【潜能解封】极限爆发 → 施放技能化为【祈愿】：赋予队友再动',
+    avatars: { '冯·霍恩海姆': AV.冯 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "冯·霍恩海姆"
+        属性: "[HP:280/280][MP:150/150][Atk:60][Armor:25][Speed:150][职业:圣职者]"
+        技能:
+          - "【净化颂歌】[群回;power:80][法术][MP:20]"
+    - 角色:
+        名字: "战友"
+        属性: "[HP:300/300][MP:80/80][Atk:70][Armor:25][Speed:100]"
+        技能:
+          - "【攻击】[单体;power:60][近战]"
+  敌方列表:
+    - 角色:
+        名字: "木桩"
+        属性: "[HP:1500/1500][MP:200/200][Atk:80][Armor:20][Speed:30]"`,
+    async steps(ctx) {
+      await ctx.setup(`heroesData[0].tp = heroesData[0].maxTp; updateHeroUI(heroesData[0]);`);
+      await ctx.waitActor('h0');
+      ctx.hint('TP 已满：点击自己的卡激活极限爆发 →「潜能解封!」黄色飘字');
+      await ctx.run(`handleTargetClick(heroesData[0], 'hero')`);
+      await ctx.sleep(1100);
+      ctx.hint('爆发激活状态下施放技能 → 进入祈愿 targeting，点选队友');
+      await ctx.run(`prepareSkillTarget(0)`);
+      await ctx.sleep(600);
+      ctx.hint('祈愿结算：buff 圣光特效 + 队友「祈愿再动!」品红飘字 → 队友插队行动');
+      await ctx.run(`handleTargetClick(heroesData[1], 'hero')`);
+      await ctx.waitActor('h1');
+      ctx.hint('队友获得再动：立刻行动（这就是圣职者的支援爆发价值）');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      await ctx.sleep(2600);
+    },
+  },
+  {
+    id: '灾厄使', model: '冯·霍恩海姆', desc: '目标每个减益增伤15%；出手附带【剧毒】（中毒!紫飘字，敌方回合毒发）',
+    avatars: { '冯·霍恩海姆': AV.冯 },
+    yaml: `
+战斗数据栏:
+  我方列表:
+    - 角色:
+        名字: "冯·霍恩海姆"
+        属性: "[HP:280/280][MP:120/120][Atk:75][Armor:25][Speed:140][职业:灾厄使]"
+        技能:
+          - "【瘟疫飞弹】[单体;power:60][法术][MP:10]"
+  敌方列表:
+    - 角色:
+        名字: "木桩"
+        属性: "[HP:1500/1500][MP:200/200][Atk:60][Armor:20][Speed:30]"`,
+    async steps(ctx) {
+      await ctx.setup(`enemiesData[0].buffs.push({type:'poison',value:20,duration:5},{type:'burn',value:20,duration:5}); updateEnemyUI(enemiesData[0]); updateBuffUI(enemiesData[0]);`);
+      ctx.hint('木桩身上预挂 2 个减益（毒+燃）：灾厄使对其伤害 +30%（每减益+15%）');
+      await ctx.waitActor('h0');
+      ctx.hint('出手命中 →「中毒!」紫色飘字：剧毒=攻击力30%，持续3回合');
+      await ctx.run(`executeHeroSkillAction(0, enemiesData[0])`);
+      ctx.hint('等待敌方回合开始：毒素发作（「毒 -N」紫色飘字，真实伤害）');
+      await ctx.sleep(9000);
+    },
+  },
+];
+
+/* ================= 引擎挂载（复刻 integration-test/harness.html 模式） ================= */
+const $ = (s) => document.querySelector(s);
+const stage = $('#stage');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let engineHtml = null;
+
+/* 最小酒馆 API 桩：引擎 boot 期探测/读楼用，缺了会走非酒馆兜底 */
+parent.__STAGING_API = {
+  tavern_events: { MESSAGE_RECEIVED: 'message_received', CHAT_CHANGED: 'chat_id_changed' },
+  getVariables: () => ({}),
+  insertOrAssignVariables: () => {},
+  setVariables: () => {},
+  replaceVariables: () => {},
+  getCurrentMessageId: () => 0,
+  getLastMessageId: () => 0,
+  getCurrentMessage: () => null,
+  getChatMessages: () => [],
+  setChatMessages: () => {},
+  eventOn: () => {},
+  eventOnce: () => {},
+  eventEmit: () => {},
+  generateRaw: async () => { throw new Error('摆拍环境无 LLM'); },
+  triggerSlash: () => {},
+  getCurrentCharacterName: () => '摆拍',
+  getCharWorldbookNames: () => ({ primary: '', additional: [] }),
+  getWorldbookNames: () => [],
+  getWorldbook: () => null,
+  createWorldbook: () => true,
+  rebindCharWorldbooks: () => true,
+  createWorldbookEntries: () => true,
+  updateWorldbookWith: () => true,
+};
+
+async function fetchEngine() {
+  if (engineHtml) return engineHtml;
+  const res = await fetch(ENGINE_URL, { cache: 'reload' });
+  if (!res.ok) throw new Error('读取引擎失败：' + res.status + '（需以 D:\\Project 为根的 http 服务打开本页）');
+  engineHtml = await res.text();
+  return engineHtml;
+}
+
+/* 引导脚本：插在 <head> 后，先于引擎执行——注入桩 + 导演化 Math.random（0.01 让一切概率判定成功） */
+function bootSnippet() {
+  return '<base href="/RpgCombat/">' +
+    '<script>(function(){var M=parent.__STAGING_API;for(var k in M){window[k]=M[k];}' +
+    'window.__RQ=[];Math.random=function(){return window.__RQ.length?window.__RQ.shift():0.01;};})();\x3c/script>';
+}
+
+function win() { return stage.contentWindow; }
+function ev(expr) { return win().eval('(function(){return (' + expr + ');})()'); }
+function run(code) { win().eval(code); }
+
+async function mountEngine() {
+  const html = await fetchEngine();
+  stage.srcdoc = html.replace(/<head([^>]*)>/i, (m) => m + bootSnippet());
+  const deadline = Date.now() + 25000;
+  while (Date.now() < deadline) {
+    await sleep(150);
+    try {
+      if (typeof win().showBattleResult === 'function' && typeof win().onCombatDataReceived === 'function') return;
+    } catch (e) { /* 未就绪 */ }
+  }
+  throw new Error('引擎 25 秒内未就绪');
+}
+
+async function waitActor(heroId, timeoutMs = 60000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const ok = ev(`(state.isGameStarted && !state.isAnimating && state.actionQueue[state.queueIndex] && state.actionQueue[state.queueIndex].ref && state.actionQueue[state.queueIndex].ref.id === '${heroId}')`);
+      if (ok) return;
+    } catch (e) { /* 引擎尚未就绪 */ }
+    await sleep(150);
+  }
+  throw new Error('等待 ' + heroId + ' 行动超时');
+}
+
+/* ================= 场景运行 ================= */
+let running = false;
+function hint(text, cls) {
+  $('#hint').className = cls || 'busy';
+  $('#hint-text').textContent = text;
+}
+
+async function playScene(scene) {
+  if (running) return;
+  running = true;
+  document.querySelectorAll('.scene-btn').forEach((b) => { b.disabled = true; b.classList.toggle('active', b.dataset.id === scene.id); });
+  try {
+    hint('重新挂载引擎，构建「' + scene.id + '·' + scene.model + '」战局…');
+    await mountEngine();
+    run('Object.assign(AVATAR_MAP, ' + JSON.stringify(scene.avatars) + ');');
+    run('onCombatDataReceived(' + JSON.stringify(scene.yaml) + ');');
+    await sleep(400);
+    if (!ev('!!heroesData && heroesData.length > 0')) throw new Error('战局构建失败（YAML 解析异常）');
+    run('startGame();');
+    await scene.steps({
+      sleep, run, hint: (t) => hint(t, 'busy'),
+      waitActor,
+      setup: async (code) => { run(code); await sleep(500); },
+    });
+    hint('「' + scene.id + '」演示完成 — 可点重播再看，或切换其他职业', 'done');
+  } catch (e) {
+    console.error(e);
+    hint('摆拍出错：' + e.message, 'err');
+  } finally {
+    running = false;
+    document.querySelectorAll('.scene-btn').forEach((b) => { b.disabled = false; });
+  }
+}
+
+/* ================= UI 构建 ================= */
+const toolbar = $('#toolbar');
+SCENES.forEach((s) => {
+  const b = document.createElement('button');
+  b.className = 'scene-btn'; b.dataset.id = s.id;
+  b.innerHTML = '<b>' + s.id + ' · ' + s.model + '</b><span>' + s.desc + '</span>';
+  b.title = '点击开始摆拍';
+  b.addEventListener('click', () => playScene(s));
+  toolbar.appendChild(b);
+});
+const replay = document.createElement('button');
+replay.className = 'tool'; replay.textContent = '↻ 重播当前职业';
+replay.addEventListener('click', () => { const act = document.querySelector('.scene-btn.active'); if (act) playScene(SCENES.find((s) => s.id === act.dataset.id)); });
+toolbar.appendChild(replay);
+
+/* 取景参考框 */
+const frBox = $('#frame-box'), frCheck = $('#fr-check'), frSize = $('#fr-size');
+function applyFrame() {
+  const size = frSize.value;
+  frBox.classList.toggle('show', frCheck.checked);
+  $('#fr-size-wrap').classList.toggle('show', frCheck.checked);
+  frBox.style.width = size + 'px'; frBox.style.height = size + 'px';
+  $('#fr-size-val').textContent = size + 'px';
+  $('#fr-dim').textContent = size + '×' + size;
+}
+frCheck.addEventListener('change', applyFrame);
+frSize.addEventListener('input', applyFrame);
+applyFrame();
+</script>
+</body>
+</html>
