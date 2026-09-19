@@ -384,17 +384,21 @@
       ov.classList.remove('is-closing');
       ov.classList.add('is-closed');   /* 全闭钉住，观众看不见的时刻换内容 */
       swapFaces();
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          ov.classList.remove('is-closed');
-          ov.classList.add('is-opening');
-          setTimeout(function () {
-            ov.classList.remove('is-opening');
-            busy = false;
-            runBtn.disabled = false;
-          }, t.open);
-        });
-      });
+      /* 等一帧 paint 后再开帘；rAF 被暂停的环境由 setTimeout 兜底防卡死 */
+      let opened = false;
+      const openCurtain = function () {
+        if (opened) return;
+        opened = true;
+        ov.classList.remove('is-closed');
+        ov.classList.add('is-opening');
+        setTimeout(function () {
+          ov.classList.remove('is-opening');
+          busy = false;
+          runBtn.disabled = false;
+        }, t.open);
+      };
+      requestAnimationFrame(function () { setTimeout(openCurtain, 0); });
+      setTimeout(openCurtain, 90);
     }, t.close);
   }
 
