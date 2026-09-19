@@ -933,7 +933,7 @@
           - "【战意激增】[通用][价:2][MP:2][单增;power:50][自盲;power:10]"
           - "【碎骨连打】[通用][价:1][单体;power:60][单体;power:60][Aim:100][转火][近战]"
           - "【鲁莽挥击】[通用][价:2][单体;power:180][HP:20][Aim:120][近战]"
-          - "【沸血之躯】[限定][价:3][免伤;power:120][单冲;power:20][HP:20][反应][MP:2]"
+          - "【沸血之躯】[限定][价:2][免伤;power:120][单冲;power:20][HP:20][MP:2][反应]"
           - "【双管猎象枪】[限定][价:3][单体(枪击);power:240][单降;power:20][自盲;power:30;turns:2][暴击:5%][Aim:85][TP:10][远程][特效:远程重击][高阶]"
           - "【重击推撞】[限定][价:3][眩晕;power:140][嘲讽;power:50][Aim:160][MP:3][TP:30][近战][特效:近战重击][高阶]"
         物品:
@@ -958,7 +958,7 @@
           - "【跟腱切割】[通用][价:1][单体;power:40][单缓;power:15][Aim:80][近战]"
           - "【潜能激发】[通用][价:1][单冲:20][MP:5][他人][限2次]"
           - "【追风射击】[通用][价:2][穿透;power:40][单弱;power:10][暴击:20%][Turns:2][Aim:200][MP:3][远程][特效:枪击穿透]"          
-          - "【疾风连击】[限定][价:2][单体;power:55][单体;power:55][再动;power:1][MP:2][TP:5][转火][近战]"
+          - "【疾风连击】[限定][价:2][单体;power:55][单体;power:55][再动;power:1][MP:2][TP:5][转火][近战][高阶]"
           - "【折影步】[限定][价:2][回避;power:180][MP:3][反应]"
           - "【生体流转】[限定][再动;power:2][HP:20][TP:10][限2次][特效:生体流转][高阶]"
         物品:
@@ -985,13 +985,13 @@
           - "【归尘礼赞】[限定][穿透;power:100][单降;power:20][Aim:999][MP:10][HP:10][TP:10][法术][特效:圣光01][限3次][必中][延迟:1][传奇]"
     - 角色:
         名字: "灾厄使"
-        属性: "[HP:120/100][MP:40/40][Atk:20][Armor:40][Speed:70][职业:灾厄使]"
+        属性: "[HP:120/120][MP:40/40][Atk:20][Armor:40][Speed:70][职业:灾厄使]"
         技能:
-          - "【蚀骨毒刃】[通用][价:1][单体;power:20][中毒;power:10][Aim:160][MP:3][近战]"
+          - "【蚀骨毒刃】[通用][价:1][穿透;power:20][中毒;power:5][中毒;power:5][Aim:160][MP:3][近战]"
           - "【拉莱耶造雾术】[通用][价:1][群盲;power:15;turns:4][自盲;power:15;turns:2][MP:2][法术][限1次][必中][特效:造雾术]"
           - "【静默之域】[通用][价:1][群滞;power:15][Aim:160][MP:2][法术]"
           - "【灾厄降临】[限定][价:3][MP:10][TP:10][看破:远程][限3次]"
-          - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][法术][特效:高阶召唤术]"
+          - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][限2次][法术][特效:高阶召唤术][高阶]"
           - "【异种坏死雾】[限定][价:3][群中毒;power:30][群弱;power:20][群滞;power:20][远程][Aim:300][TP:20][MP:5][高阶][特效:异种坏死雾]"
 </Combat_block></script>
 
@@ -1608,19 +1608,86 @@
     return 'bg-white/5 text-white/70 border-white/10';
   }
 
-  /* 获取技能持续回合数：未显式声明时遵循底层战斗引擎规范默认 3 回合 */
-  function getSkillTurns(rawText) {
-    if (!rawText) return 3;
-    // 1. 优先匹配顶级标签 [Turns:N]、[Turn:N]、[持续:N]
-    const topMatch = rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i);
-    if (topMatch) return parseInt(topMatch[1], 10);
-    // 2. 匹配效果内部参数 ;turns:N 或 ;turn:N（若有多处取最大值）
-    const innerMatches = [...rawText.matchAll(/;turns?[:：](\d+)/gi)];
-    if (innerMatches.length > 0) {
-      const turns = innerMatches.map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
-      if (turns.length > 0) return Math.max(...turns);
+  /* 具有持续生效时间的机制列表与其匹配标签正则 */
+  const DURATION_MECH_PATTERNS = {
+    '目标致盲': [/^(?:单盲|群盲|致盲)/i],
+    '自身致盲': [/^(?:自盲|自降|自弱)/i],
+    '目标降防': [/^(?:单降|群降|降防)/i],
+    '目标加防': [/^(?:单防|群防|加防)/i],
+    '目标降攻': [/^(?:单弱|群弱|降攻)/i],
+    '目标增攻': [/^(?:单增|群增|增攻)/i],
+    '目标缓速': [/^(?:单缓|群缓|缓速)/i],
+    '单速': [/^(?:单速|群速|加速)/i],
+    '目标降避': [/^(?:单滞|群滞|降避)/i],
+    '持续闪避': [/^(?:单避|群避|闪避)/i],
+    '护盾吸收': [/^(?:单盾|群盾|护盾)/i],
+    '目标瞄准': [/^(?:单瞄|群瞄|瞄准)/i],
+    '隐匿': [/^(?:隐匿)/i],
+    '仇恨嘲讽': [/^(?:嘲讽)/i],
+    '中毒': [/^(?:中毒|群中毒)/i],
+    '燃烧': [/^(?:燃烧|群燃烧)/i],
+    '麻痹': [/^(?:麻痹|群麻痹)/i],
+    '眩晕': [/^(?:眩晕|击晕)/i],
+    '延迟': [/^(?:延迟)/i]
+  };
+
+  /* 获取特定机制或效果在指定技能中的生效回合数（瞬发或被动规则返回 null） */
+  function getMechTurns(mechKey, rawText, matchedTagStr = null) {
+    if (!mechKey || !DURATION_MECH_PATTERNS[mechKey]) return null;
+
+    let targetTag = matchedTagStr;
+    if (!targetTag && rawText) {
+      const tags = rawText.match(/\[([^\]]+)\]/g) || [];
+      for (const t of tags) {
+        const inner = t.slice(1, -1).trim();
+        const parts = inner.split(/[;；]/);
+        const mainPart = parts[0].trim();
+
+        if (mechKey === '隐匿') {
+          if (mainPart === '隐匿' || (mainPart.includes('嘲讽') && parts.some(p => p.includes('-')))) {
+            targetTag = inner;
+            break;
+          }
+        } else if (mechKey === '仇恨嘲讽') {
+          if (mainPart.includes('嘲讽') && !parts.some(p => p.includes('-'))) {
+            targetTag = inner;
+            break;
+          }
+        } else if (DURATION_MECH_PATTERNS[mechKey].some(pat => pat.test(mainPart))) {
+          targetTag = inner;
+          break;
+        }
+      }
     }
-    // 3. 底层引擎默认规则：未写持续回合统一默认为 3 回合
+
+    // 1. 优先匹配该标签片段自带的 ;turns:N
+    if (targetTag) {
+      const tm = targetTag.match(/;turns?[:：](\d+)/i);
+      if (tm) return parseInt(tm[1], 10);
+    }
+
+    // 2. 自盲专属规则：用户明确指定"自盲基本都是2回合，造雾术是和敌方debuff区分开的"
+    if (mechKey === '自身致盲') return 2;
+
+    // 3. 眩晕（跳过行动）：默认 1 回合
+    if (mechKey === '眩晕') return 1;
+
+    // 4. 延迟蓄力准备
+    if (mechKey === '延迟') {
+      if (targetTag) {
+        const dm = targetTag.match(/延迟[:：](\d+)/i);
+        if (dm) return parseInt(dm[1], 10);
+      }
+      return 1;
+    }
+
+    // 5. 检查全局顶级 [Turns:N] 或 [持续:N] 声明
+    if (rawText) {
+      const gm = rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i);
+      if (gm) return parseInt(gm[1], 10);
+    }
+
+    // 6. 其他持续性 Buff / Debuff 状态遵循底层引擎默认 3 回合
     return 3;
   }
 
@@ -1778,8 +1845,8 @@
       else if (displayLabel.includes('加防')) targetMechKey = '目标加防';
       else if (displayLabel.includes('降攻')) targetMechKey = '目标降攻';
       else if (displayLabel.includes('增攻')) targetMechKey = '目标增攻';
+      else if (displayLabel.includes('自身致盲') || displayLabel.includes('自盲')) targetMechKey = '自身致盲';
       else if (displayLabel.includes('致盲')) targetMechKey = '目标致盲';
-      else if (displayLabel.includes('自盲')) targetMechKey = '自身致盲';
       else if (displayLabel.includes('缓速')) targetMechKey = '目标缓速';
       else if (displayLabel.includes('降避')) targetMechKey = '目标降避';
       else if (displayLabel.includes('瞄准')) targetMechKey = '目标瞄准';
@@ -1818,7 +1885,7 @@
       if (cat === 'aux') {
         // 辅助属性（他人、持续、限用、蓄力）：紧凑浅灰半透微标，无呼吸光点，低调不抢视线
         pills.push(`
-          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none">
+          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none cursor-pointer">
             <span>${displayLabel}</span>
             ${displayVal != null ? `<span class="font-bold font-mono text-white/60 ml-0.5">${displayVal}</span>` : ''}
           </span>
@@ -1832,7 +1899,7 @@
         else if (cat === 'debuff') dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
 
         pills.push(`
-          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <span ${mechFocusAttr} class="pill-trigger inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] cursor-pointer">
             <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
             <span class="tracking-wide">${displayLabel}</span>
             ${displayVal != null ? `<span class="font-bold text-amber-200 font-mono ml-0.5">${displayVal}</span>` : ''}
@@ -1932,36 +1999,33 @@
       tierBadgeHtml = `<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>`;
     }
 
-    const skillTurns = getSkillTurns(s.rawText);
-    const turnsBadgeHtml = `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.6rem] font-mono font-bold border border-amber-500/40 bg-gradient-to-r from-amber-950/60 to-amber-900/40 text-amber-200/95 shadow-[0_0_6px_rgba(217,180,92,0.2)] whitespace-nowrap leading-none mr-1 select-none" title="持续时间：${skillTurns}回合"><span class="text-[0.52rem] text-amber-400 opacity-90">⏱</span>${skillTurns}回合</span>`;
-
     let chipClass = '';
     let badgeBoxClass = '';
     let badgeContent = '';
     let costRightText = '';
 
     if (heroTheme === 'gold') {
-      // 威廉：专属金色主题（持续回合 + 金色命中率）
+      // 威廉：专属金色主题（带四角星和金色光晕，右侧显示命中率）
       chipClass = 'theme-gold';
       badgeBoxClass = 'border-amber-500/60 bg-amber-950/40 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
-      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
     } else if (heroTheme === 'purple') {
-      // 冯：金紫交辉炼金秘术风格（持续回合 + 金色命中率）
+      // 冯：金紫交辉炼金秘术风格（带四角星和金色光晕，右侧显示命中率）
       chipClass = 'theme-purple';
       badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
-      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
     } else {
-      // 主角：技能插槽（持续回合 + 命中率与购点）
+      // 主角：技能插槽
       chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
       badgeBoxClass = s.scope === '限定'
         ? 'border-amber-500/50 bg-amber-950/30 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.25)]'
         : 'border-purple-500/50 bg-purple-950/30 text-purple-300 shadow-[0_0_6px_rgba(192,132,252,0.25)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
       costRightText = s.scope === '限定'
-        ? `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`
-        : `<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-purple-400 text-xs">✦</span> ${aimDisplayText} · ${s.shopCost} 点</span>`;
+        ? `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`
+        : `<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1"><span class="text-purple-400 text-xs">✦</span> ${aimDisplayText} · ${s.shopCost} 点</span>`;
     }
 
     const ammoCost = s.ammoCost || GLOBAL_AMMO_BINDINGS[s.name] || null;
@@ -2422,6 +2486,8 @@
     const poolCards = COMBAT_DATA.genericPool.map(s => {
       const isSelected = state.hero3.skills.includes(s.name);
       const reactText = getReactionBadgeText(s);
+      // 回合徽章仅展示技能显式声明的顶级 [Turns:N]/[持续:N]，未声明的回合归属各机制图标悬浮展示
+      const poolTurns = s.rawText ? (s.rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i) || [])[1] : null;
       return `
         <div class="skill-pick-card ${isSelected ? 'selected' : ''}" data-skill-card="${s.name}" data-skill-name="${s.name}" data-skill-raw="${s.rawText ? s.rawText.replace(/"/g, '&quot;') : ''}" onclick="window.demoActions.toggleSkill('${s.name}')">
           <div class="flex items-center justify-between mb-1">
@@ -2432,7 +2498,7 @@
             <span>来源: ${s.srcClass}</span>
             ${(s.typeTag && s.typeTag !== '反应') ? `<span>·</span><span>${s.typeTag}</span>` : ''}
             ${reactText ? `<span>·</span><span class="text-amber-300 font-bold">${reactText}</span>` : ''}
-            <span>·</span><span class="inline-flex items-center gap-0.5 text-amber-300/90 font-mono font-bold"><span class="text-[0.6rem]">⏱</span>${getSkillTurns(s.rawText)}回合</span>
+            ${poolTurns ? `<span>·</span><span class="inline-flex items-center gap-0.5 text-amber-300/90 font-mono font-bold"><span class="text-[0.6rem]">⏱</span>${poolTurns}回合</span>` : ''}
           </div>
           <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
             ${formatSkillEffectPills(s.rawText)}
@@ -2767,8 +2833,18 @@
     } else if (rawText && rawText.includes('通用')) {
       badges.push('<span class="text-purple-200/70 border border-purple-500/30 bg-black/40 px-1.5 py-0.2 rounded">通用</span>');
     }
-    const turnsVal = getSkillTurns(rawText);
-    badges.push(`<span class="text-amber-300 font-mono border border-amber-500/40 bg-amber-950/40 px-1.5 py-0.2 rounded">⏱ ${turnsVal}回合</span>`);
+    // 悬浮特定机制图标时，回合徽章展示该机制自身的生效回合（如造雾术群盲4/自盲2）；瞬发/被动机制不展示。
+    // 整卡悬浮时仅在技能显式声明顶级 [Turns:N]/[持续:N] 时展示，未声明的回合归属各机制图标自身。
+    let turnsVal = null;
+    if (focusMechKey) {
+      turnsVal = getMechTurns(focusMechKey, rawText);
+    } else {
+      const topMatch = rawText ? rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i) : null;
+      turnsVal = topMatch ? parseInt(topMatch[1], 10) : null;
+    }
+    if (turnsVal != null) {
+      badges.push(`<span class="text-amber-300 font-mono border border-amber-500/40 bg-amber-950/40 px-1.5 py-0.2 rounded">⏱ ${turnsVal}回合</span>`);
+    }
     if (ttBadges) ttBadges.innerHTML = badges.join('');
 
     // 2. 提取并渲染关联机制 (按需高亮聚焦机制)
@@ -2817,13 +2893,15 @@
           if (isFocused) borderHighlight = 'border-emerald-400/80 bg-emerald-500/10';
         }
 
+        const focusTurns = isFocused ? getMechTurns(key, rawText) : null;
+
         return `
           <div class="tooltip-mech-entry ${borderHighlight} rounded-lg px-2 py-1.5 transition-all">
             <div class="flex items-center gap-1.5 text-xs font-bold ${titleColor} mb-0.5">
               <span>${item.icon}</span>
               <span class="tracking-wide">【${item.title}】</span>
               ${extraBadge}
-              ${isFocused && !extraBadge ? '<span class="text-[0.58rem] text-amber-300 font-mono font-normal ml-auto">聚焦机制</span>' : ''}
+              ${isFocused && focusTurns != null ? `<span class="text-[0.6rem] font-mono text-amber-300 font-bold px-1.5 py-0.2 rounded border border-amber-500/40 bg-amber-950/60 ml-auto shrink-0">⏱ 生效 ${focusTurns} 回合</span>` : (isFocused && !extraBadge ? '<span class="text-[0.58rem] text-amber-300 font-mono font-normal ml-auto">聚焦机制</span>' : '')}
             </div>
             <div class="text-[0.72rem] text-white/80 leading-relaxed font-sans pl-5">
               ${item.desc}
