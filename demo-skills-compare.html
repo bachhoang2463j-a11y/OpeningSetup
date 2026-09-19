@@ -117,6 +117,68 @@
                 radial-gradient(circle at 70% 80%, rgba(147, 51, 234, 0.16) 0%, transparent 60%);
   }
 
+  /* 顶部方案对比悬浮切换器 (Fixed Style Switcher) */
+  .skill-style-switch-dock {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    pointer-events: auto;
+  }
+  .style-dock-inner {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    border-radius: 9999px;
+    background: rgba(10, 14, 22, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.8), 0 0 18px rgba(217, 180, 92, 0.2);
+  }
+  .style-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .style-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .style-btn.active {
+    background: linear-gradient(135deg, rgba(217, 180, 92, 0.28), rgba(217, 180, 92, 0.1));
+    border-color: rgba(217, 180, 92, 0.7);
+    color: #fce7b2;
+    box-shadow: 0 0 14px rgba(217, 180, 92, 0.35);
+    font-weight: bold;
+  }
+
+  /* 方案 A/B 现代晶体流光徽章 */
+  .tier-badge-modern-adv {
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(120, 53, 15, 0.35));
+    color: #fef08a;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  }
+  .tier-badge-modern-leg {
+    border: 1px solid rgba(248, 113, 113, 0.65);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.28), rgba(136, 19, 55, 0.45));
+    color: #fee2e2;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.38);
+  }
+
   /* 右侧竖列极简悬浮 Dock（阶段跳转与全局BGM控制） */
   .switch-dock {
     position: fixed;
@@ -521,20 +583,6 @@
     font-weight: 700;
   }
 
-  /* 现代微晶品阶流光徽章 */
-  .tier-badge-modern-adv {
-    border: 1px solid rgba(251, 191, 36, 0.55);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(120, 53, 15, 0.35));
-    color: #fef08a;
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
-  }
-  .tier-badge-modern-leg {
-    border: 1px solid rgba(248, 113, 113, 0.65);
-    background: linear-gradient(135deg, rgba(220, 38, 38, 0.28), rgba(136, 19, 55, 0.45));
-    color: #fee2e2;
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.38);
-  }
-
   /* ③ 职业介绍卡片与悬浮 GIF 块 */
   .class-tab-card {
     background: var(--panel-glass);
@@ -737,6 +785,27 @@
 <body class="theme-arcane">
 
 <div id="ambient-glow"></div>
+
+<!-- 顶部技能标签多方案对比无感切换条 (Fixed Style Switch Dock) -->
+<div class="skill-style-switch-dock">
+  <div class="style-dock-inner">
+    <button class="style-btn" data-style-set="v0" onclick="window.demoActions.setSkillStyle('v0')">
+      <span>现行原版</span>
+    </button>
+    <button class="style-btn active" data-style-set="va" onclick="window.demoActions.setSkillStyle('va')">
+      <span class="text-amber-400">✦</span>
+      <span>方案 A · 暗夜微光 (推荐)</span>
+    </button>
+    <button class="style-btn" data-style-set="vb" onclick="window.demoActions.setSkillStyle('vb')">
+      <span class="text-sky-400">●</span>
+      <span>方案 B · 全息微晶</span>
+    </button>
+    <button class="style-btn" data-style-set="vc" onclick="window.demoActions.setSkillStyle('vc')">
+      <span class="text-amber-300/80">📜</span>
+      <span>方案 C · 秘契铭文</span>
+    </button>
+  </div>
+</div>
 
 <!-- 右侧竖列极简悬浮胶囊（阶段跳转与全局BGM控制） -->
 <div class="switch-dock">
@@ -959,6 +1028,7 @@
     audioMuted: false,
     bgmPlaying: true,
     currentAudioHero: null,
+    skillStyle: 'va', // 'v0':现行版, 'va':方案A暗夜微光(推荐), 'vb':方案B全息微晶, 'vc':方案C秘契铭文
   };
 
   /* 解析 combat-data YAML 与物品弹药绑定 */
@@ -1469,7 +1539,9 @@
         displayVal += ` (${extraTurns}T)`;
       }
 
-      // 属性语义分类（方案 B：战术全息透镜 · 毛玻璃微晶）
+      const currentStyle = (state && state.skillStyle) ? state.skillStyle : 'va';
+
+      // 属性语义分类
       let cat = 'buff';
       if (displayLabel === '他人' || displayLabel === '友方' || displayLabel === '持续' || displayLabel === '限用' || displayLabel === '蓄力') {
         cat = 'aux';
@@ -1485,29 +1557,82 @@
         cat = 'buff';
       }
 
-      if (cat === 'aux') {
-        // 辅助属性（他人、持续、限用、蓄力）：紧凑浅灰半透微标，无呼吸光点，低调不抢视线
+      if (currentStyle === 'v0') {
+        // ---- 现行原版：经典带框彩色胶囊 ----
+        const style = getPillColorStyle(displayLabel);
         pills.push(`
-          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none">
+          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.64rem] font-mono border leading-none ${style}">
             <span>${displayLabel}</span>
-            ${displayVal != null ? `<span class="font-bold font-mono text-white/60 ml-0.5">${displayVal}</span>` : ''}
+            ${displayVal != null ? `<span class="font-bold opacity-90 font-mono">${displayVal}</span>` : ''}
           </span>
         `);
-      } else {
-        // 核心战斗收益：极细半透微晶描边 + 呼吸微光色点指示分类 + 象牙金等宽数值
-        let dotClass = 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]';
-        if (cat === 'heal') dotClass = 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]';
-        else if (cat === 'damage') dotClass = 'bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)]';
-        else if (cat === 'defense') dotClass = 'bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.9)]';
-        else if (cat === 'debuff') dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
+      } else if (currentStyle === 'va') {
+        // ---- 方案 A：【暗夜微光·无界扁平流 (推荐)】----
+        // 彻底丢弃实线边框；辅助标签弱化为优雅浅灰；主收益带半透环境微光，主次分明
+        if (cat === 'aux') {
+          pills.push(`
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.61rem] font-mono leading-none bg-white/[0.04] text-white/45 select-none">
+              <span>${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold font-mono text-white/70 ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        } else {
+          let glowClass = 'bg-amber-500/12 text-amber-300/90';
+          if (cat === 'heal') glowClass = 'bg-emerald-500/14 text-emerald-300';
+          else if (cat === 'damage') glowClass = 'bg-rose-500/14 text-rose-300';
+          else if (cat === 'defense') glowClass = 'bg-sky-500/14 text-sky-300';
+          else if (cat === 'debuff') glowClass = 'bg-purple-500/14 text-purple-300';
 
-        pills.push(`
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-            <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
-            <span class="tracking-wide">${displayLabel}</span>
-            ${displayVal != null ? `<span class="font-bold text-amber-200 font-mono ml-0.5">${displayVal}</span>` : ''}
-          </span>
-        `);
+          pills.push(`
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.65rem] font-mono leading-none ${glowClass}">
+              <span class="opacity-85 font-sans">${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold font-mono text-white/95 ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        }
+      } else if (currentStyle === 'vb') {
+        // ---- 方案 B：【战术全息透镜·毛玻璃微晶】----
+        // 极细半透微晶描边 + 呼吸微光点指示类型，消除大面积杂乱色块
+        if (cat === 'aux') {
+          pills.push(`
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-mono border border-white/5 bg-white/[0.02] text-white/40 leading-none">
+              <span>${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold font-mono text-white/60 ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        } else {
+          let dotClass = 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]';
+          if (cat === 'heal') dotClass = 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]';
+          else if (cat === 'damage') dotClass = 'bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)]';
+          else if (cat === 'defense') dotClass = 'bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.9)]';
+          else if (cat === 'debuff') dotClass = 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.9)]';
+
+          pills.push(`
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[0.63rem] font-mono border border-white/10 bg-white/[0.03] backdrop-blur-sm leading-none text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
+              <span class="tracking-wide">${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-bold text-amber-200 font-mono ml-0.5">${displayVal}</span>` : ''}
+            </span>
+          `);
+        }
+      } else if (currentStyle === 'vc') {
+        // ---- 方案 C：【古典秘契铭文·纯净排版流】----
+        // 彻底丢弃胶囊/Pill形态，由古典星符 ✦ 连缀成古典典籍铭文
+        if (cat === 'aux') {
+          pills.push(`
+            <span class="inline-flex items-center text-[0.62rem] font-mono text-[#d9b45c]/45 mr-1 select-none leading-normal">
+              [${displayLabel}${displayVal != null ? ' ' + displayVal : ''}]
+            </span>
+          `);
+        } else {
+          pills.push(`
+            <span class="inline-flex items-center gap-1 text-[0.68rem] font-serif text-[#e8dcc0]/85 mr-2 leading-normal">
+              <span class="text-[0.52rem] text-[#d9b45c]/50 font-mono select-none">✦</span>
+              <span>${displayLabel}</span>
+              ${displayVal != null ? `<span class="font-mono text-[0.72rem] font-bold text-[#f5d78e] ml-0.5 tracking-tight">${displayVal}</span>` : ''}
+            </span>
+          `);
+        }
       }
     });
 
@@ -1592,14 +1717,28 @@
     const aimDisplayText = aimText === '必中' ? '必中' : (aimText === '自身' ? '自身' : `命中 ${aimText}`);
     const tier = getSkillTier(s);
 
+    const currentStyle = (state && state.skillStyle) ? state.skillStyle : 'va';
+
     let tierClass = '';
     let tierBadgeHtml = '';
     if (tier === 3) {
       tierClass = 'tier-legendary';
-      tierBadgeHtml = `<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>`;
+      if (currentStyle === 'v0') {
+        tierBadgeHtml = `<span class="tier-badge text-[0.56rem] px-1.5 py-0.2 rounded font-mono shrink-0">★ 传奇</span>`;
+      } else if (currentStyle === 'vc') {
+        tierBadgeHtml = `<span class="text-[0.62rem] font-serif font-bold text-rose-300 px-1.5 py-0.5 border border-rose-500/40 bg-rose-950/20 rounded tracking-wider shrink-0">★ III · 传奇秘术</span>`;
+      } else {
+        tierBadgeHtml = `<span class="tier-badge-modern-leg text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">★ 传奇</span>`;
+      }
     } else if (tier === 2) {
       tierClass = 'tier-advanced';
-      tierBadgeHtml = `<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>`;
+      if (currentStyle === 'v0') {
+        tierBadgeHtml = `<span class="tier-badge text-[0.56rem] px-1.5 py-0.2 rounded font-mono shrink-0">✦ 高阶</span>`;
+      } else if (currentStyle === 'vc') {
+        tierBadgeHtml = `<span class="text-[0.62rem] font-serif font-bold text-[#fbbf24] px-1.5 py-0.5 border border-[#d9b45c]/40 bg-[#d9b45c]/10 rounded tracking-wider shrink-0">✦ II · 高阶</span>`;
+      } else {
+        tierBadgeHtml = `<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>`;
+      }
     }
 
     let chipClass = '';
@@ -1642,14 +1781,28 @@
 
     // 反应类型限制判定（例如 [反应:近战] -> ⟲反应·近战，只保留右上角金色徽章）
     const reactionBadgeText = getReactionBadgeText(s);
-    const reactionBadge = reactionBadgeText
-      ? `<span class="text-[0.58rem] px-1.5 py-0.5 rounded font-mono shrink-0 bg-amber-950/40 border border-amber-500/40 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.2)]">${reactionBadgeText}</span>`
-      : '';
+    let reactionBadge = '';
+    if (reactionBadgeText) {
+      if (currentStyle === 'v0') {
+        reactionBadge = `<span class="text-[0.58rem] px-1.5 py-0.5 rounded font-mono shrink-0 bg-amber-950/70 border border-amber-500/50 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]">${reactionBadgeText}</span>`;
+      } else if (currentStyle === 'vc') {
+        reactionBadge = `<span class="text-[0.62rem] px-1.5 py-0.5 rounded border border-[#d9b45c]/40 text-[#f5d78e] font-serif shrink-0">[${reactionBadgeText}]</span>`;
+      } else {
+        reactionBadge = `<span class="text-[0.58rem] px-1.5 py-0.5 rounded font-mono shrink-0 bg-amber-950/40 border border-amber-500/40 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.2)]">${reactionBadgeText}</span>`;
+      }
+    }
 
-    // 技能类型角标（如“法术”）：去除生硬黑块，改为微晶半透角标
-    const typeTagHtml = (s.typeTag && s.typeTag !== '反应')
-      ? `<span class="text-[0.6rem] px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.03] text-white/45 font-mono tracking-wider shrink-0">${s.typeTag}</span>`
-      : '';
+    // 技能类型角标（如“法术”）：去除突兀黑框
+    let typeTagHtml = '';
+    if (s.typeTag && s.typeTag !== '反应') {
+      if (currentStyle === 'v0') {
+        typeTagHtml = `<span class="text-[0.62rem] px-1 py-0.2 rounded bg-white/5 text-white/60 font-mono shrink-0">${s.typeTag}</span>`;
+      } else if (currentStyle === 'vc') {
+        typeTagHtml = `<span class="text-[0.62rem] text-[#c6a154]/55 font-serif tracking-widest shrink-0">〔${s.typeTag}〕</span>`;
+      } else {
+        typeTagHtml = `<span class="text-[0.6rem] px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.03] text-white/45 font-mono tracking-wider shrink-0">${s.typeTag}</span>`;
+      }
+    }
 
     return `
       <div class="skill-slot-chip ${chipClass} ${tierClass}" style="--slot-idx:${slotIdx};">
@@ -2348,6 +2501,14 @@
     },
     toggleBgm: () => {
       toggleBgm();
+    },
+    setSkillStyle: (styleKey) => {
+      state.skillStyle = styleKey;
+      document.querySelectorAll('[data-style-set]').forEach(btn => {
+        if (btn.getAttribute('data-style-set') === styleKey) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      renderStage(false);
     }
   };
 
