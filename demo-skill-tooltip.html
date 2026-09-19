@@ -414,11 +414,29 @@
       theme: 'amber',
       desc: '提升目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。'
     },
-    '单缓': {
+    '目标缓速': {
       title: '目标缓速',
       icon: '🔴',
       theme: 'purple',
-      desc: '降低目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。'
+      desc: '降低受击目标的行动速度（Speed），施展后立即重排当前回合剩余行动队列。仅影响行动时序，不影响目标的闪避率（区别于降避）。'
+    },
+    '目标降避': {
+      title: '目标降避',
+      icon: '🟣',
+      theme: 'purple',
+      desc: '降低受击目标的闪避率（Eva），削弱其闪避判定对抗上限。仅影响闪避率，不影响目标的行动速度与时序（区别于缓速）。'
+    },
+    '持续闪避': {
+      title: '持续闪避',
+      icon: '💨',
+      theme: 'sky',
+      desc: '在持续回合内恒定提升目标的闪避率（Eva），期间承受多次攻击判定均有效，不因遭受攻击而消耗清除（区别于单次生效的紧急回避）。'
+    },
+    '护盾吸收': {
+      title: '护盾吸收',
+      icon: '🔷',
+      theme: 'sky',
+      desc: '赋予目标临时伤害吸收护盾，优先全额吸收承受的物理与法术直接伤害；真实伤害（中毒与燃烧）将直接绕过护盾扣减生命值。'
     },
 
     // 4. 攻击修饰与伤害特性
@@ -728,7 +746,10 @@
     if (rawText.includes('眩晕')) keys.push('眩晕');
     if (rawText.includes('召唤')) keys.push('召唤');
     if (rawText.includes('单速') || rawText.includes('群速')) keys.push('单速');
-    if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('单缓');
+    if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('目标缓速');
+    if (rawText.includes('单滞') || rawText.includes('群滞')) keys.push('目标降避');
+    if (rawText.includes('单避') || rawText.includes('群避')) keys.push('持续闪避');
+    if (rawText.includes('单盾') || rawText.includes('群盾')) keys.push('护盾吸收');
     if (rawText.includes('单降') || rawText.includes('群降')) keys.push('目标降防');
     if (rawText.includes('单弱') || rawText.includes('群弱')) keys.push('目标降攻');
     if (rawText.includes('单盲') || rawText.includes('群盲')) keys.push('目标致盲');

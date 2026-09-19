@@ -806,6 +806,15 @@
 
 <div id="ambient-glow"></div>
 
+<!-- 右上角固定战斗规则胶囊按钮 -->
+<div class="fixed top-3.5 right-6 z-[9990] flex items-center gap-2">
+  <button id="top-rules-btn" onclick="window.demoActions.toggleRulesModal(true)" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-black/75 backdrop-blur-md text-amber-300 hover:text-amber-100 hover:border-amber-300 hover:bg-black/90 shadow-[0_0_16px_rgba(217,180,92,0.25)] transition-all cursor-pointer font-serif text-xs">
+    <span class="text-sm">📖</span>
+    <span class="tracking-wider font-bold">战斗规则速查</span>
+    <span class="text-[0.6rem] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">6大专有机制</span>
+  </button>
+</div>
+
 <!-- 右侧竖列极简悬浮胶囊（阶段跳转与全局BGM控制） -->
 <div class="switch-dock">
   <button class="dock-btn active" data-stage-jump="c1">威廉</button>
@@ -813,6 +822,11 @@
   <button class="dock-btn" data-stage-jump="c3class">主角</button>
   <button class="dock-btn" data-stage-jump="c3skill">技能</button>
   <div class="dock-sep"></div>
+  <!-- 战斗规则速查按钮 -->
+  <button id="rules-dock-btn" class="dock-btn" onclick="window.demoActions.toggleRulesModal(true)" title="战斗机制与系统规则速查">
+    <span class="text-xs">📖</span>
+    <span class="text-[0.58rem] mt-0.5">规则</span>
+  </button>
   <!-- 全局 BGM 开关按钮 -->
   <button id="bgm-toggle-btn" class="dock-btn" onclick="window.demoActions.toggleBgm()" title="切换背景音乐">
     <span id="bgm-icon">🎵</span>
@@ -1401,7 +1415,10 @@
     '眩晕': { title: '击晕瘫痪', icon: '💫', desc: '攻击命中后剥夺目标下一次行动资格，跳过该次行动并即时清除眩晕。' },
     '召唤': { title: '战术召唤', icon: '🌀', desc: '召唤从者即时参战，拥有独立行动轴与技能，阵亡不计入全灭。主人受击时从者自动执行反应或挺身舍身护卫。' },
     '单速': { title: '目标加速', icon: '🟢', desc: '提升目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。' },
-    '单缓': { title: '目标缓速', icon: '🔴', desc: '降低目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。' },
+    '目标缓速': { title: '目标缓速', icon: '🔴', desc: '降低受击目标的行动速度（Speed），施展后立即重排当前回合剩余行动队列。仅影响行动时序，不影响目标的闪避率（区别于降避）。' },
+    '目标降避': { title: '目标降避', icon: '🟣', desc: '降低受击目标的闪避率（Eva），削弱其闪避判定对抗上限。仅影响闪避率，不影响目标的行动速度与时序（区别于缓速）。' },
+    '持续闪避': { title: '持续闪避', icon: '💨', desc: '在持续回合内恒定提升目标的闪避率（Eva），期间承受多次攻击判定均有效，不因遭受攻击而消耗清除（区别于单次生效的紧急回避）。' },
+    '护盾吸收': { title: '护盾吸收', icon: '🔷', desc: '赋予目标临时伤害吸收护盾，优先全额吸收承受的物理与法术直接伤害；真实伤害（中毒与燃烧）将直接绕过护盾扣减生命值。' },
     '目标降防': { title: '目标降防', icon: '🛡️', desc: '降低受击目标的防御力，使目标在持续期间承受更多伤害。' },
     '目标降攻': { title: '目标降攻', icon: '⚔️', desc: '降低受击目标的攻击力，削弱其在持续期间造成的伤害。' },
     '目标致盲': { title: '目标致盲', icon: '👁️', desc: '降低受击目标的命中率，削弱其攻击命中上限。' },
@@ -1435,7 +1452,10 @@
     if (rawText.includes('眩晕')) keys.push('眩晕');
     if (rawText.includes('召唤')) keys.push('召唤');
     if (rawText.includes('单速') || rawText.includes('群速')) keys.push('单速');
-    if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('单缓');
+    if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('目标缓速');
+    if (rawText.includes('单滞') || rawText.includes('群滞')) keys.push('目标降避');
+    if (rawText.includes('单避') || rawText.includes('群避')) keys.push('持续闪避');
+    if (rawText.includes('单盾') || rawText.includes('群盾')) keys.push('护盾吸收');
     if (rawText.includes('单降') || rawText.includes('群降')) keys.push('目标降防');
     if (rawText.includes('单弱') || rawText.includes('群弱')) keys.push('目标降攻');
     if (rawText.includes('单盲') || rawText.includes('群盲')) keys.push('目标致盲');
@@ -1630,8 +1650,10 @@
       else if (displayLabel.includes('降攻')) targetMechKey = '目标降攻';
       else if (displayLabel.includes('致盲')) targetMechKey = '目标致盲';
       else if (displayLabel.includes('自盲')) targetMechKey = '自身致盲';
-      else if (displayLabel.includes('缓速')) targetMechKey = '单缓';
-      else if (displayLabel.includes('降避')) targetMechKey = '单滞';
+      else if (displayLabel.includes('缓速')) targetMechKey = '目标缓速';
+      else if (displayLabel.includes('降避')) targetMechKey = '目标降避';
+      else if (displayLabel.includes('闪避') && !displayLabel.includes('紧急回避')) targetMechKey = '持续闪避';
+      else if (displayLabel.includes('护盾')) targetMechKey = '护盾吸收';
       else if (displayLabel.includes('他人')) targetMechKey = '他人';
       else if (displayLabel.includes('净化')) targetMechKey = '驱散';
       else if (displayLabel.includes('反击')) targetMechKey = '反击';
@@ -2521,8 +2543,45 @@
     },
     toggleBgm: () => {
       toggleBgm();
+    },
+    toggleRulesModal: (forceState) => {
+      toggleBattleRulesModal(forceState);
     }
   };
+
+  /* 战斗规则速查弹窗交互 */
+  function toggleBattleRulesModal(forceState) {
+    const modal = document.getElementById('battle-rules-modal');
+    if (!modal) return;
+    const isVisible = modal.classList.contains('visible');
+    const target = (typeof forceState === 'boolean') ? forceState : !isVisible;
+    const card = modal.querySelector('.modal-card');
+
+    if (target) {
+      modal.classList.add('visible');
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      if (card) {
+        card.style.transform = 'scale(1)';
+      }
+    } else {
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+      if (card) {
+        card.style.transform = 'scale(0.95)';
+      }
+      setTimeout(() => {
+        modal.classList.remove('visible');
+      }, 200);
+    }
+  }
+
+  // 绑定 ESC 键快速收起弹窗
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      toggleBattleRulesModal(false);
+    }
+  });
 
   /* 快捷跳转监听 */
   function initDockEvents() {
@@ -2776,6 +2835,176 @@
     <!-- 关联机制条目列表 (仅说明【怎么用/怎么生效】) -->
     <div id="tt-mechanics-body" class="space-y-1">
       <!-- 动态注入机制词条 -->
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- 6大核心战斗专有机制速查战术弹窗                                            -->
+<!-- ========================================================================= -->
+<div id="battle-rules-modal" class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-6 opacity-0 pointer-events-none transition-all duration-200 ease-out" aria-hidden="true">
+  <!-- 全息磨砂背景遮罩 -->
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="window.demoActions.toggleRulesModal(false)"></div>
+
+  <!-- 弹窗主体容器 -->
+  <div class="modal-card relative z-10 w-full max-w-4xl max-h-[88vh] flex flex-col rounded-2xl border border-[var(--tooltip-border)] bg-[var(--tooltip-bg)] shadow-[0_24px_60px_-10px_rgba(0,0,0,0.95),0_0_36px_rgba(217,180,92,0.25)] overflow-hidden transform scale-95 transition-transform duration-200 ease-out">
+    <!-- 顶部鎏金流光细线 -->
+    <div class="h-1 w-full bg-gradient-to-r from-transparent via-amber-400/85 to-transparent"></div>
+
+    <!-- 弹窗顶栏 -->
+    <div class="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-white/[0.02]">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">📖</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-bold text-[var(--text-main)] font-serif tracking-wider">核心战斗专有机制速查</h3>
+            <span class="text-[0.62rem] font-mono px-2 py-0.5 rounded border border-amber-500/40 bg-amber-950/40 text-amber-200">6 CORE MECHANICS</span>
+          </div>
+          <p class="text-[0.68rem] text-white/45 font-mono">底层规则与时序结算速查 · 仅说明【怎么用 / 怎么生效】</p>
+        </div>
+      </div>
+      <button onclick="window.demoActions.toggleRulesModal(false)" class="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors text-base font-mono cursor-pointer" title="关闭 (ESC)">✕</button>
+    </div>
+
+    <!-- 6大机制内容卡片网格 -->
+    <div class="p-4 sm:p-5 overflow-y-auto custom-scrollbar grid grid-cols-1 md:grid-cols-2 gap-3.5">
+      <!-- 1. 极限爆发 -->
+      <div class="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 flex flex-col justify-between hover:border-amber-400/40 transition-colors">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+            <span class="font-bold text-sm text-amber-300 font-serif flex items-center gap-1.5">
+              <span>💥</span><span>极限爆发 (Limit Break)</span>
+            </span>
+            <span class="text-[0.6rem] font-mono text-amber-200/80 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/30">100 TP 全额消耗</span>
+          </div>
+          <div class="space-y-2 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+            <div>
+              <span class="text-[var(--accent)] font-bold font-mono">【怎么用】</span>
+              <span>战技点（TP）积满 100 时角色头像高亮闪烁，点击头像激活爆发形态（再次点击取消）。施放技能后全额消耗 100 TP。</span>
+            </div>
+            <div>
+              <span class="text-[var(--accent)] font-bold font-mono">【怎么生效】</span>
+              <span>本次技能携带的所有效果槽数值（伤害、治疗、护盾、增益及持续伤害）<strong class="text-amber-200">结算提升 100%（翻倍）</strong>；本次攻击<strong class="text-amber-200">附加必中</strong>，跳过被动闪避判定必定命中目标（仍可被敌方主动反应或看破化解）。激活期间自带 TP 消耗的技能临时禁用；与技能暴击互斥。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 战技点循环 -->
+      <div class="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 flex flex-col justify-between hover:border-amber-400/40 transition-colors">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+            <span class="font-bold text-sm text-sky-300 font-serif flex items-center gap-1.5">
+              <span>⚡</span><span>战技点 (TP) 循环</span>
+            </span>
+            <span class="text-[0.6rem] font-mono text-sky-200/80 px-1.5 py-0.5 rounded bg-sky-950/40 border border-sky-500/30">上限 100 点</span>
+          </div>
+          <div class="space-y-2 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+            <div>
+              <span class="text-sky-400 font-bold font-mono">【怎么用】</span>
+              <span>全角色通用核心战斗能量池，战斗开局默认为 0 点，上限固定为 100 点。</span>
+            </div>
+            <div>
+              <span class="text-sky-400 font-bold font-mono">【怎么生效】</span>
+              <span>常规施放技能获 5 点，成功闪避攻击获 5 点，遭受攻击命中获 10 点，施展携带 <code class="text-amber-200 font-mono">[单冲]</code> 的技能可直接为目标定向补充；用于驱动高阶战技释放与全队激活极限爆发；圣职者满 TP 可发动极限祈愿使队友立即获得额外行动回合；风行者当前 TP 值按 1:1 恒定转化为额外闪避率。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 行动时序与排轴 -->
+      <div class="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 flex flex-col justify-between hover:border-amber-400/40 transition-colors">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+            <span class="font-bold text-sm text-emerald-300 font-serif flex items-center gap-1.5">
+              <span>⏱️</span><span>行动时序与排轴 (CTB)</span>
+            </span>
+            <span class="text-[0.6rem] font-mono text-emerald-200/80 px-1.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">速度动态判定</span>
+          </div>
+          <div class="space-y-2 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+            <div>
+              <span class="text-emerald-400 font-bold font-mono">【怎么用】</span>
+              <span>每大回合依据场上全员的有效速度（基础 Speed + 速度 Buff/Debuff）从高至低排定行动队列。</span>
+            </div>
+            <div>
+              <span class="text-emerald-400 font-bold font-mono">【怎么生效】</span>
+              <span>单回合多动单位后续行动按 <code class="text-amber-200 font-mono">速度 - 序号×10</code> 递减衰减排轴；施展 <code class="text-amber-200 font-mono">[单速/单缓]</code> 立即重排当前回合剩余行动队列；<code class="text-amber-200 font-mono">[再动]</code> 立即插入行动队列顶端；<code class="text-amber-200 font-mono">[眩晕]</code> 剥夺下一次行动资格；<code class="text-amber-200 font-mono">[麻痹]</code> 每次行动按层数概率（5%~20%）僵直跳过该次行动。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. 战术防守反制链条 -->
+      <div class="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 flex flex-col justify-between hover:border-amber-400/40 transition-colors">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+            <span class="font-bold text-sm text-rose-300 font-serif flex items-center gap-1.5">
+              <span>🛡️</span><span>防守反制链条 (看破·舍身·反应)</span>
+            </span>
+            <span class="text-[0.6rem] font-mono text-rose-200/80 px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-500/30">三道防御窗口</span>
+          </div>
+          <div class="space-y-2 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+            <div>
+              <span class="text-rose-400 font-bold font-mono">【怎么用】</span>
+              <span>敌方发动攻击时，系统冻结行动时序并依序激活三道防守反制窗口。</span>
+            </div>
+            <div>
+              <span class="text-rose-400 font-bold font-mono">【怎么生效】</span>
+              <span><strong class="text-white">① 战术看破</strong>：敌方技能宣告阶段触发，消耗资源强制中断并完全无效化对应类型技能；<br><strong class="text-white">② 挺身舍身</strong>：友方单体判定闪避失败即将受创时触发，挺身代替其承受本次攻击全部伤害与负面；<br><strong class="text-white">③ 紧急反应</strong>：自身闪避失败即将受创时触发，插队施展身法重新判定闪避或施加免伤层化解伤害。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 空间阵型与属性对抗 -->
+      <div class="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 flex flex-col justify-between hover:border-amber-400/40 transition-colors">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+            <span class="font-bold text-sm text-amber-200 font-serif flex items-center gap-1.5">
+              <span>🎯</span><span>空间阵型与属性对抗</span>
+            </span>
+            <span class="text-[0.6rem] font-mono text-amber-200/80 px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-500/30">近战/远程/法术</span>
+          </div>
+          <div class="space-y-2 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+            <div>
+              <span class="text-amber-400 font-bold font-mono">【怎么用】</span>
+              <span>技能划分为近战、远程、法术三系伤害属性，受敌我战场站位空间制约。</span>
+            </div>
+            <div>
+              <span class="text-amber-400 font-bold font-mono">【怎么生效】</span>
+              <span>敌方前排存活时，近战单体无法越位攻击后排，近战群攻仅命中前排；敌方后排存活时，我方攻击前排的远程与法术技能面临目标敏捷 30% 命中上限削减；敌方变种抗性中 <code class="text-amber-200 font-mono">[流体]</code> 减免 50% 远程伤害，<code class="text-amber-200 font-mono">[虚形]</code> 减免 50% 近战伤害，<code class="text-amber-200 font-mono">[破法]</code> 减免 50% 法术伤害。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. 仇恨索敌与绝境留存 -->
+      <div class="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 flex flex-col justify-between hover:border-amber-400/40 transition-colors">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+            <span class="font-bold text-sm text-purple-300 font-serif flex items-center gap-1.5">
+              <span>🩸</span><span>仇恨索敌与绝境留存</span>
+            </span>
+            <span class="text-[0.6rem] font-mono text-purple-200/80 px-1.5 py-0.5 rounded bg-purple-950/40 border border-purple-500/30">概率轮盘 & 保命</span>
+          </div>
+          <div class="space-y-2 text-[0.72rem] text-white/80 leading-relaxed font-sans">
+            <div>
+              <span class="text-purple-400 font-bold font-mono">【怎么用】</span>
+              <span>敌方单体技能基于角色当前仇恨权重通过概率轮盘抽取目标；濒死受到致命伤时自动触发被动留存。</span>
+            </div>
+            <div>
+              <span class="text-purple-400 font-bold font-mono">【怎么生效】</span>
+              <span>基础仇恨权重：防守者 200 点、常规角色 100 点、隐匿者 50 点，<code class="text-amber-200 font-mono">[嘲讽]</code> 正负调整权重；带 <code class="text-amber-200 font-mono">[智慧]</code> 敌人优先集火生命 ≤ 30% 残血单位。<br><strong class="text-white">保命留存（每场限1次）</strong>：防守者与狂战士触发【毅力留存】受致命伤强制锁定 1 HP 免疫阵亡；隐匿者与风行者触发【回避致命】受致命伤完美回避免除本次伤害。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 弹窗底栏 -->
+    <div class="px-5 py-2.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-[0.68rem] font-mono text-white/40">
+      <span>⚡ 提示：技能栏中所有带特性的效果标签，鼠标悬停均可查阅即时生效说明</span>
+      <button onclick="window.demoActions.toggleRulesModal(false)" class="px-3.5 py-1 rounded border border-white/15 bg-white/5 hover:bg-white/10 text-white/80 transition-colors cursor-pointer text-xs">我知道了</button>
     </div>
   </div>
 </div>
