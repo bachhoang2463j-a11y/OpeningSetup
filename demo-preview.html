@@ -379,6 +379,10 @@
     animation: slot-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-delay: calc(var(--slot-idx, 0) * 0.04s);
   }
+  /* 技能列表按各职业最坏高度预留（335px）：切换职业时右栏外框高度恒定不跳动 */
+  #hero-skill-chips-container {
+    min-height: 335px;
+  }
   @keyframes slot-slide-in {
     0% { opacity: 0; transform: translateY(10px); }
     100% { opacity: 1; transform: translateY(0); }
@@ -2267,7 +2271,7 @@
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
       return `
-        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass2('${cName}')" onmouseenter="window.demoActions.showCombatPreview('${cName}')" onmouseleave="window.demoActions.hideCombatPreview()">
+        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass1('${cName}')" onmouseenter="window.demoActions.showCombatPreview('${cName}')" onmouseleave="window.demoActions.hideCombatPreview()">
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <h3 class="text-sm font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
@@ -2349,18 +2353,12 @@
     const clsObj = COMBAT_DATA.classes[curCls];
     const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
 
-    // ③ 职业介绍卡片：悬浮时浮现四周边缘渐变羽化的纯净实机战斗 GIF
+    // ③ 职业介绍卡片：悬浮时左侧展台弹出实机战斗视窗
     const classCards = hero.classes.map(cName => {
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const active = cName === curCls;
-      const gifSrc = info.gifUrl || '';
       return `
-        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass2('${cName}')">
-          <!-- ③ 纯净实机战斗 GIF 悬浮块：无多余装饰，四周边缘柔和渐变模糊羽化 -->
-          <div class="class-hover-gif-box">
-            <img src="${gifSrc}" alt="${cName} 实机演示" class="class-hover-gif-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'140\\' height=\\'140\\' viewBox=\\'0 0 140 140\\'><rect width=\\'140\\' height=\\'140\\' fill=\\'%23120b22\\'/><circle cx=\\'70\\' cy=\\'70\\' r=\\'36\\' fill=\\'none\\' stroke=\\'%23f59e0b\\' stroke-width=\\'2\\' stroke-dasharray=\\'6 4\\'/><text x=\\'70\\' y=\\'74\\' fill=\\'%23f59e0b\\' font-size=\\'12\\' text-anchor=\\'middle\\' font-family=\\'monospace\\'>${cName} 实机战斗</text></svg>'">
-          </div>
-
+        <div class="class-tab-card ${active ? 'active' : ''}" data-class-tab="${cName}" onclick="window.demoActions.pickClass2('${cName}')" onmouseenter="window.demoActions.showCombatPreview('${cName}')" onmouseleave="window.demoActions.hideCombatPreview()">
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <h3 class="text-sm font-bold text-[var(--text-main)] tracking-wide">${cName}</h3>
@@ -2773,7 +2771,7 @@
   /* 挂载到 window 供页面交互调用 */
   window.demoActions = {
 
-    /* 悬停展示左侧实机战斗视窗 (仅 hover 时弹出，移开隐藏) */
+    /* 悬停展示左侧实机战斗视窗 (仅 hover 时弹出，移开隐藏；GIF 已预热秒显) */
     showCombatPreview: (cName) => {
       const info = DEMO_CONFIG.classIntro[cName] || {};
       const gifSrc = info.gifUrl || '';
@@ -2781,7 +2779,8 @@
       const monitor = document.getElementById('stage-combat-monitor');
       const img = document.getElementById('stage-combat-img');
 
-      if (img && gifSrc) {
+      /* 相同职业重复悬浮不重设 src，避免动画重启与重复解码 */
+      if (img && gifSrc && img.getAttribute('src') !== gifSrc) {
         img.src = gifSrc;
       }
       if (monitor) {
@@ -2793,6 +2792,13 @@
       const monitor = document.getElementById('stage-combat-monitor');
       if (monitor) {
         monitor.classList.remove('active');
+        /* 弹出过渡(220ms)结束后清空 src，停止隐藏态 GIF 的持续解码播放 */
+        setTimeout(() => {
+          if (!monitor.classList.contains('active')) {
+            const img = document.getElementById('stage-combat-img');
+            if (img) img.removeAttribute('src');
+          }
+        }, 260);
       }
     },
 
@@ -3139,6 +3145,10 @@
 
   /* 初始化启动 */
   parseCombatBlock();
+  /* 预热全部职业实机 GIF：页面渲染时即完成加载解码，悬浮视窗秒显且不卡顿 */
+  Object.values(DEMO_CONFIG.classIntro).forEach(info => {
+    if (info.gifUrl) { const preload = new Image(); preload.src = info.gifUrl; }
+  });
   initDockEvents();
   initTooltipGlobalEvents();
   // 默认启动进入威廉阶段，绑定密教金辉主题
