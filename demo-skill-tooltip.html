@@ -544,11 +544,35 @@
       theme: 'amber',
       desc: '大幅提升自身受击仇恨权重，强制敌方在索敌与单体攻击时优先锁定自身为第一目标。'
     },
+    '隐匿': {
+      title: '战术隐匿',
+      icon: '👤',
+      theme: 'emerald',
+      desc: '大幅降低自身受击仇恨权重，使敌方在索敌与单体攻击时优先将目标转向其他队友，大幅降低被集火概率。'
+    },
+    '战术隐匿': {
+      title: '战术隐匿',
+      icon: '👤',
+      theme: 'emerald',
+      desc: '大幅降低自身受击仇恨权重，使敌方在索敌与单体攻击时优先将目标转向其他队友，大幅降低被集火概率。'
+    },
     '场次限制': {
       title: '场次限制',
       icon: '⏳',
       theme: 'amber',
       desc: '单场战斗内限制最大施展次数，耗尽后本场战斗无法再次施展，脱离战斗后自动重置。'
+    },
+    '生命消耗': {
+      title: '生命消耗',
+      icon: '🩸',
+      theme: 'rose',
+      desc: '施展技能时代替或额外扣减自身指定点数的生命值（HP）；若当前生命值不足以支付（剩余 HP ≤ 消耗值）则无法施展。'
+    },
+    '战技点消耗': {
+      title: '战技点消耗',
+      icon: '⚡',
+      theme: 'sky',
+      desc: '施展高阶战技时消耗积累的战技点（TP）；战斗开局默认为 0，受击与施法时积攒。TP 不足时无法施展。'
     },
     '自身致盲': {
       title: '代价·自盲',
@@ -762,6 +786,15 @@
       costs: ['5 MP'],
       scope: '通用',
       shopCost: 2
+    },
+    {
+      name: '无迹可寻',
+      rawText: '【无迹可寻】[限定][价:1][嘲讽;power:-30][单避;power:10][MP:2][限1次]',
+      tier: 1,
+      typeTag: '近战',
+      aim: '自身',
+      costs: ['2 MP'],
+      scope: '限定'
     }
   ];
 
@@ -793,7 +826,21 @@
     if (rawText.includes('单盲') || rawText.includes('群盲') || rawText.includes('致盲')) keys.push('目标致盲');
     if (rawText.includes('单瞄') || rawText.includes('群瞄') || rawText.includes('瞄准')) keys.push('目标瞄准');
     if (rawText.includes('单冲') || rawText.includes('群冲') || rawText.includes('充能')) keys.push('战技充能');
-    if (rawText.includes('嘲讽')) keys.push('仇恨嘲讽');
+
+    // 仇恨与隐匿判断：若为负仇恨或包含隐匿，提取隐匿；正仇恨提取仇恨嘲讽
+    const tauntMatches = rawText.match(/\[嘲讽(?:;[^\]]*)?\]/g) || [];
+    let hasTauntPositive = false;
+    let hasTauntNegative = rawText.includes('隐匿');
+    tauntMatches.forEach(t => {
+      if (t.includes('-')) {
+        hasTauntNegative = true;
+      } else {
+        hasTauntPositive = true;
+      }
+    });
+    if (hasTauntNegative) keys.push('隐匿');
+    if (hasTauntPositive) keys.push('仇恨嘲讽');
+
     if (/限\d+次|限用/.test(rawText)) keys.push('场次限制');
     if (rawText.includes('自盲') || rawText.includes('自降') || rawText.includes('自弱')) keys.push('自身致盲');
     if (rawText.includes('必中')) keys.push('必中');
@@ -807,6 +854,10 @@
     if (rawText.includes('燃烧')) keys.push('燃烧');
     if (rawText.includes('他人')) keys.push('他人');
     if (rawText.includes('驱散')) keys.push('驱散');
+
+    // MP 以外的资源消耗说明（生命消耗、战技点消耗、弹药材料）
+    if (/\[HP:\d+\]/i.test(rawText)) keys.push('生命消耗');
+    if (/\[TP:\d+\]/i.test(rawText)) keys.push('战技点消耗');
     if (rawText.includes('子弹') || rawText.includes('鹿弹') || rawText.includes('道具') || rawText.includes('消耗品')) keys.push('材料绑定');
 
     return Array.from(new Set(keys));
@@ -865,7 +916,17 @@
       else if (mainPart.includes('单盲') || mainPart.includes('致盲')) { label = '目标致盲'; targetMechKey = '目标致盲'; }
       else if (mainPart.includes('单瞄') || mainPart.includes('瞄准')) { label = `${targetOrSelf}瞄准`; targetMechKey = '目标瞄准'; }
       else if (mainPart.includes('单冲') || mainPart.includes('充能')) { label = `${targetOrSelf}充能`; targetMechKey = '战技充能'; }
-      else if (mainPart.includes('嘲讽')) { label = `${targetOrSelf}嘲讽`; targetMechKey = '仇恨嘲讽'; }
+      else if (mainPart === '嘲讽' || mainPart === '隐匿' || mainPart.includes('嘲讽')) {
+        const isNeg = (powerVal != null && (Number(powerVal) < 0 || String(powerVal).startsWith('-'))) || mainPart.includes('隐匿');
+        if (isNeg) {
+          label = `${targetOrSelf}隐匿`;
+          targetMechKey = '隐匿';
+          if (powerVal) powerVal = String(Math.abs(Number(powerVal)));
+        } else {
+          label = `${targetOrSelf}嘲讽`;
+          targetMechKey = '仇恨嘲讽';
+        }
+      }
       else if (/限\d+次|限用/.test(mainPart)) { label = '限用'; targetMechKey = '场次限制'; }
       else if (mainPart.includes('单滞') || mainPart.includes('降避')) { label = '目标降避'; targetMechKey = '目标降避'; }
       else if (mainPart.includes('单盾') || mainPart.includes('护盾')) { label = `${targetOrSelf}护盾`; targetMechKey = '护盾吸收'; }
@@ -1003,14 +1064,34 @@
     let entriesHtml = displayKeys.map(key => {
       const item = MECHANICS_REGISTRY[key] || { title: key, icon: '✦', desc: '按标准规则结算生效。' };
       const isFocused = focusMechKey === key;
-      const borderHighlight = isFocused ? 'border-amber-400/80 bg-amber-500/10' : 'border-white/5 bg-white/[0.02]';
+      let borderHighlight = isFocused ? 'border-amber-400/80 bg-amber-500/10' : 'border-white/5 bg-white/[0.02]';
+      let titleColor = 'text-[var(--accent)]';
+      let extraBadge = '';
+
+      if (key === '生命消耗') {
+        const hpM = skill.rawText ? skill.rawText.match(/\[HP:(\d+)\]/i) : null;
+        const hpVal = hpM ? hpM[1] : '';
+        borderHighlight = isFocused ? 'border-rose-400 bg-rose-950/40 shadow-[0_0_12px_rgba(244,63,94,0.3)]' : 'border-rose-500/30 bg-rose-950/20';
+        titleColor = 'text-rose-300';
+        if (hpVal) extraBadge = `<span class="text-[0.6rem] font-mono text-rose-300 font-bold px-1.5 py-0.2 rounded border border-rose-500/40 bg-rose-950/60 ml-auto">消耗 ${hpVal} HP</span>`;
+      } else if (key === '战技点消耗') {
+        const tpM = skill.rawText ? skill.rawText.match(/\[TP:(\d+)\]/i) : null;
+        const tpVal = tpM ? tpM[1] : '';
+        borderHighlight = isFocused ? 'border-sky-400 bg-sky-950/40 shadow-[0_0_12px_rgba(56,189,248,0.3)]' : 'border-sky-500/30 bg-sky-950/20';
+        titleColor = 'text-sky-300';
+        if (tpVal) extraBadge = `<span class="text-[0.6rem] font-mono text-sky-300 font-bold px-1.5 py-0.2 rounded border border-sky-500/40 bg-sky-950/60 ml-auto">消耗 ${tpVal} TP</span>`;
+      } else if (key === '隐匿' || key === '战术隐匿') {
+        titleColor = 'text-emerald-300';
+        if (isFocused) borderHighlight = 'border-emerald-400/80 bg-emerald-500/10';
+      }
 
       return `
         <div class="tooltip-mech-entry ${borderHighlight} rounded-lg px-2 py-1.5 transition-all">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-[var(--accent)] mb-0.5">
+          <div class="flex items-center gap-1.5 text-xs font-bold ${titleColor} mb-0.5">
             <span>${item.icon}</span>
             <span class="tracking-wide">【${item.title}】</span>
-            ${isFocused ? '<span class="text-[0.58rem] text-amber-300 font-mono font-normal ml-auto">聚焦机制</span>' : ''}
+            ${extraBadge}
+            ${isFocused && !extraBadge ? '<span class="text-[0.58rem] text-amber-300 font-mono font-normal ml-auto">聚焦机制</span>' : ''}
           </div>
           <div class="text-[0.72rem] text-white/80 leading-relaxed font-sans pl-5">
             ${item.desc}
