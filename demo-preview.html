@@ -2973,6 +2973,7 @@
     },
     {
       id: 4,
+      layout: 'wide', // 横向长条拆图，双栏会留大片空白
       tag: '能量流转与爆发',
       title: '战技点 (TP) 循环与极限爆发',
       subTitle: 'TP ENERGY SYSTEM & LIMIT BREAK',
@@ -3021,6 +3022,7 @@
     },
     {
       id: 6,
+      layout: 'wide', // 横向长条拆图，双栏会留大片空白
       tag: '系统导航与跨场接续',
       title: '战局控制与继续机制',
       subTitle: 'TOP BAR NAVIGATION & PERSISTENCE',
@@ -3047,6 +3049,7 @@
     },
     {
       id: 7,
+      layout: 'wide', // 大面板拆图，双栏会留大片空白
       tag: '目标侦测与20种变种',
       title: '目标侦测与变种特质',
       subTitle: 'TARGET INSPECT & 20 MUTATION TRAITS',
@@ -3071,6 +3074,7 @@
     },
     {
       id: 8,
+      layout: 'wide', // 大面板拆图，双栏会留大片空白
       tag: '战力洞察与充能大招',
       title: '敌方战力与大招预警',
       subTitle: 'ENEMY STATS & SKILL CHARGE ALERT',
@@ -3141,70 +3145,96 @@
       }
     }
 
-    // Render Card Content（单栏纵向流：标题 → 全宽拆图 → 三段说明；hero-swap-in 与角色切换同一动效，重渲染即重放）
+    // Render Card Content（layout:'wide' = 单栏全宽拆图，用于横向长条/大面板图；其余保持左右双栏。hero-swap-in 与角色切换同一动效，重渲染即重放）
     stage.className = 'flex-1 overflow-y-auto rules-scrollbar p-4 sm:p-6';
-    stage.innerHTML = `
-      <div class="hero-swap-in flex flex-col gap-3.5">
-        <!-- 头部标题 -->
-        <div class="pb-2 border-b border-white/10">
-          <div class="flex items-center justify-between gap-2 mb-1">
-            <div class="flex items-center gap-2">
-              <span class="font-mono text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">卡片 ${String(card.id).padStart(2, '0')}</span>
-              <span class="text-xs font-mono text-white/50">${card.tag}</span>
+
+    const headerBlock = `
+          <!-- 头部标题 -->
+          <div class="pb-2 border-b border-white/10">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">卡片 ${String(card.id).padStart(2, '0')}</span>
+                <span class="text-xs font-mono text-white/50">${card.tag}</span>
+              </div>
+              <span class="text-[0.65rem] font-mono text-white/40 tracking-wider">${card.subTitle}</span>
             </div>
-            <span class="text-[0.65rem] font-mono text-white/40 tracking-wider">${card.subTitle}</span>
+            <h2 class="text-lg sm:text-xl font-bold text-amber-200 font-serif tracking-wide">${card.title}</h2>
+            <p class="text-xs text-amber-100/80 mt-1 leading-relaxed bg-black/35 p-2 rounded-lg border-l-2 border-amber-400/80">
+              ${card.desc}
+            </p>
+          </div>`;
+
+    const imgTag = `
+              <img src="${card.img}"
+                   alt="${card.imgAlt}"
+                   class="${card.layout === 'wide' ? 'max-w-full max-h-[55vh] w-auto mx-auto' : 'max-h-[380px] w-auto'} object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] shadow-lg"
+                   onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='http://127.0.0.1:8766/OS/' + encodeURIComponent('${card.img.split('/').pop()}');}">`;
+
+    const captionBar = `
+            <div class="flex items-center justify-between px-2.5 text-[0.72rem] font-mono text-amber-300/85 bg-amber-950/20 border border-amber-500/25 rounded-lg py-1.5">
+              <span class="flex items-center gap-1.5">
+                <span class="text-amber-400 text-xs">🎯</span>
+                <span>${card.imgCaption}</span>
+              </span>
+              <span class="text-[0.62rem] text-white/40">高精度实机截取</span>
+            </div>`;
+
+    const sectionBlocks = `
+          <!-- 界面说明 -->
+          <div class="rule-section-block">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-sky-300 font-serif mb-1.5">
+              <span>🔍</span><span>【界面说明】</span>
+            </div>
+            <ul class="space-y-1 text-xs text-white/80 leading-relaxed list-disc list-inside">
+              ${card.uiPoints.map(p => `<li>${p}</li>`).join('')}
+            </ul>
           </div>
-          <h2 class="text-lg sm:text-xl font-bold text-amber-200 font-serif tracking-wide">${card.title}</h2>
-          <p class="text-xs text-amber-100/80 mt-1 leading-relaxed bg-black/35 p-2 rounded-lg border-l-2 border-amber-400/80">
-            ${card.desc}
-          </p>
+
+          <!-- 具体机制 -->
+          <div class="rule-section-block">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-amber-300 font-serif mb-1.5">
+              <span>⚙️</span><span>【具体机制】</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-white/80 leading-relaxed list-disc list-inside">
+              ${card.mechanics.map(m => `<li>${m}</li>`).join('')}
+            </ul>
+          </div>
+
+          <!-- 实战提示 -->
+          <div class="rounded-xl p-3 bg-emerald-950/30 border border-emerald-500/35 text-xs text-emerald-100 leading-relaxed shadow-sm">
+            <div class="flex items-center gap-1.5 font-bold text-emerald-300 font-serif mb-1">
+              <span>💡</span><span>【实战提示】</span>
+            </div>
+            <div class="space-y-1 text-emerald-100/90 text-xs">
+              ${card.tips.map(t => `<div>${t}</div>`).join('')}
+            </div>
+          </div>`;
+
+    stage.innerHTML = card.layout === 'wide' ? `
+      <div class="hero-swap-in flex flex-col gap-3.5">
+${headerBlock}
+
+          <!-- 拆图图解区：全宽自适应原始比例，杜绝定高空白 -->
+          <div class="flex flex-col gap-2">
+            <div class="rule-img-box rounded-xl p-2 flex items-center justify-center overflow-hidden group relative w-fit min-w-[260px] max-w-full mx-auto">${imgTag}
+            </div>
+${captionBar}
+          </div>
+${sectionBlocks}
+      </div>
+    ` : `
+      <div class="hero-swap-in grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- 左栏：拆图图解区 -->
+        <div class="lg:col-span-5 flex flex-col gap-2.5">
+          <div class="rule-img-box rounded-xl p-3 flex flex-col items-center justify-center min-h-[260px] max-h-[460px] overflow-hidden group relative">${imgTag}
+          </div>
+${captionBar}
         </div>
 
-        <!-- 拆图图解区：全宽自适应原始比例，杜绝定高空白 -->
-        <div class="flex flex-col gap-2">
-          <div class="rule-img-box rounded-xl p-2 flex items-center justify-center overflow-hidden group relative w-fit min-w-[260px] max-w-full mx-auto">
-            <img src="${card.img}"
-                 alt="${card.imgAlt}"
-                 class="max-w-full max-h-[55vh] w-auto mx-auto object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] shadow-lg"
-                 onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='http://127.0.0.1:8766/OS/' + encodeURIComponent('${card.img.split('/').pop()}');}">
-          </div>
-          <div class="flex items-center justify-between px-2.5 text-[0.72rem] font-mono text-amber-300/85 bg-amber-950/20 border border-amber-500/25 rounded-lg py-1.5">
-            <span class="flex items-center gap-1.5">
-              <span class="text-amber-400 text-xs">🎯</span>
-              <span>${card.imgCaption}</span>
-            </span>
-            <span class="text-[0.62rem] text-white/40">高精度实机截取</span>
-          </div>
-        </div>
-
-        <!-- 界面说明 -->
-        <div class="rule-section-block">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-sky-300 font-serif mb-1.5">
-            <span>🔍</span><span>【界面说明】</span>
-          </div>
-          <ul class="space-y-1 text-xs text-white/80 leading-relaxed list-disc list-inside">
-            ${card.uiPoints.map(p => `<li>${p}</li>`).join('')}
-          </ul>
-        </div>
-
-        <!-- 具体机制 -->
-        <div class="rule-section-block">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-300 font-serif mb-1.5">
-            <span>⚙️</span><span>【具体机制】</span>
-          </div>
-          <ul class="space-y-1.5 text-xs text-white/80 leading-relaxed list-disc list-inside">
-            ${card.mechanics.map(m => `<li>${m}</li>`).join('')}
-          </ul>
-        </div>
-
-        <!-- 实战提示 -->
-        <div class="rounded-xl p-3 bg-emerald-950/30 border border-emerald-500/35 text-xs text-emerald-100 leading-relaxed shadow-sm">
-          <div class="flex items-center gap-1.5 font-bold text-emerald-300 font-serif mb-1">
-            <span>💡</span><span>【实战提示】</span>
-          </div>
-          <div class="space-y-1 text-emerald-100/90 text-xs">
-            ${card.tips.map(t => `<div>${t}</div>`).join('')}
-          </div>
+        <!-- 右栏：机制详解与操作提示 -->
+        <div class="lg:col-span-7 flex flex-col gap-3.5 font-sans">
+${headerBlock}
+${sectionBlocks}
         </div>
       </div>
     `;
