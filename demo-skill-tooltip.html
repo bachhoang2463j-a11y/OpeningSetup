@@ -795,6 +795,16 @@
       aim: '自身',
       costs: ['2 MP'],
       scope: '限定'
+    },
+    {
+      name: '沸血之躯',
+      rawText: '【沸血之躯】[限定][价:3][免伤;power:120][单冲;power:20][HP:20][反应][MP:2]',
+      tier: 1,
+      typeTag: '近战',
+      aim: '自身',
+      costs: ['2 MP', '20 HP'],
+      scope: '限定',
+      reactionBadge: '⟲反应'
     }
   ];
 
@@ -863,6 +873,19 @@
     return Array.from(new Set(keys));
   }
 
+  /* 获取技能持续回合数：未显式声明时遵循底层战斗引擎规范默认 3 回合 */
+  function getSkillTurns(rawText) {
+    if (!rawText) return 3;
+    const topMatch = rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i);
+    if (topMatch) return parseInt(topMatch[1], 10);
+    const innerMatches = [...rawText.matchAll(/;turns?[:：](\d+)/gi)];
+    if (innerMatches.length > 0) {
+      const turns = innerMatches.map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
+      if (turns.length > 0) return Math.max(...turns);
+    }
+    return 3;
+  }
+
   /* 格式化效果胶囊标签 */
   function formatSkillPills(rawText) {
     if (!rawText) return '';
@@ -890,6 +913,7 @@
         if (pm) powerVal = pm[1];
       });
 
+      if (/^持续[:：](\d+)/i.test(mainPart) || /^Turns?[:：](\d+)/i.test(mainPart)) return;
       if (/^Aim[:：]/i.test(mainPart) || mainPart === '必中') return;
       if (/^(?:反应|舍身|看破)/i.test(mainPart)) return; // 顶部已有专属徽章
 
@@ -1011,7 +1035,7 @@
 
           <div class="flex flex-col items-end gap-0.5 shrink-0 text-right">
             <span class="font-mono text-[0.72rem] font-bold text-[var(--accent)] whitespace-nowrap">${s.costs.join(' / ')}</span>
-            <span class="font-mono text-[0.62rem] text-white/50">${aimText}${s.shopCost ? ` · ${s.shopCost}点` : ''}</span>
+            <span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1"><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.6rem] font-mono font-bold border border-amber-500/40 bg-gradient-to-r from-amber-950/60 to-amber-900/40 text-amber-200/95 shadow-[0_0_6px_rgba(217,180,92,0.2)] whitespace-nowrap leading-none mr-1 select-none" title="持续时间：${getSkillTurns(s.rawText)}回合"><span class="text-[0.52rem] text-amber-400 opacity-90">⏱</span>${getSkillTurns(s.rawText)}回合</span><span class="text-amber-400 text-xs">✦</span> ${aimText}${s.shopCost ? ` · ${s.shopCost}点` : ''}</span>
           </div>
         </div>
       `;
@@ -1042,6 +1066,8 @@
     if (skill.tier === 3) badges.push('<span class="text-red-300 border border-red-500/50 bg-red-950/40 px-1.5 py-0.2 rounded">传奇</span>');
     else if (skill.tier === 2) badges.push('<span class="text-amber-300 border border-amber-500/50 bg-amber-950/40 px-1.5 py-0.2 rounded">高阶</span>');
     badges.push(`<span class="text-white/60 border border-white/10 bg-black/40 px-1.5 py-0.2 rounded">${skill.typeTag}</span>`);
+    const turnsVal = getSkillTurns(skill.rawText);
+    badges.push(`<span class="text-amber-300 font-mono border border-amber-500/40 bg-amber-950/40 px-1.5 py-0.2 rounded">⏱ ${turnsVal}回合</span>`);
     ttBadges.innerHTML = badges.join('');
 
     // 2. 提取并渲染关联机制

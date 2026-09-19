@@ -933,7 +933,7 @@
           - "【战意激增】[通用][价:2][MP:2][单增;power:50][自盲;power:10]"
           - "【碎骨连打】[通用][价:1][单体;power:60][单体;power:60][Aim:100][转火][近战]"
           - "【鲁莽挥击】[通用][价:2][单体;power:180][HP:20][Aim:120][近战]"
-          - "【沸血之躯】[限定][价:3][免伤;power:120][HP:20][反应][MP:2]"
+          - "【沸血之躯】[限定][价:3][免伤;power:120][单冲;power:20][HP:20][反应][MP:2]"
           - "【双管猎象枪】[限定][价:3][单体(枪击);power:240][单降;power:20][自盲;power:30;turns:2][暴击:5%][Aim:85][TP:10][远程][特效:远程重击][高阶]"
           - "【重击推撞】[限定][价:3][眩晕;power:140][嘲讽;power:50][Aim:160][MP:3][TP:30][近战][特效:近战重击][高阶]"
         物品:
@@ -1608,6 +1608,22 @@
     return 'bg-white/5 text-white/70 border-white/10';
   }
 
+  /* 获取技能持续回合数：未显式声明时遵循底层战斗引擎规范默认 3 回合 */
+  function getSkillTurns(rawText) {
+    if (!rawText) return 3;
+    // 1. 优先匹配顶级标签 [Turns:N]、[Turn:N]、[持续:N]
+    const topMatch = rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i);
+    if (topMatch) return parseInt(topMatch[1], 10);
+    // 2. 匹配效果内部参数 ;turns:N 或 ;turn:N（若有多处取最大值）
+    const innerMatches = [...rawText.matchAll(/;turns?[:：](\d+)/gi)];
+    if (innerMatches.length > 0) {
+      const turns = innerMatches.map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
+      if (turns.length > 0) return Math.max(...turns);
+    }
+    // 3. 底层引擎默认规则：未写持续回合统一默认为 3 回合
+    return 3;
+  }
+
   function formatSkillEffectPills(rawText) {
     if (!rawText) return '';
     let clean = rawText.replace(/【[^】]+】/, '');
@@ -1644,10 +1660,9 @@
       let displayLabel = '';
       let displayVal = powerVal;
 
-      if (/^持续[:：](\d+)/i.test(mainPart) || /^Turns[:：](\d+)/i.test(mainPart)) {
-        const m = mainPart.match(/^(?:持续|Turns)[:：](\d+)/i);
-        displayLabel = '持续';
-        displayVal = (m ? m[1] : '') + '回合';
+      if (/^持续[:：](\d+)/i.test(mainPart) || /^Turns?[:：](\d+)/i.test(mainPart)) {
+        // 持续回合已统一移至右侧命中率之前专属时序徽章展示，左侧胶囊彻底去除以防冗余
+        return;
       } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart) || mainPart === '必中') {
         // 右侧状态列已专设金色命中率栏，左侧胶囊彻底去除以防冗余
         return;
@@ -1743,9 +1758,7 @@
         displayLabel = mainPart;
       }
 
-      if (extraTurns && displayVal != null) {
-        displayVal += ` (${extraTurns}T)`;
-      }
+      // 持续回合已统一收敛至右侧专属时序徽章，胶囊内部不再展示冗余的 (NT) 后缀
 
       // 关联机制 key 用于胶囊悬停聚焦
       let targetMechKey = null;
@@ -1919,33 +1932,36 @@
       tierBadgeHtml = `<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>`;
     }
 
+    const skillTurns = getSkillTurns(s.rawText);
+    const turnsBadgeHtml = `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.6rem] font-mono font-bold border border-amber-500/40 bg-gradient-to-r from-amber-950/60 to-amber-900/40 text-amber-200/95 shadow-[0_0_6px_rgba(217,180,92,0.2)] whitespace-nowrap leading-none mr-1 select-none" title="持续时间：${skillTurns}回合"><span class="text-[0.52rem] text-amber-400 opacity-90">⏱</span>${skillTurns}回合</span>`;
+
     let chipClass = '';
     let badgeBoxClass = '';
     let badgeContent = '';
     let costRightText = '';
 
     if (heroTheme === 'gold') {
-      // 威廉：专属金色主题（带四角星和金色光晕，右侧显示命中率）
+      // 威廉：专属金色主题（持续回合 + 金色命中率）
       chipClass = 'theme-gold';
       badgeBoxClass = 'border-amber-500/60 bg-amber-950/40 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
-      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
     } else if (heroTheme === 'purple') {
-      // 冯：金紫交辉炼金秘术风格（带四角星和金色光晕，右侧显示命中率）
+      // 冯：金紫交辉炼金秘术风格（持续回合 + 金色命中率）
       chipClass = 'theme-purple';
       badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
-      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+      costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
     } else {
-      // 主角：技能插槽
+      // 主角：技能插槽（持续回合 + 命中率与购点）
       chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
       badgeBoxClass = s.scope === '限定'
         ? 'border-amber-500/50 bg-amber-950/30 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.25)]'
         : 'border-purple-500/50 bg-purple-950/30 text-purple-300 shadow-[0_0_6px_rgba(192,132,252,0.25)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
       costRightText = s.scope === '限定'
-        ? `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`
-        : `<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1"><span class="text-purple-400 text-xs">✦</span> ${aimDisplayText} · ${s.shopCost} 点</span>`;
+        ? `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`
+        : `<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1">${turnsBadgeHtml}<span class="text-purple-400 text-xs">✦</span> ${aimDisplayText} · ${s.shopCost} 点</span>`;
     }
 
     const ammoCost = s.ammoCost || GLOBAL_AMMO_BINDINGS[s.name] || null;
@@ -2416,6 +2432,7 @@
             <span>来源: ${s.srcClass}</span>
             ${(s.typeTag && s.typeTag !== '反应') ? `<span>·</span><span>${s.typeTag}</span>` : ''}
             ${reactText ? `<span>·</span><span class="text-amber-300 font-bold">${reactText}</span>` : ''}
+            <span>·</span><span class="inline-flex items-center gap-0.5 text-amber-300/90 font-mono font-bold"><span class="text-[0.6rem]">⏱</span>${getSkillTurns(s.rawText)}回合</span>
           </div>
           <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
             ${formatSkillEffectPills(s.rawText)}
@@ -2750,6 +2767,8 @@
     } else if (rawText && rawText.includes('通用')) {
       badges.push('<span class="text-purple-200/70 border border-purple-500/30 bg-black/40 px-1.5 py-0.2 rounded">通用</span>');
     }
+    const turnsVal = getSkillTurns(rawText);
+    badges.push(`<span class="text-amber-300 font-mono border border-amber-500/40 bg-amber-950/40 px-1.5 py-0.2 rounded">⏱ ${turnsVal}回合</span>`);
     if (ttBadges) ttBadges.innerHTML = badges.join('');
 
     // 2. 提取并渲染关联机制 (按需高亮聚焦机制)
