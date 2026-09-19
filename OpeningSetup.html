@@ -1128,8 +1128,8 @@
 
   const MECHANICS_REGISTRY = {
     '看破': { title: '看破', icon: '👁️', desc: '敌方宣告技能时触发，消耗资源强制中断并完全无效化对应伤害类型的技能，使其本次行动落空。' },
-    '反应': { title: '反应', icon: '⚡', desc: '闪避判定失败、即将遭受攻击时触发，消耗资源插队施展身法或防御技，重新进行闪避判定或减免伤害。' },
-    '舍身': { title: '舍身', icon: '🛡️', desc: '友方目标闪避失败、即将承受单体攻击时触发，挺身代替其承受本次攻击的全部伤害与负面效果。' },
+    '反应': { title: '反应', icon: '⚡', desc: '闪避判定失败、即将遭受攻击时触发，消耗资源插队施展身法或防御技，重新进行闪避判定或减免伤害。仅可应对对应类型的攻击——如【⟲反应·近战】只对近战攻击生效；未标注类型（⟲反应·全能）则任何攻击类型均可触发。' },
+    '舍身': { title: '舍身', icon: '🛡️', desc: '友方目标闪避失败、即将承受单体攻击时触发，挺身代替其承受本次攻击的全部伤害与负面效果。仅可应对对应类型的攻击——如【舍身·近战】只代替承受近战单体攻击；未标注类型（舍身·全能）则任何攻击类型均可触发。' },
     '反击': { title: '受击反击', icon: '⚔️', desc: '进入反击架势，成功闪避敌方近战攻击后，自动以自身攻击力结合技能威力回敬目标。' },
     '肃正': { title: '绝对肃正', icon: '✨', desc: '展开全队共享圣域结界，存在期间敌方单体攻击强制归集结界，全额吸收穿透伤害并隔离负面效果。结界未被击破前无法重复施展。' },
     '免伤': { title: '绝对免伤', icon: '🛡️', desc: '赋予自身一次性极高防御抵扣层，在下一次遭受攻击结算后立即消耗清除。' },
@@ -1545,6 +1545,17 @@
     if (text.includes('[高阶]') || text.includes('高阶') || text.includes('净蚀反冲')) return 2;
     return 1;
   }
+  /* 战技列表排序：严格按 普通(Tier 1) → 高阶(Tier 2) → 传奇(Tier 3) 阶梯升序排列（demo 同款稳定排序） */
+  function getSortedHeroSkills(skills) {
+    return [...skills].sort((a, b) => {
+      const tierA = getSkillTier(a);
+      const tierB = getSkillTier(b);
+      if (tierA !== tierB) {
+        return tierA - tierB;
+      }
+      return 0;
+    });
+  }
 
   // ---- 工具 ----
   function esc(s) {
@@ -1606,7 +1617,7 @@
     if (d.type2) parts.push(d.type2.replace(/[\[\]]/g, '') + (d.power2 ? ':' + d.power2 : ''));
     if (d.type3) parts.push(d.type3.replace(/[\[\]]/g, '') + (d.power3 ? ':' + d.power3 : ''));
     if (d.damageType) parts.push(d.damageType);
-    if (d.isReaction) parts.push('反应' + (d.reactionTarget && d.reactionTarget !== 'all' ? '·' + d.reactionTarget : ''));
+    if (d.isReaction) parts.push('反应' + (d.reactionTarget && d.reactionTarget !== 'all' ? '·' + d.reactionTarget : '·全能'));
     if (d.cost) parts.push('MP' + d.cost);
     if (d.hpCost) parts.push('HP' + d.hpCost);
     if (d.turns) parts.push('持续' + d.turns);
@@ -2175,7 +2186,7 @@
     const act = m ? m[1] : '反应';
     const limit = (m && m[2]) ? m[2].trim() : null;
     if (act === '反应') {
-      return limit ? `⟲反应·${limit}` : '⟲反应';
+      return limit ? `⟲反应·${limit}` : '⟲反应·全能';
     }
     return limit ? `${act}·${limit}` : act;
   }
@@ -2296,7 +2307,7 @@
         + '<span class="text-[0.7rem] text-[#e8dcc0]">'
         + (lim ? '<span class="text-[rgba(198,161,84,0.95)]">[限定]</span> ' : '<span class="text-[rgba(150,190,150,0.95)]">[通用]</span> ')
         + esc(s.data.name)
-        + (s.data.isReaction ? ' <span class="text-[rgba(217,140,140,0.95)]">⟲反应</span>' : '')
+        + (s.data.isReaction ? ' <span class="text-[rgba(217,140,140,0.95)]">⟲反应·全能</span>' : '')
         + '</span>'
         + '<span class="font-tw text-[0.62rem] text-[rgba(198,161,84,0.6)] shrink-0">' + (lim ? '随职业' : s.shopCost + ' 点') + '</span>'
         + '</div>'
@@ -2339,7 +2350,7 @@
         + '</div>';
     }).join('');
 
-    const skillChips = skills.map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false, 'gold'); }).join('');
+    const skillChips = getSortedHeroSkills(skills).map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false, 'gold'); }).join('');
 
     return '<div class="min-h-screen max-w-[1560px] w-full mx-auto pl-3 sm:pl-6 pr-3 sm:pr-6 py-2 [@media(max-height:800px)]:pt-16 flex flex-col justify-center">'
       + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
@@ -2403,7 +2414,7 @@
         + '</div>';
     }).join('');
 
-    const skillChips = skills.map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false, 'purple'); }).join('');
+    const skillChips = getSortedHeroSkills(skills).map(function (s, idx) { return renderSkillSlotChip(s, false, idx + 1, false, 'purple'); }).join('');
 
     return '<div class="min-h-screen max-w-[1560px] w-full mx-auto pl-3 sm:pl-6 pr-3 sm:pr-6 py-2 [@media(max-height:800px)]:pt-16 flex flex-col justify-center">'
       + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
@@ -2500,7 +2511,7 @@
       skillsContainer.style.opacity = '0';
       skillsContainer.style.transform = 'translateY(6px)';
       setTimeout(function () {
-        skillsContainer.innerHTML = clsObj.skills.map(function (s, idx) {
+        skillsContainer.innerHTML = getSortedHeroSkills(clsObj.skills).map(function (s, idx) {
           return renderSkillSlotChip(s, false, idx + 1, false, heroTheme);
         }).join('');
         skillsContainer.style.opacity = '1';
@@ -2761,7 +2772,7 @@
         + '  <span class="font-tw text-xs text-[var(--accent)] font-bold">' + e.shopCost + ' 点</span>'
         + '</div>'
         + '<div class="flex items-center gap-1.5 flex-wrap mb-1.5">'
-        + '  <span class="font-tw text-[0.62rem] text-[var(--text-muted)]">来源职业：' + esc(e.srcClass) + (e.data.isReaction ? ' · <span class="text-rose-400 font-bold">⟲反应</span>' : '') + '</span>'
+        + '  <span class="font-tw text-[0.62rem] text-[var(--text-muted)]">来源职业：' + esc(e.srcClass) + (e.data.isReaction ? ' · <span class="text-rose-400 font-bold">⟲反应·全能</span>' : '') + '</span>'
         + tierBadgeHtml
         + '</div>'
         + '<div class="flex items-center gap-1.5 flex-wrap">'
