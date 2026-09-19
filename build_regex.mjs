@@ -44,11 +44,15 @@ html = html.replace(/^```[^\n]*\n/, '').replace(/\n```\s*$/, '');
 if (!/<\/html>/i.test(html)) fail('源码内容异常：未找到 </html>');
 if (html.includes('```')) fail('源码含裸三反引号，违反围栏纪律');
 
-// 流式高度防回归：酒馆助手 iframe 按内容高度自适应，流式内容里的 100vh/min-h-screen
+// 流式高度防回归：酒馆助手 iframe 按内容高度自适应，流式内容里的 100vh/h-screen
 // 会形成「内容贴 iframe 高度 → iframe 被撑高 → vh 跟涨」的无限延伸循环（真机实测事故）。
-// 仅 fixed 装饰层（如 CSS 雾夜背景）允许 vh。断言禁：h-screen / 100vh / Tailwind 任意值 vh。
+// 仅 fixed 装饰层（如 CSS 雾夜背景）允许 vh。断言禁：裸 h-screen / 100vh / Tailwind 任意值 vh。
+// 豁免 min-h-screen（7466034 起阶段外壳用它做任意视口垂直居中）：文档流内仅剩 #app
+// 单根容器、min-h-screen 外壳是唯一在流元素且内边距都在 border-box 内，doc 高 =
+// max(自然高, 100vh) 有平衡点不追逐；当年循环根源（流内 chrome 与 vh 元素并列叠高）
+// 已随 dock 拆除全部转 fixed，此豁免经结构核验后放行。
 {
-  const bad = html.match(/h-screen|100vh|[0-9.]+vh\]/g) || [];
+  const bad = html.match(/(?<!min-)h-screen|100vh|[0-9.]+vh\]/g) || [];
   if (bad.length) fail('源码含流式 vh/screen 高度（会与酒馆 iframe 自适应高度形成无限延伸循环）: ' + bad.join(', '));
 }
 

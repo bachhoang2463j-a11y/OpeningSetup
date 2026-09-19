@@ -671,7 +671,7 @@
     party: {
       hero1: {
         id: 'hero1',
-        name: '威廉·退尔', emoji: '🎯', title: '冷峻神射手 · 雾港巡夜人',
+        name: '威廉·退尔', emoji: '🎯', title: '雾港神射手',
         url: 'http://127.0.0.1:8766/OS/威廉·退尔.png',
         wearing: '👔 灰色风衣配贴身战术皮甲，腰间挂着改装弩机与箭筒',
         inner: '💭 「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
@@ -693,7 +693,7 @@
       },
       hero2: {
         id: 'hero2',
-        name: '冯·霍恩海姆', emoji: '⚗️', title: '真理探索者 · 炼金术士',
+        name: '冯·霍恩海姆', emoji: '⚗️', title: '炼金术士',
         url: 'http://127.0.0.1:8766/OS/冯·霍恩海姆.png',
         wearing: '👔 墨绿纹章长袍，束金腰带，腰间挂着水银与贤者之石试管',
         inner: '💭 「所有遍布于大地的心爱之子，都是高贵星辰的闪耀。」',
@@ -2099,13 +2099,13 @@
       + '      <div class="p-dot" style="--p-x: 32%; --p-y: 18%; --p-tx: 10px; --p-ty: -50px; --p-dur: 8.5s; --p-del: 1.5s; --p-sz: 2px; --p-op: 0.35;"></div>'
       + '    </div>'
       + '  <div class="relative">'
-      + '    <div class="flex items-start justify-between">'
-      + '      <div>'
-      + '        <div class="flex items-center gap-2">'
-      + '          <span class="text-xl">' + esc(hero.emoji) + '</span>'
+      + '    <div class="flex items-center justify-between">'
+      + '      <div class="flex items-center gap-2.5">'
+      + '        <span class="text-xl">' + esc(hero.emoji) + '</span>'
+      + '        <div class="flex items-baseline gap-2">'
       + '          <h2 class="text-xl font-bold tracking-wide text-[var(--text-main)]">' + esc(hero.name) + '</h2>'
+      + '          <span class="text-xs font-tw font-bold text-[var(--accent)] tracking-wider">' + esc(hero.title || '') + '</span>'
       + '        </div>'
-      + '        <p class="font-tw text-xs text-[var(--accent)] mt-0.5">' + esc(hero.title || '') + '</p>'
       + '      </div>'
       + '      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10">'
       + '        <button data-action="play-voice" data-hero="' + esc(hero.id) + '" class="flex items-center gap-1.5 text-xs text-[var(--accent)] hover:text-white transition-colors cursor-pointer" title="重播台词语音">'
@@ -2121,7 +2121,7 @@
       + '      <p id="hero-dialogue-quote" class="text-xs sm:text-sm text-[var(--text-main)] italic leading-relaxed smooth-fade-transition">' + esc(voiceData.quote) + '</p>'
       + '    </div>'
       + '  </div>'
-      + '  <div class="portrait-wrapper my-2">'
+      + '  <div class="portrait-wrapper my-1">'
       + (hero.url ? '    <img src="' + esc(hero.url) + '" alt="' + esc(hero.name) + '" class="portrait-img hero-swap-in">' : '    <div class="text-6xl text-white/20">' + esc(hero.emoji) + '</div>')
       + '  </div>'
       + '  <div class="w-full z-10 glass-soft p-3">'
@@ -2775,13 +2775,19 @@
         : (tier === 2
           ? '<span class="tier-badge-modern-adv text-[0.58rem] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 flex items-center gap-1">✦ 高阶</span>'
           : '');
+      const reactText = getReactionBadgeText(e);
+      const typeTag = e.data.isReaction ? '反应' : (e.data.damageType || '战术');
+      const poolTurns = e.rawText ? (e.rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i) || [])[1] : null;
       return '<div class="skill-pick-card ' + (isSel ? 'selected' : '') + '" data-action="c3-skill-toggle" data-skill="' + esc(e.data.name) + '" data-skill-card="' + esc(e.data.name) + '" data-skill-name="' + esc(e.data.name) + '" data-skill-raw="' + esc(e.rawText || e.data.name) + '">'
         + '<div class="flex items-baseline justify-between mb-1">'
         + '  <span class="text-sm font-bold text-[var(--text-main)]">' + esc(e.data.name) + '</span>'
         + '  <span class="font-tw text-xs text-[var(--accent)] font-bold">' + e.shopCost + ' 点</span>'
         + '</div>'
         + '<div class="flex items-center gap-1.5 flex-wrap mb-1.5">'
-        + '  <span class="font-tw text-[0.62rem] text-[var(--text-muted)]">来源职业：' + esc(e.srcClass) + (e.data.isReaction ? ' · <span class="text-rose-400 font-bold">⟲反应·全能</span>' : '') + '</span>'
+        + '  <span class="font-tw text-[0.62rem] text-[var(--text-muted)]">来源职业：' + esc(e.srcClass) + '</span>'
+        + (typeTag !== '反应' ? '<span class="font-tw text-[0.62rem] text-[var(--text-muted)]">· ' + typeTag + '</span>' : '')
+        + (reactText ? '<span class="font-tw text-[0.62rem]">· <span class="text-amber-300 font-bold">' + reactText + '</span></span>' : '')
+        + (poolTurns ? '<span class="font-tw text-[0.62rem] text-amber-300/90 font-bold">· ⏱ ' + poolTurns + '回合</span>' : '')
         + tierBadgeHtml
         + '</div>'
         + '<div class="flex items-center gap-1.5 flex-wrap">'
@@ -2822,7 +2828,7 @@
       + '  </div>'
       + '  <div class="mt-6 pt-5 border-t border-white/10">'
       + '    <div class="font-tw text-xs text-white/50 mb-3 tracking-wider">GENERIC CHIP REPOSITORY (21 条可选，最多装配 3 个)</div>'
-      + '    <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-2.5">' + cards + '</div>'
+      + '    <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">' + cards + '</div>'
       + '  </div>'
       + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
       + '  <div class="pt-5 mt-6 border-t border-white/10 flex items-center justify-between">'
@@ -3632,7 +3638,6 @@
                 <span class="text-amber-400 text-xs">🎯</span>
                 <span>${card.imgCaption}</span>
               </span>
-              <span class="text-[0.62rem] text-white/40">高精度实机截取</span>
             </div>`;
 
     const sectionBlocks = `
@@ -3846,7 +3851,7 @@ ${sectionBlocks}
     }
 
     if (ttBody) {
-      const entriesHtml = displayKeys.map(key => {
+      let entriesHtml = displayKeys.map(key => {
         const item = MECHANICS_REGISTRY[key] || { title: key, icon: '✦', desc: '按标准规则结算生效。' };
         const isFocused = focusMechKey === key;
         let borderHighlight = isFocused ? 'border-amber-400/80 bg-amber-500/10' : 'border-white/5 bg-white/[0.02]';
@@ -3890,6 +3895,41 @@ ${sectionBlocks}
           </div>
         `;
       }).join('');
+
+      // 若为召唤技能且涉及【化尘者】，备注化尘者的完整属性与技能档案
+      if (displayKeys.includes('召唤') && rawText && rawText.includes('化尘者')) {
+        entriesHtml += `
+          <div class="mt-2 pt-2 border-t border-white/10">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-amber-300 flex items-center gap-1 font-serif">
+                <span>💨</span><span>〖化尘者〗从者档案</span>
+              </span>
+              <span class="text-[0.58rem] font-mono text-amber-200/80 border border-amber-500/30 bg-amber-950/40 px-1.5 py-0.5 rounded">流体 · 虚形 · 1动/轮</span>
+            </div>
+            <div class="grid grid-cols-5 gap-1 text-[0.62rem] font-mono text-center mb-1.5 bg-black/40 p-1.5 rounded border border-white/10">
+              <div><span class="text-white/40 block text-[0.52rem]">生命</span><span class="font-bold text-white/90">90</span></div>
+              <div><span class="text-white/40 block text-[0.52rem]">法力</span><span class="font-bold text-sky-300">10</span></div>
+              <div><span class="text-white/40 block text-[0.52rem]">攻击</span><span class="font-bold text-rose-300">45</span></div>
+              <div><span class="text-white/40 block text-[0.52rem]">护甲</span><span class="font-bold text-amber-200">0</span></div>
+              <div><span class="text-white/40 block text-[0.52rem]">速度</span><span class="font-bold text-emerald-300">80</span></div>
+            </div>
+            <div class="space-y-1 text-[0.63rem] font-mono">
+              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
+                <span class="text-white/90 font-bold">【沙矛】</span>
+                <span class="text-white/60">单体40×2 · 命中90 · 1 MP · 近战</span>
+              </div>
+              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
+                <span class="text-white/90 font-bold">【卷尘】</span>
+                <span class="text-white/60">单体50 · 降避10+降攻10(2T) · 2 MP · 法术</span>
+              </div>
+              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
+                <span class="text-amber-300 font-bold">【飞沙流体】</span>
+                <span class="text-amber-200/70">绝对免伤40 · 反应:远程 · 2 MP</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
 
       ttBody.innerHTML = entriesHtml;
     }
@@ -4088,7 +4128,6 @@ ${sectionBlocks}
             <h3 class="text-base sm:text-lg font-bold text-amber-100 font-serif tracking-wider">战斗界面与核心规则速查</h3>
             <span class="text-[0.62rem] font-mono px-2 py-0.5 rounded border border-amber-500/40 bg-amber-950/40 text-amber-200">8 CORE MECHANICS</span>
           </div>
-          <p class="text-[0.66rem] text-white/45 font-mono">现代游戏多卡片可切换架构 · 图文并茂避免信息过载</p>
         </div>
       </div>
 
