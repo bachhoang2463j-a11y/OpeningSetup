@@ -804,7 +804,15 @@
     padding: 12px 14px;
     box-shadow: var(--tooltip-glow);
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: calc(100vh - 24px);
+  }
+  .tooltip-glass-card::-webkit-scrollbar {
+    width: 4px;
+  }
+  .tooltip-glass-card::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
   }
   .tooltip-glass-card:before {
     content: '';
@@ -3703,25 +3711,38 @@ ${sectionBlocks}
       ttBody.innerHTML = entriesHtml;
     }
 
-    // 3. 智能定位与防视口溢出计算
+    // 3. 智能定位与防视口溢出计算 (优先向上显示，自适应最佳视口)
     tooltipContainer.classList.add('visible');
-    const ttWidth = tooltipContainer.offsetWidth || 320;
-    const ttHeight = tooltipContainer.offsetHeight || 180;
+    const ttWidth = tooltipContainer.offsetWidth || 336;
+    const ttHeight = tooltipContainer.offsetHeight || 220;
     const padding = 12;
 
-    let posX = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
-    let posY = targetRect.top - ttHeight - 8; // 默认在卡片正上方
+    const spaceAbove = targetRect.top - padding;
+    const spaceBelow = window.innerHeight - targetRect.bottom - padding;
 
-    // 上边界溢出检测：如果上方放不下，放下方
-    if (posY < padding) {
+    let posX = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
+    let posY;
+
+    // 若上方空间充足，或者上方空间大于下方空间，优先向上显示
+    if (spaceAbove >= ttHeight || spaceAbove >= spaceBelow) {
+      posY = targetRect.top - ttHeight - 8;
+      // 若顶部超出视口，贴顶显示
+      if (posY < padding) {
+        posY = padding;
+      }
+    } else {
+      // 下方空间充足且明显大于上方空间时，才向下显示
       posY = targetRect.bottom + 8;
+      // 若底部超出视口，贴底显示
+      if (posY + ttHeight > window.innerHeight - padding) {
+        posY = window.innerHeight - ttHeight - padding;
+      }
     }
-    // 左边界溢出检测
+
+    // 左/右边界溢出修正
     if (posX < padding) {
       posX = padding;
-    }
-    // 右边界溢出检测
-    if (posX + ttWidth > window.innerWidth - padding) {
+    } else if (posX + ttWidth > window.innerWidth - padding) {
       posX = window.innerWidth - ttWidth - padding;
     }
 
