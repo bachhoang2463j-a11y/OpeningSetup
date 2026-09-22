@@ -68,6 +68,34 @@
     --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.88), 0 0 24px rgba(192, 132, 252, 0.25);
   }
 
+  /* 伊斯坎达尔专属：霸王赤炎 (Crimson Conqueror) */
+  body.theme-crimson {
+    --noir-bg: #140507;
+    --amber: #ef4444;
+    --amber-dim: rgba(239, 68, 68, 0.45);
+    --amber-glow: rgba(239, 68, 68, 0.35);
+
+    --bg-base: #140507;
+    --panel-bg: rgba(38, 12, 16, 0.84);
+    --panel-glass: rgba(50, 15, 22, 0.68);
+    --panel-border: rgba(239, 68, 68, 0.38);
+    --panel-border-bright: rgba(248, 113, 113, 0.95);
+    --accent: #ef4444;
+    --accent-glow: rgba(239, 68, 68, 0.48);
+    --accent-dim: rgba(239, 68, 68, 0.2);
+    --text-main: #fff1f2;
+    --text-muted: rgba(254, 205, 211, 0.75);
+    --slot-bg: rgba(28, 8, 12, 0.88);
+    --slot-border: rgba(239, 68, 68, 0.35);
+    --slot-glow: 0 0 20px rgba(239, 68, 68, 0.36);
+    --card-hover: rgba(65, 18, 28, 0.8);
+    --btn-bg: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.12));
+    --btn-border: rgba(239, 68, 68, 0.65);
+    --tooltip-bg: rgba(28, 8, 12, 0.95);
+    --tooltip-border: rgba(248, 113, 113, 0.55);
+    --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.88), 0 0 24px rgba(239, 68, 68, 0.3);
+  }
+
   html, body { margin: 0; padding: 0; background: var(--noir-bg); transition: background-color 0.4s ease, color 0.4s ease; }
   body { font-family: 'Noto Serif SC', serif; color: #e8dcc0; overflow-x: hidden; }
   .font-tw { font-family: 'Special Elite', 'Courier New', monospace; }
@@ -82,6 +110,10 @@
   body.theme-gilded #ambient-glow {
     background: radial-gradient(circle at 30% 25%, rgba(245, 158, 11, 0.12) 0%, transparent 60%),
                 radial-gradient(circle at 70% 80%, rgba(147, 51, 234, 0.16) 0%, transparent 60%);
+  }
+  body.theme-crimson #ambient-glow {
+    background: radial-gradient(circle at 35% 25%, rgba(239, 68, 68, 0.15) 0%, transparent 65%),
+                radial-gradient(circle at 75% 75%, rgba(185, 28, 28, 0.22) 0%, transparent 60%);
   }
 
   /* ---- 背景层：视频 / CSS 雾夜兜底 / 胶片颗粒 / 暗角 ---- */
@@ -226,6 +258,20 @@
   .skill-slot-chip.theme-purple:hover {
     border-color: rgba(217, 180, 92, 0.65);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(217, 180, 92, 0.25);
+  }
+  /* 伊斯坎达尔专属技能芯片：赤炎烈焰镶边 + 战火深红底色 (Crimson Conqueror) */
+  .skill-slot-chip.theme-crimson:before {
+    background: linear-gradient(to bottom, #f87171 0%, #ef4444 50%, #991b1b 100%);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8), 0 0 6px rgba(248, 113, 113, 0.5);
+  }
+  .skill-slot-chip.theme-crimson {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(45, 12, 18, 0.6) 22%, rgba(24, 8, 12, 0.82) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(239, 68, 68, 0.15);
+  }
+  .skill-slot-chip.theme-crimson:hover {
+    border-color: rgba(248, 113, 113, 0.8);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 18px rgba(239, 68, 68, 0.4);
   }
   /* 高阶技能 (Tier 2)：金色跑马流光与璀璨耀芒横扫动效 */
   .skill-slot-chip.tier-advanced {
@@ -709,6 +755,25 @@
           - "【灾厄降临】[限定][价:3][MP:10][TP:10][看破:远程][限3次]"
           - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][限2次][法术][特效:高阶召唤术][高阶]"
           - "【异种坏死雾】[限定][价:3][群中毒;power:30][群弱;power:20][群滞;power:20][远程][Aim:300][TP:20][MP:5][高阶][特效:异种坏死雾]"
+    - 角色:
+        名字: "征伐者"
+        属性: "[HP:180/180][MP:30/30][Atk:55][Armor:50][Speed:85][职业:征伐者]"
+        技能:
+          - "【踏破先锋】[通用][价:1][单体;power:45][单速;power:15][Aim:120][近战]"
+          - "【铁蹄蹂躏】[通用][价:2][眩晕;power:70][Aim:100][TP:10][近战]"
+          - "【全军突击】[通用][价:2][群速;power:25][MP:5]"
+          - "【遥远的蹂躏制霸】[限定][价:2][群眩晕;power:75][群麻痹;power:15][Aim:75][MP:6][TP:20][近战][特效:雷击01][高阶]"
+          - "【御者回转】[限定][价:2][回避;power:200][反击;power:10][MP:2][反应:近战]"
+          - "【王之军势】[限定][价:3][召唤:近卫骑兵*4][群冲;power:50][群增;power:20][MP:15][TP:30][延迟:1][众召][传奇][特效:圣域帷幕][限1次]"
+        物品:
+          - "【塞浦路斯红酒】[道具][次数:2][单回;power:40][单冲;power:20][他人]"
+    - 角色:
+        名字: "⟪💂近卫骑兵⟫"
+        属性: "[HP:150/150][MP:10/10][Atk:45][Armor:40][Speed:60][行动次数:1][要害][狂暴][智慧]"
+        技能:
+          - "【投矛】[通用][价:1][单体;power:40][远程][Aim:100]"
+          - "【结阵】[限定][价:2][单盾;power:30][群防;power:10][他人]"
+          - "【重盾】[通用][价:1][单体;power:30][眩晕;power:30][近战]"
 </Combat_block></script>
 
 <script>
@@ -719,23 +784,22 @@
    * OPENING_DATA 配置区 START —— 开场初始化的全部内容数据都在这里改
    * --------------------------------------------------------------------
    * · bgm.url / bgVideo.url：BGM 与动态背景视频的直链，留空则用 CSS 雾夜兜底
-   * · party.hero1/hero2：预置角色（姓名/emoji/立绘 URL/穿着/内心/可选职业），
+   * · party.hero1/hero2/hero_iskandar：预置角色（姓名/emoji/立绘 URL/穿着/内心/可选职业），
    *   立绘 URL 留空则不写入 MMS 快照；占位名请替换成正式角色
-   * · classIntro：七个职业的选择页介绍与被动摘要
+   * · classIntro：职业的选择页介绍与被动摘要
    * · identity：自定义角色（第三角色）的默认姓名/emoji/穿着/内心
    * · shop：购点机制接口（技能/属性/物品预算与属性兑换表），数值按需调整
    * · items：自定义角色的可选物品清单，data 内为 RpgCombat 持久化字段
    * · 战斗技能数据在页面底部 <script type="text/plain" id="combat-data">
-   *   的 <Combat_block> YAML 里（7 职业 × 6 技能，3 限定 + 3 通用），改数值直接改文本
+   *   的 <Combat_block> YAML 里（改数值直接改文本）
    * · status：开场白中 <Status_block> 的日期/地点/行动选项等
-   * · openingTemplate：开场白叙事模板，{名一}{名二}{名三}{职业一}{职业二}
-   *   {职业三}{技能一}{技能二}{物品清单} 会被替换
+   * · openingTemplate：开场白叙事模板
    * ==================================================================== */
   const OPENING_DATA = {
     bgm: {
-      storyUrl: "https://files.catbox.moe/o423us.mp3",
-      selectUrl: "https://files.catbox.moe/o423us.mp3",
-      url: "https://files.catbox.moe/o423us.mp3",
+      storyUrl: "https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/the_ecstasy_of_gold.mp3",
+      selectUrl: "https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/the_ecstasy_of_gold.mp3",
+      url: "https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/the_ecstasy_of_gold.mp3",
       title: "The Ecstasy Of Gold - Ennio Morricone",
     },
     bgVideo: { url: 'https://cdn.pixabay.com/video/2026/07/24/366249_large.mp4', opacity: 0.6, blur: 10 },
@@ -764,7 +828,7 @@
       hero1: {
         id: 'hero1',
         name: '威廉·退尔', emoji: '🎯', title: '雾港神射手',
-        url: 'https://files.catbox.moe/90q8lq.png',
+        url: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_tell_portrait.png',
         wearing: '👔 灰色风衣配贴身战术皮甲，腰间挂着改装弩机与箭筒',
         inner: '💭 「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
         classes: ['隐匿者', '狂战士', '防守者'],
@@ -777,22 +841,22 @@
         classVoiceMap: {
           '隐匿者': {
             quote: '「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
-            audioUrl: 'https://files.catbox.moe/7nzfny.mp3'
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_voice_stealth.mp3'
           },
           '狂战士': {
             quote: '「那我就——稍微来点大手笔的吧！」',
-            audioUrl: 'https://files.catbox.moe/s17qp7.mp3'
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_voice_berserker.mp3'
           },
           '防守者': {
             quote: '「看来，现在已经没空计较一些小事了。尽管负伤的野兽非常可怕……但必须让那野兽知道，负伤的猎人更可怕才行哦？」',
-            audioUrl: 'https://files.catbox.moe/m3138u.mp3'
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_voice_defender.mp3'
           }
         }
       },
       hero2: {
         id: 'hero2',
         name: '冯·霍恩海姆', emoji: '⚗️', title: '炼金术士',
-        url: 'https://files.catbox.moe/1zg8rw.png',
+        url: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_portrait.png',
         wearing: '👔 墨绿纹章长袍，束金腰带，腰间挂着水银与贤者之石试管',
         inner: '💭 「所有遍布于大地的心爱之子，都是高贵星辰的闪耀。」',
         classes: ['施法者', '圣职者', '灾厄使'],
@@ -801,15 +865,30 @@
         classVoiceMap: {
           '施法者': {
             quote: '「好好领教五大元素使之魔术是何等的存在吧——」',
-            audioUrl: 'https://files.catbox.moe/s88rh4.mp3'
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_voice_caster.mp3'
           },
           '圣职者': {
             quote: '「所有遍布于大地的心爱之子，都是高贵星辰的闪耀。」',
-            audioUrl: 'https://files.catbox.moe/uMtwf.mp3'
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_voice_cleric.mp3'
           },
           '灾厄使': {
             quote: '「这么说来，人工生命体的素材还不够呢……」',
-            audioUrl: 'https://files.catbox.moe/271e1f.mp3'
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_voice_corruptor.mp3'
+          }
+        }
+      },
+      hero_iskandar: {
+        id: 'hero_iskandar',
+        name: '伊斯坎达尔', emoji: '👑', title: '征服王',
+        url: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/iskandar_portrait.png',
+        wearing: '👔 红色希腊短袍，外披暗红色镶金大氅，铜质肩甲与护腕',
+        inner: '💭 「所谓王者，当比任何人都有欲望，比任何人都更豪迈，比任何人都容易愤怒！」',
+        classes: ['征伐者'],
+        fixedWeapons: ['塞浦路斯阔剑', '神威车轮'],
+        classVoiceMap: {
+          '征伐者': {
+            quote: '「唔？这里有个表情严肃的军师呢。和欧迈尼斯有的一拼……不，内心还是个不成熟的小鬼头吗。让他和赫费斯提翁见面一定会很有意思的！」',
+            audioUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/iskandar_voice.mp3'
           }
         }
       },
@@ -817,13 +896,24 @@
 
     // 职业介绍（选择职业时展示；被动摘要对应 RpgCombat CLASS_PASSIVES 的实际效果）
     classIntro: {
-      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', role: '敏捷 / 刺客', gifUrl: 'https://files.catbox.moe/dwq042.gif' },
-      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留住最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', role: '强攻 / 绝地', gifUrl: 'https://files.catbox.moe/y8l2j7.gif' },
-      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', role: '防御 / 坚壁', gifUrl: 'https://files.catbox.moe/d08n20.gif' },
+      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', role: '敏捷 / 刺客', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_stealth.gif' },
+      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留存最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', role: '强攻 / 绝地', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_berserker.gif' },
+      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', role: '防御 / 坚壁', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_defender.gif' },
       '风行者': { intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。', passive: '闪避成长 · 多重施法 · 回避致命', role: '极速 / 连击', gifUrl: '' },
-      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', role: '爆发 / 护盾', gifUrl: 'https://files.catbox.moe/l44y8k.gif' },
-      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', role: '支援 / 圣佑', gifUrl: 'https://files.catbox.moe/0oos9d.gif' },
-      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', role: '减益 / 持续伤害', gifUrl: 'https://files.catbox.moe/j08nr8.gif' },
+      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', role: '爆发 / 护盾', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_caster.gif' },
+      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', role: '支援 / 圣佑', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_cleric.gif' },
+      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', role: '减益 / 持续伤害', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_corruptor.gif' },
+      '征伐者': {
+        intro: '以极致动能撕裂敌阵的霸道铁骑。行动速度凌驾对手时造成额外阶梯增伤，加速状态下冲锋必附暴击；天生突破前后排掩护且首回合极速拔足；面对慢速敌人时，速度优势将直接转化为闪避压制。',
+        passive: '动能冲踏 · 破阵贯穿 · 先手优势',
+        role: '突破 / 军势',
+        gifUrl: '',
+        passivesDetail: [
+          { title: '动能冲踏', desc: '速度压制增伤 · 加速冲锋必暴' },
+          { title: '破阵贯穿', desc: '近战直击后排 · 首轮极速拔足' },
+          { title: '先手优势', desc: '对慢速敌人转化为闪避压制' }
+        ]
+      },
     },
 
     identity: {
@@ -897,13 +987,14 @@
     },
 
     openingTemplate: [
-      '{名一}、{名二}与{名三}在201室的台灯下摊开了委托信。雨声漫过旧码头，汽笛在雾的深处呜咽。',
+      '{名一}、{名二}、{名王}与{名三}在201室的台灯下摊开了委托信。雨声漫过旧码头，汽笛在雾的深处呜咽。',
       '',
       '· {名一} —— {职业一}。{技能一}',
       '· {名二} —— {职业二}。{技能二}',
+      '· {名王} —— {职业王}。{技能王}',
       '· {名三} —— {职业三}，随身带着{物品清单}。',
       '',
-      '三份档案并排放在桌上，火漆徽记在灯下泛着暗红。今晚，蓝鸮旅馆201室的灯为他们而亮——故事，从这里落笔。',
+      '四份档案并排放在桌上，火漆徽记在灯下泛着暗红。今晚，蓝鸮旅馆201室的灯为他们而亮——故事，从这里落笔。',
     ].join('\n'),
   };
   /* ============================== OPENING_DATA 配置区 END ============================== */
@@ -1100,6 +1191,7 @@
     storyPage: 0,
     hero1Class: '',
     hero2Class: '',
+    heroIskandarClass: '征伐者',
     hero3: {
       name: OPENING_DATA.identity.defaultName,
       portrait: '',        // 所选立绘键（自定义立绘的键名）
@@ -1227,7 +1319,7 @@
     const hero = OPENING_DATA.party[heroKey];
     if (!hero || !hero.classVoiceMap) return;
     // 首次进入界面时可能尚未选定职业：回退到默认职业（与 viewC1/viewC2 的默认逻辑一致）
-    const curCls = (heroKey === 'hero1' ? state.hero1Class : state.hero2Class) || hero.classes[0];
+    const curCls = (heroKey === 'hero1' ? state.hero1Class : (heroKey === 'hero2' ? state.hero2Class : state.heroIskandarClass)) || hero.classes[0];
     const item = hero.classVoiceMap[curCls];
     if (!item || !item.audioUrl) return;
     state.currentAudioHero = heroKey;
@@ -1310,7 +1402,14 @@
   /* ===== demo 移植：机制悬浮说明体系（注册表 / 机制提取 / 生效回合 / 富胶囊） ===== */
 
   /* 弹药绑定：从 Combat_block 物品行 [绑定:技能*N] 动态构建，供 tooltip 展示材料消耗 */
-  const GLOBAL_AMMO_BINDINGS = {};
+  const GLOBAL_AMMO_BINDINGS = {
+    '暗巷快枪':   { ammoName: '.45子弹', count: 3 },
+    '死亡编织':   { ammoName: '.45子弹', count: 14 },
+    '双管猎象枪': { ammoName: '.577子弹', count: 1 },
+    '温切斯特M1897': { ammoName: '12号鹿弹', count: 1 },
+    '克虏伯1918型': { ammoName: '反坦克子弹', count: 1 },
+    '追风射击':   { ammoName: '.45子弹', count: 1 },
+  };
   Object.keys(COMBAT.classes).forEach(function (cls) {
     (COMBAT.classes[cls].items || []).forEach(function (it) {
       (it.data.bindings || []).forEach(function (b) {
@@ -1776,6 +1875,7 @@
   function genericPool() {
     const pool = [];
     Object.keys(COMBAT.classes).forEach(function (cls) {
+      if (cls.includes('⟪')) return; // 排除从者近卫骑兵
       COMBAT.classes[cls].skills.forEach(function (s) { if (s.scope === '通用') pool.push(s); });
     });
     return pool;
@@ -1819,8 +1919,8 @@
   // 弹药自动分配：职业标配物品（深拷贝）基础上，按最终 6 技能补齐耗弹绑定——
   // 已有绑定跳过；同弹种弹匣追加绑定行；无同弹种则新建弹匣（数量取 Combat_block 同名弹匣最大标配数）
   function hero3AmmoAllocation() {
-    const items = classItems(state.hero3.classType).map(function (e) {
-      return { id: e.id, data: JSON.parse(JSON.stringify(e.data)) };
+    const items = (classItems(state.hero3.classType) || []).map(function (it) {
+      return { id: it.id, data: JSON.parse(JSON.stringify(it.data)) };
     });
     limitedSkills(state.hero3.classType).concat(genericSkillEntries()).forEach(function (s) {
       const ab = GLOBAL_AMMO_BINDINGS[s.data.name];
@@ -1853,13 +1953,16 @@
   function hero3ItemEntries() {
     return hero3AmmoAllocation().concat(itemEntries());
   }
-  // hero1/hero2/hero3 随身武器（纯叙事，随职业变 / 固定），走 Status_block 武器行，不进战斗档案
+  // hero1/hero2/hero_iskandar/hero3 随身武器（纯叙事，随职业变 / 固定），走 Status_block 武器行，不进战斗档案
   function hero1Weapons() {
     const h1 = OPENING_DATA.party.hero1;
     return (h1.weaponsByClass && h1.weaponsByClass[state.hero1Class]) || [];
   }
   function hero2Weapons() {
     return OPENING_DATA.party.hero2.fixedWeapons || [];
+  }
+  function heroIskandarWeapons() {
+    return (OPENING_DATA.party.hero_iskandar && OPENING_DATA.party.hero_iskandar.fixedWeapons) || [];
   }
   function hero3Weapons() {
     const map = OPENING_DATA.identity.weaponsByClass;
@@ -1974,6 +2077,7 @@
   function buildPartySave() {
     const h1 = OPENING_DATA.party.hero1;
     const h2 = OPENING_DATA.party.hero2;
+    const hIskandar = OPENING_DATA.party.hero_iskandar;
     const hero1 = buildHeroSave({
       name: h1.name, url: h1.url, classType: state.hero1Class,
       config: classConfigOf(state.hero1Class) || {}, skills: classSkills(state.hero1Class), items: classItems(state.hero1Class),
@@ -1982,11 +2086,15 @@
       name: h2.name, url: h2.url, classType: state.hero2Class,
       config: classConfigOf(state.hero2Class) || {}, skills: classSkills(state.hero2Class), items: classItems(state.hero2Class),
     });
+    const heroIskandar = buildHeroSave({
+      name: hIskandar.name, url: hIskandar.url, classType: state.heroIskandarClass,
+      config: classConfigOf(state.heroIskandarClass) || {}, skills: classSkills(state.heroIskandarClass), items: classItems(state.heroIskandarClass),
+    });
     const hero3 = buildHeroSave({
       name: hero3Name(), url: hero3PortraitUrl(), classType: state.hero3.classType,
       config: hero3Config() || {}, skills: limitedSkills(state.hero3.classType).concat(genericSkillEntries()), items: hero3ItemEntries(),
     });
-    return { version: 1, heroes: [hero1, hero2, hero3] };
+    return { version: 1, heroes: [hero1, hero2, heroIskandar, hero3] };
   }
 
   // 战斗物品分类词条（RpgCombat/MMS 通道：【弹药】【消耗品】【道具】独立行，格式 [名x数量] 供 _sbParseItems 解析）
@@ -2013,10 +2121,12 @@
   function buildStatusBlock() {
     const h1 = OPENING_DATA.party.hero1;
     const h2 = OPENING_DATA.party.hero2;
+    const hIskandar = OPENING_DATA.party.hero_iskandar;
     const cfg3 = hero3Config();
     const roles = [
       { emoji: h1.emoji, name: h1.name, attrs: state.hero1Class ? attrLine(classConfigOf(state.hero1Class)) : '', wearing: h1.wearing, inner: h1.inner, items: classItems(state.hero1Class), weapons: hero1Weapons(), story: '' },
       { emoji: h2.emoji, name: h2.name, attrs: state.hero2Class ? attrLine(classConfigOf(state.hero2Class)) : '', wearing: h2.wearing, inner: h2.inner, items: classItems(state.hero2Class), weapons: hero2Weapons(), story: '' },
+      { emoji: hIskandar.emoji, name: hIskandar.name, attrs: state.heroIskandarClass ? attrLine(classConfigOf(state.heroIskandarClass)) : '', wearing: hIskandar.wearing, inner: hIskandar.inner, items: classItems(state.heroIskandarClass), weapons: heroIskandarWeapons(), story: '' },
       { emoji: OPENING_DATA.identity.emoji, name: hero3Name(), attrs: cfg3 ? attrLine(cfg3) : '', wearing: state.hero3.wearing, inner: state.hero3.inner, items: hero3ItemEntries(), weapons: hero3Weapons(), story: state.hero3.storyItems },
     ];
     const lines = [];
@@ -2053,17 +2163,21 @@
     const narrative = fill(OPENING_DATA.openingTemplate, {
       名一: OPENING_DATA.party.hero1.name,
       名二: OPENING_DATA.party.hero2.name,
+      名王: OPENING_DATA.party.hero_iskandar.name,
       名三: hero3Name(),
       职业一: state.hero1Class || '（未定）',
       职业二: state.hero2Class || '（未定）',
+      职业王: state.heroIskandarClass || '（未定）',
       职业三: state.hero3.classType || '（未定）',
       技能一: listNames(classSkills(state.hero1Class)),
       技能二: listNames(classSkills(state.hero2Class)),
+      技能王: listNames(classSkills(state.heroIskandarClass)),
       物品清单: listNames(itemEntries()),
     });
     const tags = [];
     if (OPENING_DATA.party.hero1.url) tags.push('【立绘 ' + OPENING_DATA.party.hero1.name + '】');
     if (OPENING_DATA.party.hero2.url) tags.push('【立绘 ' + OPENING_DATA.party.hero2.name + '】');
+    if (OPENING_DATA.party.hero_iskandar.url) tags.push('【立绘 ' + OPENING_DATA.party.hero_iskandar.name + '】');
     if (hero3PortraitUrl() && state.hero3.portrait) tags.push('【立绘 ' + state.hero3.portrait + '】');
     return narrative + '\n\n' + tags.join('') + '\n\n' + buildStatusBlock();
   }
@@ -2074,6 +2188,7 @@
       chars: [
         { slot: 'hero1', name: OPENING_DATA.party.hero1.name, classType: state.hero1Class },
         { slot: 'hero2', name: OPENING_DATA.party.hero2.name, classType: state.hero2Class },
+        { slot: 'hero_iskandar', name: OPENING_DATA.party.hero_iskandar.name, classType: state.heroIskandarClass },
         { slot: 'hero3', name: hero3Name(), classType: state.hero3.classType, portrait: state.hero3.portrait },
       ],
       customPortraits: state.hero3.customPortraits.slice(),
@@ -2082,7 +2197,7 @@
     };
   }
 
-  // MMS 本机图片快照合并：把三个角色的 {名字: 立绘URL} 写入独立补丁键
+  // MMS 本机图片快照合并：把四个角色的 {名字: 立绘URL} 写入独立补丁键
   // openingsetup_portrait_patch_v1，由 MMS 启动时吸收进图片表并清键。不读-改-写
   // 共享键 mms_img_data_llm_v1——那会与 MMS 的整表落盘形成 last-write-wins 竞态，
   // 并发时丢一方更新；各写各的键后双写消除。存储不可用时静默跳过
@@ -2091,6 +2206,7 @@
     const maps = [
       { key: OPENING_DATA.party.hero1.name, url: OPENING_DATA.party.hero1.url },
       { key: OPENING_DATA.party.hero2.name, url: OPENING_DATA.party.hero2.url },
+      { key: OPENING_DATA.party.hero_iskandar.name, url: OPENING_DATA.party.hero_iskandar.url },
       { key: state.hero3.portrait, url: hero3PortraitUrl() },
     ].filter(function (m) { return m.key && m.url; });
     if (!maps.length) return;
@@ -2157,13 +2273,16 @@
 
   function render() {
     stopTw();
-    document.body.className = (state.stage === 'c2') ? 'theme-gilded' : 'theme-arcane';
+    if (state.stage === 'c2') document.body.className = 'theme-gilded';
+    else if (state.stage === 'c_iskandar') document.body.className = 'theme-crimson';
+    else document.body.className = 'theme-arcane';
     let html = '';
     switch (state.stage) {
       case 'title': html = viewTitle(); break;
       case 'story': html = viewStory(); break;
       case 'c1': html = viewC1(); break;
       case 'c2': html = viewC2(); break;
+      case 'c_iskandar': html = viewCIskandar(); break;
       case 'c3id': html = viewC3id(); break;
       case 'c3class': html = viewC3class(); break;
       case 'c3skill': html = viewC3skill(); break;
@@ -2183,6 +2302,7 @@
     if (state.soundOn) {
       if (state.stage === 'c1') playHeroCurrentVoice('hero1');
       else if (state.stage === 'c2') playHeroCurrentVoice('hero2');
+      else if (state.stage === 'c_iskandar') playHeroCurrentVoice('hero_iskandar');
       else voiceAudio.pause();
     }
     updateBgmForStage(state.stage);
@@ -2463,6 +2583,11 @@
       chipClass = 'theme-purple';
       badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
       costRightText = '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
+    } else if (heroTheme === 'crimson') {
+      // 伊斯坎达尔：专属深红/赤炎霸主风格
+      chipClass = 'theme-crimson';
+      badgeBoxClass = 'border-red-500/70 bg-gradient-to-br from-red-950/50 via-rose-950/60 to-red-900/70 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.4)]';
+      costRightText = '<span class="text-red-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-red-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
     } else {
       // 主角：技能插槽
       chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
@@ -2588,7 +2713,7 @@
       + '      <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">'
       + '        <div>'
       + '          <div class="flex items-center gap-2">'
-      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 1 / 3</span>'
+      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 1 / 4</span>'
       + '            <span class="font-tw text-xs text-white/35 tracking-widest">/ CHARACTER DOSSIER</span>'
       + '          </div>'
       + '          <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>'
@@ -2652,7 +2777,7 @@
       + '      <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">'
       + '        <div>'
       + '          <div class="flex items-center gap-2">'
-      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 2 / 3</span>'
+      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 2 / 4</span>'
       + '            <span class="font-tw text-xs text-white/35 tracking-widest">/ CHARACTER DOSSIER</span>'
       + '          </div>'
       + '          <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">选择登场职业与战技配置</h2>'
@@ -2674,7 +2799,81 @@
       + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
       + '    <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">'
       + '      <button class="btn-ghost" data-action="back-c1">← 返回威廉</button>'
-      + '      <button class="btn-noir" data-action="c2-done">确认配置 · 前往主角登记 <span class="ml-1">→</span></button>'
+      + '      <button class="btn-noir" data-action="c2-done">确认配置 · 下一位 (征服王) <span class="ml-1">→</span></button>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  /* 渲染：角色 伊斯坎达尔 (征服王) 专属红色主题展示 */
+  function viewCIskandar() {
+    const hero = OPENING_DATA.party.hero_iskandar;
+    const curCls = '征伐者';
+    const clsObj = COMBAT.classes[curCls];
+    const skills = clsObj ? clsObj.skills : [];
+    const info = OPENING_DATA.classIntro[curCls] || {};
+
+    // 专属【征伐者】三大核心特性徽章
+    const passivesHtml = (info.passivesDetail || []).map(function (p, pIdx) {
+      const icons = ['⚡', '🗡️', '💨'];
+      const numStr = '0' + (pIdx + 1);
+      return '<div class="bg-black/35 rounded-lg py-1.5 px-2.5 border border-red-500/20 flex items-center gap-2">'
+        + '<span class="text-amber-400 text-xs">' + (icons[pIdx] || '✦') + '</span>'
+        + '<span class="font-mono text-[0.68rem] text-red-400/80 font-bold">' + numStr + '</span>'
+        + '<span class="text-xs font-bold text-red-200 tracking-wide">' + esc(p.title) + '</span>'
+        + '</div>';
+    }).join('');
+
+    // 专属【征伐者】全宽霸主职业卡
+    const classCard = '<div class="class-tab-card active border-red-500/60 bg-gradient-to-r from-red-950/40 via-rose-950/50 to-red-900/60 p-3.5 rounded-xl shadow-[0_0_18px_rgba(239,68,68,0.25)]" data-class-tab="征伐者">'
+      + '<div class="flex items-center justify-between mb-2">'
+      + '  <div class="flex items-center gap-2">'
+      + '    <span class="text-base">🐎</span>'
+      + '    <h3 class="text-base font-bold text-[var(--text-main)] tracking-wider">征伐者</h3>'
+      + '    <span class="font-mono text-[0.65rem] px-2 py-0.5 rounded-full bg-red-950/70 border border-red-500/50 text-red-300 font-bold shadow-[0_0_8px_rgba(239,68,68,0.3)]">' + esc(info.role || '突破 / 军势') + '</span>'
+      + '  </div>'
+      + '  <span class="font-mono text-[0.65rem] text-red-400/90 tracking-widest font-bold">LOCKED CLASS // 专属霸主职阶</span>'
+      + '</div>'
+      + '<p class="text-xs text-[var(--text-muted)] leading-relaxed mb-2.5">' + esc(info.intro) + '</p>'
+      + '<div class="grid sm:grid-cols-3 gap-2 pt-2 border-t border-red-500/20">' + passivesHtml + '</div>'
+      + '</div>';
+
+    const skillChips = getSortedHeroSkills(skills).map(function (s, idx) {
+      return renderSkillSlotChip(s, false, idx + 1, false, 'crimson');
+    }).join('');
+
+    return '<div class="min-h-screen max-w-[1560px] w-full mx-auto pl-3 sm:pl-6 pr-3 sm:pr-6 py-2 [@media(max-height:800px)]:pt-16 flex flex-col justify-center">'
+      + '<div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">'
+      + '  <div class="lg:col-span-5 flex flex-col h-full">' + renderHeroStage(hero, curCls) + '</div>'
+      + '  <div class="lg:col-span-7 flex flex-col justify-between glass p-4 sm:p-5 h-full">'
+      + '    <div>'
+      + '      <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">'
+      + '        <div>'
+      + '          <div class="flex items-center gap-2">'
+      + '            <span class="font-tw text-xs text-[var(--accent)] tracking-widest">PARTY 3 / 4</span>'
+      + '            <span class="font-tw text-xs text-white/35 tracking-widest">/ CHARACTER DOSSIER</span>'
+      + '          </div>'
+      + '          <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">霸主职阶与全军战技配置</h2>'
+      + '        </div>'
+      + '        <div class="text-right">'
+      + '          <div class="font-tw text-xs font-bold text-[var(--accent)]">ISKANDAR</div>'
+      + '          <div class="font-tw text-[0.65rem] text-white/40 mt-0.5">' + esc(hero.title || '') + ' · 亚历山大大帝</div>'
+      + '        </div>'
+      + '      </div>'
+      + '      <div class="mb-3">' + classCard + '</div>'
+      + '      <div class="mt-2.5">'
+      + '        <div class="flex items-center justify-between mb-1.5">'
+      + '          <span class="font-tw text-xs tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>'
+      + '          <span class="font-tw text-xs text-[var(--accent)]">[ 6 CONQUEROR COMBAT ARTS ]</span>'
+      + '        </div>'
+      + '        <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">' + skillChips + '</div>'
+      + '      </div>'
+      + '    </div>'
+      + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
+      + '    <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">'
+      + '      <button class="btn-ghost" data-action="back-c2">← 返回冯</button>'
+      + '      <button class="btn-noir" data-action="c_iskandar-done">确认配置 · 前往主角登记 <span class="ml-1">→</span></button>'
       + '    </div>'
       + '  </div>'
       + '</div>'
@@ -2768,7 +2967,7 @@
     const cur = state.hero3.customPortraits.find(function (p) { return p.key === state.hero3.portrait; }) || null;
     return ''
       + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
-      + header('PARTY 3 / 3 · 自定义角色', '登记与面目')
+      + header('PARTY 4 / 4 · 自定义角色', '登记与面目')
       + '  <div class="glass max-w-3xl w-full px-8 py-8 fade-in">'
       + '    <div class="grid md:grid-cols-2 gap-6 items-start">'
       + '      <div class="holo-wrap glass-soft min-h-[300px] flex flex-col items-center justify-center p-6">' + portraitVisual(cur, true)
@@ -2804,7 +3003,7 @@
       + '      </div>'
       + '    </div>'
       + '    <div class="mt-8 flex items-center justify-between">'
-      + '      <button class="btn-ghost" data-action="back-c2">返回</button>'
+      + '      <button class="btn-ghost" data-action="back-c_iskandar">← 返回征服王</button>'
       + '      <button class="btn-noir" data-action="c3id-done">确定 · 配置职业</button>'
       + '    </div>'
       + '  </div>'
@@ -3121,7 +3320,7 @@
   }
 
   function viewConfirm() {
-    const h1 = OPENING_DATA.party.hero1, h2 = OPENING_DATA.party.hero2;
+    const h1 = OPENING_DATA.party.hero1, h2 = OPENING_DATA.party.hero2, hIskandar = OPENING_DATA.party.hero_iskandar;
     const rows = function (label, val) {
       return '<div class="flex gap-3 py-1.5 tw-line"><span class="text-[rgba(44,36,22,0.6)] text-xs tracking-[0.25em] w-24 shrink-0 pt-0.5">' + esc(label) + '</span><span class="text-sm leading-relaxed">' + esc(val) + '</span></div>';
     };
@@ -3131,6 +3330,7 @@
     };
     const cfg1 = state.hero1Class ? classConfigOf(state.hero1Class) : null;
     const cfg2 = state.hero2Class ? classConfigOf(state.hero2Class) : null;
+    const cfgIskandar = state.heroIskandarClass ? classConfigOf(state.heroIskandarClass) : null;
     const cfg3 = hero3Config();
     return ''
       + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
@@ -3150,14 +3350,19 @@
         + rows('属性', cfg2 ? attrLine(cfg2) : '—')
         + rows('武器', hero2Weapons().join('、') || '—')
         + rows('技能', listNames(classSkills(state.hero2Class))))
-      + sec('角色三 · 自定义',
+    + sec('角色三 · ' + hIskandar.name,
+        rows('职业', state.heroIskandarClass || '（未选）')
+        + rows('属性', cfgIskandar ? attrLine(cfgIskandar) : '—')
+        + rows('武器', heroIskandarWeapons().join('、') || '—')
+        + rows('技能', listNames(classSkills(state.heroIskandarClass))))
+      + sec('角色四 · 自定义',
           rows('姓名', hero3Name())
           + rows('职业', state.hero3.classType || '（未选）')
           + rows('属性', cfg3 ? attrLine(cfg3) : '—')
           + rows('技能', listNames(hero3SkillEntries()))
           + rows('物品', listNames(hero3ItemEntries()))
           + rows('立绘', state.hero3.portrait || '（默认剪影）'))
-      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">签署后：立绘写入 MiniMapStatus，三份战斗档案写入前端战斗，开场白将以队伍名义落入聊天流。此操作一次性执行，可安全重试。</div>'
+      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">签署后：立绘写入 MiniMapStatus，四份战斗档案写入前端战斗，开场白将以队伍名义落入聊天流。此操作一次性执行，可安全重试。</div>'
       + '  </div>'
       + '  <div class="mt-8 flex items-center justify-between w-full max-w-xl">'
       + '    <button class="btn-ghost" data-action="back-c3item">返回</button>'
@@ -3191,7 +3396,7 @@
       + '    <div class="stamp mb-6">档案已归档</div>'
       + '    <div class="text-sm text-[rgba(232,220,192,0.85)] leading-loose">'
       + '      <p>' + esc(hero3Name()) + ' 一行的开场白已以 AI 角色身份注入聊天流，</p>'
-      + '      <p>状态栏将随开场白一同渲染，三位角色的立绘与战斗档案均已写入。</p>'
+      + '      <p>状态栏将随开场白一同渲染，四位角色的立绘与战斗档案均已写入。</p>'
       + '    </div>'
       + '    <div class="mt-6 font-tw text-[0.7rem] text-[rgba(198,161,84,0.65)] tracking-wider">请关闭本界面，向下滚动查看开场楼 · 本向导重新打开时将显示归档摘要</div>'
       + '  </div>'
@@ -3200,11 +3405,11 @@
 
   function viewArchived() {
     const d = state.doneFlag || {};
-    // 新档：d.chars 三角色；旧档（单角色形态）防御降级为单行摘要
+    // 新档：d.chars 四角色；旧档（单角色形态）防御降级为单行摘要
     const chars = Array.isArray(d.chars) && d.chars.length
       ? d.chars
       : (d.name ? [{ slot: 'hero3', name: d.name, classType: '（旧档）' }] : []);
-    const slotLabel = { hero1: '角色一', hero2: '角色二', hero3: '角色三' };
+    const slotLabel = { hero1: '角色一', hero2: '角色二', hero_iskandar: '角色三', hero3: '角色四' };
     const rows = function (label, val) {
       return '<div class="flex gap-3 py-1.5 tw-line"><span class="text-[rgba(44,36,22,0.6)] text-xs tracking-[0.25em] w-24 shrink-0 pt-0.5">' + esc(label) + '</span><span class="text-sm leading-relaxed">' + esc(val) + '</span></div>';
     };
@@ -3249,7 +3454,7 @@
     fog:   { close: 1050, hold: 260, open: 1150 }
   };
   /* 方向键映射：「来源>目标」命中才走幕布；反向返回（如 c2>c1 返回威廉）保持淡入淡出 */
-  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog', 'c2>c3id': 'blind' };
+  const STAGE_FX = { 'story>c1': 'blind', 'c3item>confirm': 'fog', 'c2>c_iskandar': 'blind', 'c_iskandar>c3id': 'blind' };
 
   function gotoStageWithCrossfade(st) {
     if (isStageTransitioning) return;
@@ -3348,6 +3553,9 @@
       case 'c2-done':
         if (!state.hero2Class) { state.flash = '先为角色二选择职业'; render(); break; }
         state.flash = '';
+        gotoStageWithCrossfade('c_iskandar');
+        break;
+      case 'c_iskandar-done':
         gotoStageWithCrossfade('c3id');
         break;
       case 'c3id-done':
@@ -3395,6 +3603,7 @@
         break;
       case 'back-c1': gotoStageWithCrossfade('c1'); break;
       case 'back-c2': gotoStageWithCrossfade('c2'); break;
+      case 'back-c_iskandar': gotoStageWithCrossfade('c_iskandar'); break;
       case 'back-c3id': gotoStageWithCrossfade('c3id'); break;
       case 'back-c3class': gotoStageWithCrossfade('c3class'); break;
       case 'back-c3skill': gotoStageWithCrossfade('c3skill'); break;
@@ -3576,7 +3785,7 @@
       tag: 'CTB 动态时间轴',
       title: '行动时序与排轴',
       subTitle: 'ACTION TIMELINE & SPEED',
-      img: 'https://files.catbox.moe/hkanxr.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_1_timeline.png',
       imgAlt: '行动时序条 界面拆图',
       imgCaption: '左侧绿色方框 · 纵向行动时间轴',
       desc: '谁先动、谁后动，完全由角色当前「速度（Speed）」动态决定。',
@@ -3600,7 +3809,7 @@
       tag: '空间站位制约',
       title: '战场阵型与空间制约',
       subTitle: 'FORMATION & COVER MECHANICS',
-      img: 'https://files.catbox.moe/lyfsad.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_2_enemy_zone.png',
       imgAlt: '敌方站位区 界面拆图',
       imgCaption: '上方黄色大方框 · 敌方战斗阵营',
       desc: '敌我双方分为「前排」与「后排」，站位直接决定攻防合法性与命中率。',
@@ -3622,7 +3831,7 @@
       tag: '轮次高亮与保命',
       title: '当前行动与仇恨索敌',
       subTitle: 'TURN ACTIVE & THREAT AGGRO',
-      img: 'https://files.catbox.moe/qrvzxv.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_3_current_actor.png',
       imgAlt: '当前行动角色 界面拆图',
       imgCaption: '中下部黄色中方框 · 当前行动角色卡（玛德琳）',
       desc: '轮到行动的角色获得金色光框；角色的职能决定了被敌人集火的概率与保命特质。',
@@ -3645,7 +3854,7 @@
       tag: '能量流转与爆发',
       title: '战技点 (TP) 循环与极限爆发',
       subTitle: 'TP ENERGY SYSTEM & LIMIT BREAK',
-      img: 'https://files.catbox.moe/37y60k.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_4_ally_status.png',
       imgAlt: '友方状态栏 界面拆图',
       imgCaption: '底部蓝色横向方框 · 友方全体状态与 TP 槽',
       desc: 'TP（战技点）是驱动高阶战技与极限爆发的核心动态资源，上限 100 点。',
@@ -3668,7 +3877,7 @@
       tag: '四大指令与非致命',
       title: '行动决策与指令操作',
       subTitle: 'COMMAND SELECTION & NON-LETHAL',
-      img: 'https://files.catbox.moe/gylcvw.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_5_action_panel.png',
       imgAlt: '行动指令面板 界面拆图',
       imgCaption: '右下角红色方框 · 行动指令操作面板',
       desc: '右下角清晰聚合角色当前可执行的一切指令，并提供「非致命」开关。',
@@ -3694,7 +3903,7 @@
       tag: '系统导航与跨场接续',
       title: '战局控制与继续机制',
       subTitle: 'TOP BAR NAVIGATION & PERSISTENCE',
-      img: 'https://files.catbox.moe/ubn1ji.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_6_top_bar.png',
       imgAlt: '顶部功能栏 界面拆图',
       imgCaption: '顶部圆圈 1~6 按钮组 · 系统导航与战局交互',
       desc: '提供全方位的战局辅助工具，以及贯穿战前、战中、战后的无缝「继续推进」机制。',
@@ -3721,7 +3930,7 @@
       tag: '目标侦测与20种变种',
       title: '目标侦测与变种特质',
       subTitle: 'TARGET INSPECT & 20 MUTATION TRAITS',
-      img: 'https://files.catbox.moe/si0420.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_enemy_target.png',
       imgAlt: '敌方目标面板 界面拆图',
       imgCaption: '点击战场任意敌人弹出的全信息微晶面板',
       desc: '战场信息完全透明化，点击即可实时洞悉敌方的属性、特质、站位规则与技能库。',
@@ -3746,7 +3955,7 @@
       tag: '战力洞察与充能大招',
       title: '敌方战力与大招预警',
       subTitle: 'ENEMY STATS & SKILL CHARGE ALERT',
-      img: 'https://files.catbox.moe/si0420.png',
+      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_enemy_target.png',
       imgAlt: '敌方目标面板 界面拆图',
       imgCaption: '右侧核心三维、4大技能槽与底栏继续反应按钮',
       desc: '知己知彼，百战不殆：提前侦测敌方四维战力与技能库，预判敌方大招时机。',
