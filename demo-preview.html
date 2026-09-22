@@ -1156,7 +1156,7 @@
           - "【踏破先锋】[通用][价:1][单体;power:45][单速;power:15][Aim:120][近战]"
           - "【铁蹄蹂躏】[通用][价:2][眩晕;power:70][Aim:100][TP:10][近战]"
           - "【全军突击】[通用][价:2][群速;power:25][MP:5]"
-          - "【遥远的蹂躏制霸】[限定][价:2][群眩晕;power:75][Aim:75][MP:6][TP:20][近战][特效:雷击01][高阶]"
+          - "【遥远的蹂躏制霸】[限定][价:2][群眩晕;power:75][群麻痹;power:15][Aim:75][MP:6][TP:20][近战][特效:雷击01][高阶]"
           - "【御者回转】[限定][价:2][回避;power:200][反击;power:10][MP:2][反应:近战]"
           - "【王之军势】[限定][价:3][召唤:近卫骑兵*4][群冲;power:50][群增;power:20][MP:15][TP:30][延迟:1][众召][传奇][特效:圣域帷幕][限1次]"
         物品:
@@ -1166,7 +1166,7 @@
         属性: "[HP:150/150][MP:10/10][Atk:45][Armor:40][Speed:60][行动次数:1][要害][狂暴][智慧]"
         技能:
           - "【投矛】[通用][价:1][单体;power:40][Aim:95][远程]"
-          - "【结阵】[限定][价:2][单防;power:20][持续:2][MP:5]"
+          - "【结阵】[限定][价:2][群盾;power:20][MP:5]"
           - "【重盾】[通用][价:2][免伤;power:40][MP:2][反应:近战]"
 </Combat_block></script>
 
@@ -2012,6 +2012,10 @@
         displayVal = null;
       } else if (/^群眩晕(?::([^\]]+))?/i.test(mainPart) || mainPart === '群眩晕') {
         displayLabel = '群体眩晕';
+      } else if (/^群麻痹(?::([^\]]+))?/i.test(mainPart) || mainPart === '群麻痹') {
+        const m = mainPart.match(/^群麻痹[:：](\d+)/i);
+        displayLabel = '群体麻痹';
+        displayVal = m ? m[1] : (powerVal ? powerVal : null);
       } else if (/^群速[:：](\d+)/i.test(mainPart) || mainPart === '群速') {
         const m = mainPart.match(/^群速[:：](\d+)/i);
         displayLabel = '全体加速';
@@ -3677,11 +3681,17 @@ ${sectionBlocks}
       if (displayKeys.includes('召唤') && rawText && rawText.includes('近卫骑兵')) {
         entriesHtml += `
           <div class="mt-2 pt-2 border-t border-white/10">
-            <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <span class="text-xs font-bold text-amber-300 flex items-center gap-1 font-serif">
                 <span>💂</span><span>〖近卫骑兵〗军势从者档案</span>
               </span>
-              <span class="text-[0.58rem] font-mono text-amber-200/80 border border-amber-500/30 bg-amber-950/40 px-1.5 py-0.5 rounded">众召 · 军势免占 · 1动/轮</span>
+              <div class="flex items-center gap-1">
+                <span class="text-[0.56rem] font-mono text-amber-300/90 border border-amber-500/40 bg-amber-950/50 px-1.5 py-0.2 rounded font-bold">众召</span>
+                <span class="text-[0.56rem] font-mono text-rose-300/90 border border-rose-500/40 bg-rose-950/50 px-1 py-0.2 rounded">要害</span>
+                <span class="text-[0.56rem] font-mono text-red-300/90 border border-red-500/40 bg-red-950/50 px-1 py-0.2 rounded">狂暴</span>
+                <span class="text-[0.56rem] font-mono text-sky-300/90 border border-sky-500/40 bg-sky-950/50 px-1 py-0.2 rounded">智慧</span>
+                <span class="text-[0.56rem] font-mono text-white/50 border border-white/10 bg-white/5 px-1 py-0.2 rounded">1动/轮</span>
+              </div>
             </div>
             <div class="grid grid-cols-5 gap-1 text-[0.62rem] font-mono text-center mb-1.5 bg-black/40 p-1.5 rounded border border-white/10">
               <div><span class="text-white/40 block text-[0.52rem]">生命</span><span class="font-bold text-white/90">150</span></div>
@@ -3697,7 +3707,7 @@ ${sectionBlocks}
               </div>
               <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
                 <span class="text-white/90 font-bold">【结阵】</span>
-                <span class="text-white/60">自身加防20(2T) · 5 MP</span>
+                <span class="text-white/60">群体护盾20 · 5 MP</span>
               </div>
               <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
                 <span class="text-amber-300 font-bold">【重盾】</span>
@@ -3711,32 +3721,40 @@ ${sectionBlocks}
       ttBody.innerHTML = entriesHtml;
     }
 
-    // 3. 智能定位与防视口溢出计算 (优先向上显示，自适应最佳视口)
+    // 3. 智能定位与防视口溢出计算 (确保悬浮窗绝不覆盖触发元素，彻底杜绝抖动)
     tooltipContainer.classList.add('visible');
     const ttWidth = tooltipContainer.offsetWidth || 336;
-    const ttHeight = tooltipContainer.offsetHeight || 220;
     const padding = 12;
+    const gap = 8;
 
-    const spaceAbove = targetRect.top - padding;
-    const spaceBelow = window.innerHeight - targetRect.bottom - padding;
+    const spaceAbove = targetRect.top - padding - gap;
+    const spaceBelow = window.innerHeight - targetRect.bottom - padding - gap;
 
     let posX = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
     let posY;
 
-    // 若上方空间充足，或者上方空间大于下方空间，优先向上显示
-    if (spaceAbove >= ttHeight || spaceAbove >= spaceBelow) {
-      posY = targetRect.top - ttHeight - 8;
-      // 若顶部超出视口，贴顶显示
+    const cardEl = tooltipContainer.querySelector('.tooltip-glass-card');
+
+    // 优先向上显示（特别适合底部的技能）：
+    // 若上方空间充足，或者上方空间明显大于下方空间
+    if (spaceAbove >= spaceBelow || spaceBelow < 180) {
+      // 向上显示：严格限制最大高度为上方可用空间，确保悬浮窗底部绝不向下跨越 targetRect.top - gap！
+      const maxH = Math.max(140, Math.floor(spaceAbove));
+      if (cardEl) {
+        cardEl.style.maxHeight = `${maxH}px`;
+      }
+      const actualHeight = tooltipContainer.offsetHeight;
+      posY = targetRect.top - actualHeight - gap;
       if (posY < padding) {
         posY = padding;
       }
     } else {
-      // 下方空间充足且明显大于上方空间时，才向下显示
-      posY = targetRect.bottom + 8;
-      // 若底部超出视口，贴底显示
-      if (posY + ttHeight > window.innerHeight - padding) {
-        posY = window.innerHeight - ttHeight - padding;
+      // 向下显示：限制最大高度为下方可用空间
+      const maxH = Math.max(140, Math.floor(spaceBelow));
+      if (cardEl) {
+        cardEl.style.maxHeight = `${maxH}px`;
       }
+      posY = targetRect.bottom + gap;
     }
 
     // 左/右边界溢出修正
@@ -3754,6 +3772,10 @@ ${sectionBlocks}
     const tooltipContainer = document.getElementById('skill-tooltip-container');
     if (!tooltipContainer) return;
     tooltipContainer.classList.remove('visible');
+    const cardEl = tooltipContainer.querySelector('.tooltip-glass-card');
+    if (cardEl) {
+      cardEl.style.maxHeight = '';
+    }
   }
 
   /* 全局事件委托：监听技能插槽与胶囊悬停，自适应动态重绘 */
@@ -3770,6 +3792,7 @@ ${sectionBlocks}
       // 1. 优先检测是否悬停在特定的机制胶囊上
       const pill = e.target.closest('[data-mech-focus]');
       if (pill) {
+        if (currentTrigger === pill) return;
         const card = pill.closest('[data-skill-name]');
         if (card) {
           currentTrigger = pill;
@@ -3803,10 +3826,12 @@ ${sectionBlocks}
 
     document.addEventListener('mouseout', (e) => {
       const card = e.target.closest('[data-skill-name]');
-      if (card) {
+      const tooltip = e.target.closest('#skill-tooltip-container');
+      if (card || tooltip) {
         const related = e.relatedTarget;
-        if (related && card.contains(related)) return;
-        if (related && tooltipContainer && tooltipContainer.contains(related)) return;
+        if (related && (card && card.contains(related))) return;
+        if (related && (tooltipContainer && tooltipContainer.contains(related))) return;
+        if (related && related.closest && related.closest('[data-skill-name]')) return;
 
         currentTrigger = null;
         clearTimeout(activeTooltipTimer);
