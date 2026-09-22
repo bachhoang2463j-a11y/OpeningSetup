@@ -1380,8 +1380,8 @@
     '单回': '单体回复', '群回': '群体回复', '单回蓝': '单体回蓝', '群回蓝': '群体回蓝', '吸蓝': '法力抽取',
     '单降': '单体降防', '群降': '群体降防', '单防': '单体加防', '群防': '群体加防', '单盾': '单体护盾',
     '群盾': '群体护盾', '单体': '单体伤害', '群攻': '群体伤害', '穿透': '单体穿透', '群穿透': '群体穿透',
-    '单弱': '单体降攻', '群弱': '群体降攻', '单滞': '单体延迟', '群滞': '群体延迟', '单速': '单体加速',
-    '群速': '群体加速', '单缓': '单体缓速', '群缓': '群体缓速', '单盲': '单体致盲', '群盲': '群体致盲',
+    '单弱': '单体降攻', '群弱': '群体降攻', '单滞': '单体延迟', '群滞': '群体延迟', '单速': '单体增速',
+    '群速': '群体增速', '单缓': '单体缓速', '群缓': '群体缓速', '单盲': '单体致盲', '群盲': '群体致盲',
     '单瞄': '单体瞄准', '群瞄': '群体瞄准', '单冲': '单体充能', '群冲': '群体充能', '单增': '单体增攻',
     '群增': '群体增攻', '单避': '单体闪避', '群避': '群体闪避', '嘲讽': '目标嘲讽', '反击': '受击反击',
     '群反击': '全体反击', '再动': '额外行动', '免伤': '绝对免伤', '必中': '锁定必中', '转火': '转火追击',
@@ -1433,11 +1433,13 @@
     '免伤': { title: '绝对免伤', icon: '🛡️', desc: '赋予自身一次性极高防御抵扣层，在下一次遭受攻击结算后立即消耗清除。' },
     '再动': { title: '额外行动', icon: '⏩', desc: '施展后立即获得N次额外的行动回合。该技能每大回合限制使用一次。' },
     '延迟': { title: '蓄力准备', icon: '⏳', desc: '开启时即时押注扣除资源并进入蓄力，蓄力 N 回合后就绪释放。蓄力期间仍可触发反应与看破。' },
-    '加速': { title: '加速机制', icon: '⚡', desc: '施展蓄力技能时，每层加速自动抵扣 1 回合蓄力准备。首次完成蓄力释放后获得 3 层加速，使后续施展可免除蓄力直接连续释放。' },
+    '加速': { title: '加速蓄力', icon: '⚡', desc: '施展蓄力技能时，每层加速自动抵扣 1 回合蓄力准备。首次完成蓄力释放后获得 3 层加速，使后续施展可免除蓄力直接连续释放。' },
+    '加速蓄力': { title: '加速蓄力', icon: '⚡', desc: '施展蓄力技能时，每层加速自动抵扣 1 回合蓄力准备。首次完成蓄力释放后获得 3 层加速，使后续施展可免除蓄力直接连续释放。' },
     '眩晕': { title: '击晕瘫痪', icon: '💫', desc: '攻击命中后剥夺目标下一次行动资格，跳过该次行动并即时清除眩晕。' },
     '召唤': { title: '战术召唤', icon: '🌀', desc: '召唤从者即时参战，拥有独立行动轴与技能，阵亡不计入全灭。主人受击时从者自动执行反应或挺身舍身护卫。' },
     '众召': { title: '众召军势', icon: '👑', desc: '施展本技能召唤出的军势随从享有军团特权，不占用队伍常规召唤位上限（免占召唤上限）。' },
-    '单速': { title: '目标加速', icon: '🟢', desc: '提升目标的行动速度，施展后立即重排当前回合剩余行动队列，不影响角色闪避率。' },
+    '单速': { title: '单体增速', icon: '🟢', desc: '增加临时速度以让目标优先行动，施展后立即重排当前回合剩余行动队列。仅影响即时行动时序，不影响角色闪避率。' },
+    '群速': { title: '群体增速', icon: '🟢', desc: '增加全体存活友方目标的临时速度以让其优先行动，施展后立即重排当前回合剩余行动队列。仅影响即时行动时序，不影响角色闪避率。' },
     '目标缓速': { title: '目标缓速', icon: '🔴', desc: '降低受击目标的行动速度（Speed），施展后立即重排当前回合剩余行动队列。仅影响行动时序，不影响目标的闪避率（区别于降避）。' },
     '目标降避': { title: '目标降避', icon: '🟣', desc: '降低受击目标的闪避率（Eva），削弱其闪避判定对抗上限。仅影响闪避率，不影响目标的行动速度与时序（区别于缓速）。' },
     '持续闪避': { title: '持续闪避', icon: '💨', desc: '在持续回合内恒定提升目标的闪避率（Eva），期间承受多次攻击判定均有效，不因遭受攻击而消耗清除（区别于单次生效的紧急回避）。' },
@@ -1481,11 +1483,12 @@
     if (rawText.includes('免伤')) keys.push('免伤');
     if (rawText.includes('再动')) keys.push('再动');
     if (rawText.includes('延迟')) keys.push('延迟');
-    if (rawText.includes('加速')) keys.push('加速');
+    if (/\[加速(?::|;|\s*\])/.test(rawText) || /加速[:：]\d+/.test(rawText)) keys.push('加速蓄力');
     if (rawText.includes('眩晕')) keys.push('眩晕');
     if (rawText.includes('召唤')) keys.push('召唤');
     if (rawText.includes('众召')) keys.push('众召');
-    if (rawText.includes('单速') || rawText.includes('群速')) keys.push('单速');
+    if (rawText.includes('单速')) keys.push('单速');
+    if (rawText.includes('群速')) keys.push('群速');
     if (rawText.includes('单缓') || rawText.includes('群缓')) keys.push('目标缓速');
     if (rawText.includes('单滞') || rawText.includes('群滞') || rawText.includes('降避')) keys.push('目标降避');
     if (rawText.includes('单避') || rawText.includes('群避')) keys.push('持续闪避');
@@ -1545,7 +1548,9 @@
     '目标降攻': [/^(?:单弱|群弱|降攻)/i],
     '目标增攻': [/^(?:单增|群增|增攻)/i],
     '目标缓速': [/^(?:单缓|群缓|缓速)/i],
-    '单速': [/^(?:单速|群速|加速)/i],
+    '单速': [/^(?:单速|单体增速)/i],
+    '群速': [/^(?:群速|群体增速)/i],
+    '加速蓄力': [/^(?:加速蓄力|加速)/i],
     '目标降避': [/^(?:单滞|群滞|降避)/i],
     '持续闪避': [/^(?:单避|群避|闪避)/i],
     '护盾吸收': [/^(?:单盾|群盾|护盾)/i],
@@ -1661,9 +1666,17 @@
       } else if (/^Aim[:：](\d+)/i.test(mainPart) || /^Hit[:：](\d+)/i.test(mainPart) || mainPart === '必中') {
         // 右侧状态列已专设金色命中率栏，左侧胶囊彻底去除以防冗余
         return;
-      } else if (/^加速[:：](\d+)/i.test(mainPart) || /^单速[:：](\d+)/i.test(mainPart) || mainPart === '单速') {
-        const m = mainPart.match(/^(?:加速|单速)[:：](\d+)/i);
-        displayLabel = `${targetOrSelf}加速`;
+      } else if (/^加速[:：](\d+)/i.test(mainPart) || mainPart === '加速') {
+        const m = mainPart.match(/^加速[:：](\d+)/i);
+        displayLabel = '加速蓄力';
+        displayVal = m ? `+${m[1]}` : (powerVal ? `+${powerVal}` : null);
+      } else if (/^单速[:：](\d+)/i.test(mainPart) || mainPart === '单速') {
+        const m = mainPart.match(/^单速[:：](\d+)/i);
+        displayLabel = '单体增速';
+        displayVal = m ? `+${m[1]}` : (powerVal ? `+${powerVal}` : null);
+      } else if (/^群速[:：](\d+)/i.test(mainPart) || mainPart === '群速') {
+        const m = mainPart.match(/^群速[:：](\d+)/i);
+        displayLabel = '群体增速';
         displayVal = m ? `+${m[1]}` : (powerVal ? `+${powerVal}` : null);
       } else if (/^单冲[:：](\d+)/i.test(mainPart) || mainPart === '单冲') {
         const m = mainPart.match(/^单冲[:：](\d+)/i);
@@ -1764,8 +1777,10 @@
       else if (displayLabel.includes('回避')) targetMechKey = '回避';
       else if (displayLabel.includes('穿透')) targetMechKey = '穿透';
       else if (displayLabel.includes('再动') || displayLabel.includes('额外行动')) targetMechKey = '再动';
+      else if (displayLabel.includes('加速蓄力')) targetMechKey = '加速蓄力';
       else if (displayLabel.includes('蓄力')) targetMechKey = '延迟';
-      else if (displayLabel.includes('加速')) targetMechKey = '加速';
+      else if (displayLabel.includes('群体增速') || displayLabel.includes('群速')) targetMechKey = '群速';
+      else if (displayLabel.includes('单体增速') || displayLabel.includes('单速') || displayLabel.includes('增速')) targetMechKey = '单速';
       else if (displayLabel.includes('麻痹')) targetMechKey = '麻痹';
       else if (displayLabel.includes('中毒') || displayLabel.includes('毒素侵蚀')) targetMechKey = '中毒';
       else if (displayLabel.includes('燃烧') || displayLabel.includes('灼烧')) targetMechKey = '燃烧';
@@ -1797,7 +1812,7 @@
 
       // 属性语义分类（战术全息透镜 · 毛玻璃微晶）
       let cat = 'buff';
-      if (displayLabel === '他人' || displayLabel === '友方' || displayLabel === '持续' || displayLabel === '限用' || displayLabel === '蓄力' || displayLabel.includes('众召')) {
+      if (displayLabel === '他人' || displayLabel === '友方' || displayLabel === '持续' || displayLabel === '限用' || displayLabel === '蓄力' || displayLabel.includes('众召') || displayLabel.includes('加速蓄力')) {
         cat = 'aux';
       } else if (displayLabel.includes('回复') || displayLabel.includes('回蓝') || displayLabel.includes('充能') || displayLabel.includes('净化') || displayLabel.includes('抽取') || displayLabel.includes('驱散')) {
         cat = 'heal';
