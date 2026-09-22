@@ -777,13 +777,15 @@
     transform: scale(1.04);
   }
 
-  /* 纯悬浮窗 (Floating Tooltip) 核心样式体系 */
+  /* 纯悬浮窗 (Floating Tooltip) 核心样式体系：主卡片 + 侧边从者附加卡片并排展示 */
   #skill-tooltip-container {
     position: fixed;
     top: 0;
     left: 0;
-    width: 336px;
-    max-width: 92vw;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 96vw;
     z-index: 99999;
     pointer-events: none;
     opacity: 0;
@@ -794,6 +796,14 @@
     opacity: 1;
     transform: translateY(0) scale(1);
     pointer-events: auto;
+  }
+  .main-tooltip-card {
+    width: 320px;
+    flex-shrink: 0;
+  }
+  .summon-tooltip-card {
+    width: 290px;
+    flex-shrink: 0;
   }
   .tooltip-glass-card {
     background: var(--tooltip-bg);
@@ -2607,16 +2617,15 @@
     const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
     const info = DEMO_CONFIG.classIntro[curCls] || {};
 
-    // 专属【征伐者】三大核心特性微卡片（告知玩家大概特性，避免冗余规则堆砌）
+    // 专属【征伐者】三大核心特性徽章（纯净机制标签，彻底去除重复文案）
     const passivesHtml = (info.passivesDetail || []).map((p, pIdx) => {
       const icons = ['⚡', '🗡️', '💨'];
+      const numStr = `0${pIdx + 1}`;
       return `
-        <div class="bg-black/30 rounded-lg p-2 border border-red-500/20 flex flex-col justify-center">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-red-200 mb-0.5">
-            <span class="text-amber-400 text-xs">${icons[pIdx] || '✦'}</span>
-            <span>${p.title}</span>
-          </div>
-          <p class="text-[0.66rem] text-[var(--text-muted)] leading-snug">${p.desc}</p>
+        <div class="bg-black/35 rounded-lg py-1.5 px-2.5 border border-red-500/20 flex items-center gap-2">
+          <span class="text-amber-400 text-xs">${icons[pIdx] || '✦'}</span>
+          <span class="font-mono text-[0.68rem] text-red-400/80 font-bold">${numStr}</span>
+          <span class="text-xs font-bold text-red-200 tracking-wide">${p.title}</span>
         </div>
       `;
     }).join('');
@@ -3642,83 +3651,88 @@ ${sectionBlocks}
         `;
       }).join('');
 
-      // 若为召唤技能且涉及【化尘者】，备注化尘者的完整属性与技能档案
-      if (displayKeys.includes('召唤') && rawText && rawText.includes('化尘者')) {
-        entriesHtml += `
-          <div class="mt-2 pt-2 border-t border-white/10">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-bold text-amber-300 flex items-center gap-1 font-serif">
-                <span>💨</span><span>〖化尘者〗从者档案</span>
-              </span>
-              <span class="text-[0.58rem] font-mono text-amber-200/80 border border-amber-500/30 bg-amber-950/40 px-1.5 py-0.5 rounded">流体 · 虚形 · 1动/轮</span>
-            </div>
-            <div class="grid grid-cols-5 gap-1 text-[0.62rem] font-mono text-center mb-1.5 bg-black/40 p-1.5 rounded border border-white/10">
-              <div><span class="text-white/40 block text-[0.52rem]">生命</span><span class="font-bold text-white/90">90</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">法力</span><span class="font-bold text-sky-300">10</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">攻击</span><span class="font-bold text-rose-300">45</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">护甲</span><span class="font-bold text-amber-200">0</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">速度</span><span class="font-bold text-emerald-300">80</span></div>
-            </div>
-            <div class="space-y-1 text-[0.63rem] font-mono">
-              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
-                <span class="text-white/90 font-bold">【沙矛】</span>
-                <span class="text-white/60">单体40×2 · 命中90 · 1 MP · 近战</span>
-              </div>
-              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
-                <span class="text-white/90 font-bold">【卷尘】</span>
-                <span class="text-white/60">单体50 · 降避10+降攻10(2T) · 2 MP · 法术</span>
-              </div>
-              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
-                <span class="text-amber-300 font-bold">【飞沙流体】</span>
-                <span class="text-amber-200/70">绝对免伤40 · 反应:远程 · 2 MP</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // 若为召唤技能且涉及【近卫骑兵】，备注近卫骑兵的完整属性与技能档案
-      if (displayKeys.includes('召唤') && rawText && rawText.includes('近卫骑兵')) {
-        entriesHtml += `
-          <div class="mt-2 pt-2 border-t border-white/10">
-            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-              <span class="text-xs font-bold text-amber-300 flex items-center gap-1 font-serif">
-                <span>💂</span><span>〖近卫骑兵〗军势从者档案</span>
-              </span>
-              <div class="flex items-center gap-1">
-                <span class="text-[0.56rem] font-mono text-amber-300/90 border border-amber-500/40 bg-amber-950/50 px-1.5 py-0.2 rounded font-bold">众召</span>
-                <span class="text-[0.56rem] font-mono text-rose-300/90 border border-rose-500/40 bg-rose-950/50 px-1 py-0.2 rounded">要害</span>
-                <span class="text-[0.56rem] font-mono text-red-300/90 border border-red-500/40 bg-red-950/50 px-1 py-0.2 rounded">狂暴</span>
-                <span class="text-[0.56rem] font-mono text-sky-300/90 border border-sky-500/40 bg-sky-950/50 px-1 py-0.2 rounded">智慧</span>
-                <span class="text-[0.56rem] font-mono text-white/50 border border-white/10 bg-white/5 px-1 py-0.2 rounded">1动/轮</span>
-              </div>
-            </div>
-            <div class="grid grid-cols-5 gap-1 text-[0.62rem] font-mono text-center mb-1.5 bg-black/40 p-1.5 rounded border border-white/10">
-              <div><span class="text-white/40 block text-[0.52rem]">生命</span><span class="font-bold text-white/90">150</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">法力</span><span class="font-bold text-sky-300">10</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">攻击</span><span class="font-bold text-rose-300">45</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">护甲</span><span class="font-bold text-amber-200">40</span></div>
-              <div><span class="text-white/40 block text-[0.52rem]">速度</span><span class="font-bold text-emerald-300">60</span></div>
-            </div>
-            <div class="space-y-1 text-[0.63rem] font-mono">
-              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
-                <span class="text-white/90 font-bold">【投矛】</span>
-                <span class="text-white/60">单体40 · 命中95 · 远程</span>
-              </div>
-              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
-                <span class="text-white/90 font-bold">【结阵】</span>
-                <span class="text-white/60">群体护盾20 · 5 MP</span>
-              </div>
-              <div class="flex items-center justify-between bg-white/[0.03] px-1.5 py-0.5 rounded border border-white/5">
-                <span class="text-amber-300 font-bold">【重盾】</span>
-                <span class="text-amber-200/70">绝对免伤40 · 反应:近战 · 2 MP</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
       ttBody.innerHTML = entriesHtml;
+    }
+
+    // 召唤物从者档案：以独立附加卡片在侧面并排显示（不再堆在主卡片底部）
+    const ttSummonCard = document.getElementById('tt-summon-card');
+    let summonHtml = '';
+    if (displayKeys.includes('召唤') && rawText && rawText.includes('化尘者')) {
+      summonHtml = `
+        <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-white/10">
+          <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5 font-serif">
+            <span>💨</span><span>〖化尘者〗从者档案</span>
+          </span>
+          <span class="text-[0.56rem] font-mono text-amber-200/90 border border-amber-500/30 bg-amber-950/40 px-1.5 py-0.2 rounded">流体 · 虚形 · 1动/轮</span>
+        </div>
+        <div class="grid grid-cols-5 gap-1 text-[0.62rem] font-mono text-center mb-2 bg-black/40 p-1.5 rounded border border-white/10">
+          <div><span class="text-white/40 block text-[0.52rem]">生命</span><span class="font-bold text-white/90">90</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">法力</span><span class="font-bold text-sky-300">10</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">攻击</span><span class="font-bold text-rose-300">45</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">护甲</span><span class="font-bold text-amber-200">0</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">速度</span><span class="font-bold text-emerald-300">80</span></div>
+        </div>
+        <div class="space-y-1 text-[0.63rem] font-mono">
+          <div class="flex items-center justify-between bg-white/[0.03] px-2 py-1 rounded border border-white/5">
+            <span class="text-white/90 font-bold">【沙矛】</span>
+            <span class="text-white/60">单体40×2 · 命中90 · 1 MP · 近战</span>
+          </div>
+          <div class="flex items-center justify-between bg-white/[0.03] px-2 py-1 rounded border border-white/5">
+            <span class="text-white/90 font-bold">【卷尘】</span>
+            <span class="text-white/60">单体50 · 降避10+降攻10(2T) · 2 MP · 法术</span>
+          </div>
+          <div class="flex items-center justify-between bg-white/[0.03] px-2 py-1 rounded border border-white/5">
+            <span class="text-amber-300 font-bold">【飞沙流体】</span>
+            <span class="text-amber-200/70">绝对免伤40 · 反应:远程 · 2 MP</span>
+          </div>
+        </div>
+      `;
+    } else if (displayKeys.includes('召唤') && rawText && rawText.includes('近卫骑兵')) {
+      summonHtml = `
+        <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-white/10 flex-wrap gap-1">
+          <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5 font-serif">
+            <span>💂</span><span>〖近卫骑兵〗军势从者档案</span>
+          </span>
+          <div class="flex items-center gap-1">
+            <span class="text-[0.56rem] font-mono text-amber-300/90 border border-amber-500/40 bg-amber-950/50 px-1 py-0.2 rounded font-bold">众召</span>
+            <span class="text-[0.56rem] font-mono text-rose-300/90 border border-rose-500/40 bg-rose-950/50 px-1 py-0.2 rounded">要害</span>
+            <span class="text-[0.56rem] font-mono text-red-300/90 border border-red-500/40 bg-red-950/50 px-1 py-0.2 rounded">狂暴</span>
+            <span class="text-[0.56rem] font-mono text-sky-300/90 border border-sky-500/40 bg-sky-950/50 px-1 py-0.2 rounded">智慧</span>
+            <span class="text-[0.56rem] font-mono text-white/50 border border-white/10 bg-white/5 px-1 py-0.2 rounded">1动/轮</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-5 gap-1 text-[0.62rem] font-mono text-center mb-2 bg-black/40 p-1.5 rounded border border-white/10">
+          <div><span class="text-white/40 block text-[0.52rem]">生命</span><span class="font-bold text-white/90">150</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">法力</span><span class="font-bold text-sky-300">10</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">攻击</span><span class="font-bold text-rose-300">45</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">护甲</span><span class="font-bold text-amber-200">40</span></div>
+          <div><span class="text-white/40 block text-[0.52rem]">速度</span><span class="font-bold text-emerald-300">60</span></div>
+        </div>
+        <div class="space-y-1 text-[0.63rem] font-mono">
+          <div class="flex items-center justify-between bg-white/[0.03] px-2 py-1 rounded border border-white/5">
+            <span class="text-white/90 font-bold">【投矛】</span>
+            <span class="text-white/60">单体40 · 命中95 · 远程</span>
+          </div>
+          <div class="flex items-center justify-between bg-white/[0.03] px-2 py-1 rounded border border-white/5">
+            <span class="text-white/90 font-bold">【结阵】</span>
+            <span class="text-white/60">群体护盾20 · 5 MP</span>
+          </div>
+          <div class="flex items-center justify-between bg-white/[0.03] px-2 py-1 rounded border border-white/5">
+            <span class="text-amber-300 font-bold">【重盾】</span>
+            <span class="text-amber-200/70">绝对免伤40 · 反应:近战 · 2 MP</span>
+          </div>
+        </div>
+      `;
+    }
+
+    if (ttSummonCard) {
+      if (summonHtml) {
+        ttSummonCard.innerHTML = summonHtml;
+        ttSummonCard.classList.remove('hidden');
+      } else {
+        ttSummonCard.innerHTML = '';
+        ttSummonCard.classList.add('hidden');
+      }
     }
 
     // 3. 智能定位与防视口溢出计算 (确保悬浮窗绝不覆盖触发元素，彻底杜绝抖动)
@@ -3733,15 +3747,19 @@ ${sectionBlocks}
     let posX = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
     let posY;
 
-    const cardEl = tooltipContainer.querySelector('.tooltip-glass-card');
+    const mainCard = tooltipContainer.querySelector('.main-tooltip-card');
+    const summonCard = tooltipContainer.querySelector('.summon-tooltip-card');
 
     // 优先向上显示（特别适合底部的技能）：
     // 若上方空间充足，或者上方空间明显大于下方空间
     if (spaceAbove >= spaceBelow || spaceBelow < 180) {
       // 向上显示：严格限制最大高度为上方可用空间，确保悬浮窗底部绝不向下跨越 targetRect.top - gap！
       const maxH = Math.max(140, Math.floor(spaceAbove));
-      if (cardEl) {
-        cardEl.style.maxHeight = `${maxH}px`;
+      if (mainCard) {
+        mainCard.style.maxHeight = `${maxH}px`;
+      }
+      if (summonCard) {
+        summonCard.style.maxHeight = `${maxH}px`;
       }
       const actualHeight = tooltipContainer.offsetHeight;
       posY = targetRect.top - actualHeight - gap;
@@ -3751,8 +3769,11 @@ ${sectionBlocks}
     } else {
       // 向下显示：限制最大高度为下方可用空间
       const maxH = Math.max(140, Math.floor(spaceBelow));
-      if (cardEl) {
-        cardEl.style.maxHeight = `${maxH}px`;
+      if (mainCard) {
+        mainCard.style.maxHeight = `${maxH}px`;
+      }
+      if (summonCard) {
+        summonCard.style.maxHeight = `${maxH}px`;
       }
       posY = targetRect.bottom + gap;
     }
@@ -3772,9 +3793,15 @@ ${sectionBlocks}
     const tooltipContainer = document.getElementById('skill-tooltip-container');
     if (!tooltipContainer) return;
     tooltipContainer.classList.remove('visible');
-    const cardEl = tooltipContainer.querySelector('.tooltip-glass-card');
-    if (cardEl) {
-      cardEl.style.maxHeight = '';
+    const mainCard = tooltipContainer.querySelector('.main-tooltip-card');
+    const summonCard = tooltipContainer.querySelector('.summon-tooltip-card');
+    if (mainCard) {
+      mainCard.style.maxHeight = '';
+    }
+    if (summonCard) {
+      summonCard.style.maxHeight = '';
+      summonCard.classList.add('hidden');
+      summonCard.innerHTML = '';
     }
   }
 
@@ -3874,7 +3901,8 @@ ${sectionBlocks}
 <!-- 核心纯悬浮窗容器 (挂载于全局 body，智能防溢出定位)                          -->
 <!-- ========================================================================= -->
 <div id="skill-tooltip-container" aria-hidden="true">
-  <div class="tooltip-glass-card">
+  <!-- 主卡片：技能机制与消耗说明 -->
+  <div class="tooltip-glass-card main-tooltip-card">
     <!-- 悬浮窗技能头部概要 -->
     <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
       <div class="flex items-center gap-2 min-w-0">
@@ -3888,6 +3916,11 @@ ${sectionBlocks}
     <div id="tt-mechanics-body" class="space-y-1">
       <!-- 动态注入机制词条 -->
     </div>
+  </div>
+
+  <!-- 侧面附加卡片：从者/军势档案 (仅召唤技能动态呼出) -->
+  <div id="tt-summon-card" class="tooltip-glass-card summon-tooltip-card hidden">
+    <!-- 动态注入召唤物档案 -->
   </div>
 </div>
 
