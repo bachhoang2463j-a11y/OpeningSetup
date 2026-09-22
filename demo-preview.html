@@ -93,6 +93,35 @@
     --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.88), 0 0 24px rgba(192, 132, 252, 0.25);
   }
 
+  /* 伊斯坎达尔专属：霸王赤炎 (Crimson Conqueror) */
+  body.theme-crimson {
+    --font-serif: 'Noto Serif SC', serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Cinzel', serif;
+
+    --bg-base: #140507;
+    --panel-bg: rgba(38, 12, 16, 0.84);
+    --panel-glass: rgba(50, 15, 22, 0.68);
+    --panel-border: rgba(239, 68, 68, 0.38);
+    --panel-border-bright: rgba(248, 113, 113, 0.95);
+    --accent: #ef4444;
+    --accent-glow: rgba(239, 68, 68, 0.48);
+    --accent-dim: rgba(239, 68, 68, 0.2);
+    --text-main: #fff1f2;
+    --text-muted: rgba(254, 205, 211, 0.75);
+    --slot-bg: rgba(28, 8, 12, 0.88);
+    --slot-border: rgba(239, 68, 68, 0.35);
+    --slot-glow: 0 0 20px rgba(239, 68, 68, 0.36);
+    --badge-limited: #ef4444;
+    --badge-generic: #f59e0b;
+    --card-hover: rgba(65, 18, 28, 0.8);
+    --btn-bg: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.12));
+    --btn-border: rgba(239, 68, 68, 0.65);
+    --tooltip-bg: rgba(28, 8, 12, 0.95);
+    --tooltip-border: rgba(248, 113, 113, 0.55);
+    --tooltip-glow: 0 12px 36px -4px rgba(0, 0, 0, 0.88), 0 0 24px rgba(239, 68, 68, 0.3);
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     background-color: var(--bg-base);
@@ -121,6 +150,10 @@
   body.theme-gilded #ambient-glow {
     background: radial-gradient(circle at 30% 25%, rgba(245, 158, 11, 0.12) 0%, transparent 60%),
                 radial-gradient(circle at 70% 80%, rgba(147, 51, 234, 0.16) 0%, transparent 60%);
+  }
+  body.theme-crimson #ambient-glow {
+    background: radial-gradient(circle at 35% 25%, rgba(239, 68, 68, 0.15) 0%, transparent 65%),
+                radial-gradient(circle at 75% 75%, rgba(185, 28, 28, 0.22) 0%, transparent 60%);
   }
 
   /* 右侧竖列极简悬浮 Dock（阶段跳转与全局BGM控制） */
@@ -425,6 +458,21 @@
   .skill-slot-chip.theme-purple:hover {
     border-color: rgba(217, 180, 92, 0.65);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(217, 180, 92, 0.25);
+  }
+
+  /* 伊斯坎达尔专属技能芯片：赤炎烈焰镶边 + 战火深红底色 (Crimson Conqueror) */
+  .skill-slot-chip.theme-crimson:before {
+    background: linear-gradient(to bottom, #f87171 0%, #ef4444 50%, #991b1b 100%);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8), 0 0 6px rgba(248, 113, 113, 0.5);
+  }
+  .skill-slot-chip.theme-crimson {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(45, 12, 18, 0.6) 22%, rgba(24, 8, 12, 0.82) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(239, 68, 68, 0.15);
+  }
+  .skill-slot-chip.theme-crimson:hover {
+    border-color: rgba(248, 113, 113, 0.8);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75), 0 0 18px rgba(239, 68, 68, 0.4);
   }
   .skill-slot-chip.type-generic:before {
     background: #c084fc;
@@ -989,6 +1037,7 @@
 <div class="switch-dock">
   <button class="dock-btn active" data-stage-jump="c1">威廉</button>
   <button class="dock-btn" data-stage-jump="c2">冯</button>
+  <button class="dock-btn" data-stage-jump="c_iskandar">大帝</button>
   <button class="dock-btn" data-stage-jump="c3class">主角</button>
   <button class="dock-btn" data-stage-jump="c3skill">技能</button>
   <div class="dock-sep"></div>
@@ -1092,6 +1141,16 @@
           - "【灾厄降临】[限定][价:3][MP:10][TP:10][看破:远程][限3次]"
           - "【瓶中之物】[限定][价:2][召唤:化尘者][MP:5][限2次][法术][特效:高阶召唤术][高阶]"
           - "【异种坏死雾】[限定][价:3][群中毒;power:30][群弱;power:20][群滞;power:20][远程][Aim:300][TP:20][MP:5][高阶][特效:异种坏死雾]"
+    - 角色:
+        名字: "征伐者"
+        属性: "[HP:180/180][MP:30/30][Atk:55][Armor:50][Speed:85][职业:征伐者]"
+        技能:
+          - "【踏破先锋】[通用][价:1][单体;power:60][单速;power:15][Aim:120][近战]"
+          - "【铁蹄蹂躏】[通用][价:2][散射;power:130][眩晕;power:20][Aim:100][近战]"
+          - "【全军突击】[通用][价:2][群速;power:20][群增;power:15][MP:5]"
+          - "【遥远的蹂躏制霸】[限定][价:2][穿透;power:160][群眩晕;power:15][Aim:130][MP:6][TP:10][近战][特效:雷击01][高阶]"
+          - "【御者回转】[限定][价:2][回避;power:200][反击;power:60][MP:2][反应:近战]"
+          - "【王之军势】[限定][价:3][召唤:近卫骑兵][群冲;power:30][群瞄;power:30][MP:15][TP:25][延迟:1][传奇][特效:圣域帷幕]"
 </Combat_block></script>
 
 <script>
@@ -1145,6 +1204,20 @@
             audioUrl: 'http://127.0.0.1:8766/OS/冯·霍恩海姆（灾厄使）.mp3'
           }
         }
+      },
+      hero_iskandar: {
+        id: 'hero_iskandar',
+        name: '伊斯坎达尔',
+        title: '征服王',
+        emoji: '👑',
+        portraitUrl: 'https://files.catbox.moe/mem916.png',
+        classes: ['征伐者'],
+        classVoiceMap: {
+          '征伐者': {
+            quote: '「唔？这里有个表情严肃的军师呢。和欧迈尼斯有的一拼……不，内心还是个不成熟的小鬼头吗。让他和赫费斯提翁见面一定会很有意思的！」',
+            audioUrl: 'https://files.catbox.moe/wfpuhs.mp3'
+          }
+        }
       }
     },
     // ③ 职业介绍文字详尽完整，去除截断
@@ -1191,6 +1264,12 @@
         role: '减益 / 持续伤害',
         gifUrl: 'http://127.0.0.1:8766/OS/gif/冯_灾厄使.gif'
       },
+      '征伐者': {
+        intro: '万军辟易的铁蹄霸者。将速度转化为无可阻挡的冲击势能，突破前后排阻挡撕裂敌阵；冲锋斩杀时以余势触发连环追击。',
+        passive: '动能冲踏 · 破阵贯穿 · 乘胜追击',
+        role: '突破 / 军势',
+        gifUrl: ''
+      },
     },
     shop: {
       skillPoints: 4,
@@ -1199,9 +1278,10 @@
 
   /* 状态管理 */
   const state = {
-    stage: 'c1', // c1, c2, c3class, c3skill
+    stage: 'c1', // c1, c2, c_iskandar, c3class, c3skill
     hero1Class: '隐匿者',
     hero2Class: '施法者',
+    heroIskandarClass: '征伐者',
     hero3: {
       name: '亚瑟·格雷',
       classType: '风行者',
@@ -1375,7 +1455,7 @@
     const hero = DEMO_CONFIG.party[heroKey];
     if (!hero) return;
 
-    const currentClass = heroKey === 'hero1' ? state.hero1Class : state.hero2Class;
+    const currentClass = heroKey === 'hero1' ? state.hero1Class : (heroKey === 'hero2' ? state.hero2Class : (heroKey === 'hero_iskandar' ? state.heroIskandarClass : ''));
     const voiceItem = hero.classVoiceMap[currentClass];
     if (!voiceItem || !voiceItem.audioUrl) return;
 
@@ -2115,6 +2195,12 @@
       badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
       badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
       costRightText = `<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ${aimDisplayText}</span>`;
+    } else if (heroTheme === 'crimson') {
+      // 伊斯坎达尔：霸王赤炎专属风格（赤炎边框、红色徽章与光晕）
+      chipClass = 'theme-crimson';
+      badgeBoxClass = 'border-red-500/65 bg-gradient-to-br from-red-950/50 via-rose-950/60 to-red-900/70 text-red-300 shadow-[0_0_10px_rgba(239,68,68,0.4)]';
+      badgeContent = `<span class="text-xs select-none" title="${typeTitle}">${typeEmoji}</span>`;
+      costRightText = `<span class="text-red-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-red-400 text-xs">✦</span> ${aimDisplayText}</span>`;
     } else {
       // 主角：技能插槽
       chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
@@ -2452,6 +2538,91 @@
           <!-- ② 导航按钮（高度紧凑） -->
           <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
             <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c1')">← 返回威廉</button>
+            <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c_iskandar')">
+              <span>确认配置 · 下一位 (大帝)</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* 渲染：角色 伊斯坎达尔 (征服王) 专属红色主题展示 */
+  function viewIskandar() {
+    const hero = DEMO_CONFIG.party.hero_iskandar;
+    const curCls = '征伐者';
+    const clsObj = COMBAT_DATA.classes[curCls];
+    const skills = clsObj ? getSortedHeroSkills(clsObj.skills) : [];
+    const info = DEMO_CONFIG.classIntro[curCls] || {};
+
+    // 专属【征伐者】全宽霸主职业卡（带红金奢华边框、角色定位徽章、被动徽章）
+    const classCard = `
+      <div class="class-tab-card active border-red-500/60 bg-gradient-to-r from-red-950/40 via-rose-950/50 to-red-900/60 p-3.5 rounded-xl shadow-[0_0_18px_rgba(239,68,68,0.25)]" data-class-tab="征伐者">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🐎</span>
+            <h3 class="text-base font-bold text-[var(--text-main)] tracking-wider">征伐者</h3>
+            <span class="font-mono text-[0.65rem] px-2 py-0.5 rounded-full bg-red-950/70 border border-red-500/50 text-red-300 font-bold shadow-[0_0_8px_rgba(239,68,68,0.3)]">${info.role || '突破 / 军势'}</span>
+          </div>
+          <span class="font-mono text-[0.65rem] text-red-400/90 tracking-widest font-bold">LOCKED CLASS // 专属霸主职阶</span>
+        </div>
+        <p class="text-xs text-[var(--text-muted)] leading-relaxed mb-2.5">${info.intro}</p>
+        <div class="pt-2 border-t border-red-500/20 text-xs text-[var(--accent)] font-mono flex items-center gap-1.5">
+          <span class="text-sm shrink-0">✦</span>
+          <span class="font-bold tracking-wide">${info.passive}</span>
+        </div>
+      </div>
+    `;
+
+    // 技能阶梯滑入芯片 (伊斯坎达尔：专属红色主题)
+    const skillChips = skills.map((s, idx) => renderSkillSlotChip(s, false, idx + 1, false, 'crimson')).join('');
+
+    return `
+      <div class="grid lg:grid-cols-12 gap-5 items-stretch view-transition-in">
+        <!-- 左半屏：大尺寸展台 -->
+        <div class="lg:col-span-5 flex flex-col">
+          ${renderHeroStage(hero, curCls)}
+        </div>
+
+        <!-- 右半屏：职业挑选与 6 技能列表 -->
+        <div class="lg:col-span-7 flex flex-col justify-between ui-panel p-4 sm:p-5">
+          <div>
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/10">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-[var(--accent)] tracking-widest font-bold">SPECIAL // SUMMON</span>
+                  <span class="text-white/20 text-xs font-mono">/</span>
+                  <span class="font-mono text-xs text-white/50 tracking-wider">CHARACTER DOSSIER</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-[var(--text-main)] mt-0.5">霸主职阶与全军战技配置</h2>
+              </div>
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold text-[var(--accent)]">ISKANDAR</div>
+                <div class="text-[0.68rem] text-white/50 font-serif">${hero.title} · 亚历山大大帝</div>
+              </div>
+            </div>
+
+            <!-- 专属全宽霸主职业卡 -->
+            <div class="mb-3">
+              ${classCard}
+            </div>
+
+            <!-- 6 槽专属战技装配 -->
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-[0.68rem] tracking-wider text-[var(--text-muted)]">EQUIPPED SKILL SLOTS (6/6)</span>
+                <span class="font-mono text-[0.68rem] text-[var(--accent)]">[ 6 CONQUEROR COMBAT ARTS ]</span>
+              </div>
+              <div class="flex flex-col gap-1.5 smooth-fade-transition" id="hero-skill-chips-container">
+                ${skillChips}
+              </div>
+            </div>
+          </div>
+
+          <!-- 导航按钮 -->
+          <div class="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between">
+            <button class="ui-btn-ghost" onclick="window.demoActions.gotoStage('c2')">← 返回冯</button>
             <button class="ui-btn-primary" onclick="window.demoActions.gotoStage('c3class')">
               <span>确认配置 · 前往主角职业</span>
               <span>→</span>
@@ -2666,6 +2837,10 @@
         appEl.innerHTML = viewC2();
         if (shouldPlayVoice) playHeroCurrentVoice('hero2');
         break;
+      case 'c_iskandar':
+        appEl.innerHTML = viewIskandar();
+        if (shouldPlayVoice) playHeroCurrentVoice('hero_iskandar');
+        break;
       case 'c3class':
         appEl.innerHTML = viewC3class();
         voiceAudio.pause();
@@ -2773,6 +2948,8 @@
       state.stage = st;
       if (st === 'c2') {
         document.body.className = 'theme-gilded';
+      } else if (st === 'c_iskandar') {
+        document.body.className = 'theme-crimson';
       } else {
         document.body.className = 'theme-arcane';
       }
