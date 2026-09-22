@@ -2910,7 +2910,7 @@
     }).join('');
 
     // 专属【征伐者】全宽霸主职业卡
-    const classCard = '<div class="class-tab-card active bg-gradient-to-r from-red-950/40 via-rose-950/50 to-red-900/60 p-3.5 rounded-xl shadow-[0_0_18px_rgba(239,68,68,0.25)]" style="border: 1px solid rgba(239, 68, 68, 0.6);" data-class-tab="征伐者">'
+    const classCard = '<div class="class-tab-card active bg-gradient-to-r from-red-950/40 via-rose-950/50 to-red-900/60 p-3.5 rounded-xl shadow-[0_0_18px_rgba(239,68,68,0.25)] cursor-default" style="border: 1px solid rgba(239, 68, 68, 0.6);">'
       + '<div class="flex items-center justify-between mb-2">'
       + '  <div class="flex items-center gap-2">'
       + '    <span class="text-base">🐎</span>'
@@ -3812,10 +3812,11 @@
   function showCombatPreview(cName) {
     const info = OPENING_DATA.classIntro[cName] || {};
     const gifSrc = info.gifUrl || '';
+    if (!gifSrc) return; // 无实机演示动图时坚决不弹出视窗
     const monitor = document.getElementById('stage-combat-monitor');
     const img = document.getElementById('stage-combat-img');
     /* 相同职业重复悬浮不重设 src，避免动画重启与重复解码 */
-    if (img && gifSrc && img.getAttribute('src') !== gifSrc) {
+    if (img && img.getAttribute('src') !== gifSrc) {
       img.src = gifSrc;
     }
     if (monitor) monitor.classList.add('active');
