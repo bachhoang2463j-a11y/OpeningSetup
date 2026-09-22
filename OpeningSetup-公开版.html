@@ -322,6 +322,66 @@
   }
   @keyframes legendary-red-shimmer { 0% { left: -120%; } 30% { left: 180%; } 100% { left: 180%; } }
 
+  /* 技能图标徽章与特性微卡片专属样式（消除未预编译 Tailwind 边框导致的默认白色白框） */
+  .badge-crimson-box {
+    border: 1px solid rgba(239, 68, 68, 0.65) !important;
+    background: linear-gradient(135deg, rgba(69, 10, 10, 0.65), rgba(136, 19, 55, 0.45)) !important;
+    color: #fecaca !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.35) !important;
+  }
+  .badge-gold-box {
+    border: 1px solid rgba(217, 180, 92, 0.55) !important;
+    background: rgba(45, 30, 15, 0.5) !important;
+    color: #fcd34d !important;
+    box-shadow: 0 0 8px rgba(217, 180, 92, 0.25) !important;
+  }
+  .badge-purple-box {
+    border: 1px solid rgba(217, 180, 92, 0.5) !important;
+    background: linear-gradient(135deg, rgba(45, 30, 15, 0.4), rgba(46, 16, 70, 0.55)) !important;
+    color: #fcd34d !important;
+    box-shadow: 0 0 10px rgba(217, 180, 92, 0.3) !important;
+  }
+  .badge-generic-box {
+    border: 1px solid rgba(192, 132, 252, 0.5) !important;
+    background: rgba(38, 16, 60, 0.4) !important;
+    color: #d8b4fe !important;
+    box-shadow: 0 0 6px rgba(192, 132, 252, 0.25) !important;
+  }
+
+  /* 征伐者专属霸主特性徽章样式（赤炎微晶，杜绝白边） */
+  .passive-crimson-card {
+    border: 1px solid rgba(239, 68, 68, 0.45) !important;
+    background: rgba(20, 5, 7, 0.65) !important;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2) !important;
+    transition: all 0.2s ease;
+  }
+  .passive-crimson-card:hover {
+    border-color: rgba(248, 113, 113, 0.85) !important;
+    background: rgba(69, 10, 10, 0.45) !important;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.4) !important;
+  }
+
+  /* 补全未预编译的 Tailwind 颜色边框类，彻底杜绝回退为 #e5e7eb 亮白边 */
+  .border-red-500\/70 { border-color: rgba(239, 68, 68, 0.7) !important; }
+  .border-red-500\/60 { border-color: rgba(239, 68, 68, 0.6) !important; }
+  .border-red-500\/50 { border-color: rgba(239, 68, 68, 0.5) !important; }
+  .border-red-500\/40 { border-color: rgba(239, 68, 68, 0.4) !important; }
+
+  .border-amber-500\/60 { border-color: rgba(217, 180, 92, 0.6) !important; }
+  .border-amber-500\/50 { border-color: rgba(217, 180, 92, 0.5) !important; }
+  .border-amber-500\/40 { border-color: rgba(217, 180, 92, 0.4) !important; }
+  .border-amber-500\/30 { border-color: rgba(217, 180, 92, 0.3) !important; }
+  .border-amber-500\/25 { border-color: rgba(217, 180, 92, 0.25) !important; }
+  .border-amber-400\/80 { border-color: rgba(251, 191, 36, 0.8) !important; }
+  .border-amber-400\/65 { border-color: rgba(251, 191, 36, 0.65) !important; }
+
+  .border-purple-500\/50 { border-color: rgba(192, 132, 252, 0.5) !important; }
+  .border-purple-500\/30 { border-color: rgba(192, 132, 252, 0.3) !important; }
+
+  .border-rose-500\/40 { border-color: rgba(244, 63, 94, 0.4) !important; }
+  .border-sky-500\/40 { border-color: rgba(56, 189, 248, 0.4) !important; }
+  .border-emerald-400\/80 { border-color: rgba(52, 211, 153, 0.8) !important; }
+
   /* 职业选项卡卡片 */
   .class-tab-card {
     background: var(--panel-glass); border: 1px solid var(--slot-border);
@@ -2602,24 +2662,22 @@
     if (heroTheme === 'gold') {
       // 威廉：专属金色主题（四角星 + 金色光晕，右侧显示命中率）
       chipClass = 'theme-gold';
-      badgeBoxClass = 'border-amber-500/60 bg-amber-950/40 text-amber-300 shadow-[0_0_8px_rgba(217,180,92,0.3)]';
+      badgeBoxClass = 'badge-gold-box';
       costRightText = '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
     } else if (heroTheme === 'purple') {
       // 冯：金紫交辉炼金秘术风格
       chipClass = 'theme-purple';
-      badgeBoxClass = 'border-amber-400/65 bg-gradient-to-br from-amber-950/40 via-purple-950/50 to-purple-900/60 text-amber-300 shadow-[0_0_10px_rgba(217,180,92,0.35)]';
+      badgeBoxClass = 'badge-purple-box';
       costRightText = '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
     } else if (heroTheme === 'crimson') {
       // 伊斯坎达尔：专属深红/赤炎霸主风格
       chipClass = 'theme-crimson';
-      badgeBoxClass = 'border-red-500/70 bg-gradient-to-br from-red-950/50 via-rose-950/60 to-red-900/70 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.4)]';
+      badgeBoxClass = 'badge-crimson-box';
       costRightText = '<span class="text-red-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-red-400 text-xs">✦</span> ' + aimDisplayText + '</span>';
     } else {
       // 主角：技能插槽
       chipClass = s.scope === '限定' ? 'type-limited' : 'type-generic';
-      badgeBoxClass = s.scope === '限定'
-        ? 'border-amber-500/50 bg-amber-950/30 text-amber-300 shadow-[0_0_6px_rgba(217,180,92,0.25)]'
-        : 'border-purple-500/50 bg-purple-950/30 text-purple-300 shadow-[0_0_6px_rgba(192,132,252,0.25)]';
+      badgeBoxClass = s.scope === '限定' ? 'badge-gold-box' : 'badge-generic-box';
       costRightText = s.scope === '限定'
         ? '<span class="text-amber-300/85 font-mono text-[0.66rem] flex items-center justify-end gap-1"><span class="text-amber-400 text-xs">✦</span> ' + aimDisplayText + '</span>'
         : '<span class="font-mono text-[0.62rem] text-white/50 flex items-center justify-end gap-1"><span class="text-purple-400 text-xs">✦</span> ' + aimDisplayText + ' · ' + s.shopCost + ' 点</span>';
@@ -2651,7 +2709,7 @@
 
     return '<div class="skill-slot-chip ' + chipClass + ' ' + tierClass + '" style="--slot-idx:' + slotIdx + '" data-skill-name="' + esc(skillName) + '" data-skill-raw="' + (s.rawText ? esc(s.rawText) : '') + '">'
       + '<div class="flex items-center gap-2.5 min-w-0 flex-1">'
-      + '  <div class="w-7 h-7 rounded ' + badgeBoxClass + ' border flex items-center justify-center shrink-0">'
+      + '  <div class="w-7 h-7 rounded ' + badgeBoxClass + ' flex items-center justify-center shrink-0">'
       + '    <span class="text-xs select-none" title="' + typeTitle + '">' + typeEmoji + '</span>'
       + '  </div>'
       + '  <div class="min-w-0 flex-1">'
@@ -2844,7 +2902,7 @@
     const passivesHtml = (info.passivesDetail || []).map(function (p, pIdx) {
       const icons = ['⚡', '🗡️', '💨'];
       const numStr = '0' + (pIdx + 1);
-      return '<div class="bg-black/40 rounded-lg py-1.5 px-2.5 border border-red-500/40 flex items-center gap-2">'
+      return '<div class="passive-crimson-card rounded-lg py-1.5 px-2.5 flex items-center gap-2">'
         + '<span class="text-amber-400 text-xs">' + (icons[pIdx] || '✦') + '</span>'
         + '<span class="font-mono text-[0.68rem] text-red-400/80 font-bold">' + numStr + '</span>'
         + '<span class="text-xs font-bold text-red-200 tracking-wide">' + esc(p.title) + '</span>'
@@ -2852,12 +2910,12 @@
     }).join('');
 
     // 专属【征伐者】全宽霸主职业卡
-    const classCard = '<div class="class-tab-card active border-red-500/60 bg-gradient-to-r from-red-950/40 via-rose-950/50 to-red-900/60 p-3.5 rounded-xl shadow-[0_0_18px_rgba(239,68,68,0.25)]" data-class-tab="征伐者">'
+    const classCard = '<div class="class-tab-card active bg-gradient-to-r from-red-950/40 via-rose-950/50 to-red-900/60 p-3.5 rounded-xl shadow-[0_0_18px_rgba(239,68,68,0.25)]" style="border: 1px solid rgba(239, 68, 68, 0.6);" data-class-tab="征伐者">'
       + '<div class="flex items-center justify-between mb-2">'
       + '  <div class="flex items-center gap-2">'
       + '    <span class="text-base">🐎</span>'
       + '    <h3 class="text-base font-bold text-[var(--text-main)] tracking-wider">征伐者</h3>'
-      + '    <span class="font-mono text-[0.65rem] px-2 py-0.5 rounded-full bg-red-950/70 border border-red-500/50 text-red-300 font-bold shadow-[0_0_8px_rgba(239,68,68,0.3)]">' + esc(info.role || '突破 / 军势') + '</span>'
+      + '    <span class="font-mono text-[0.65rem] px-2 py-0.5 rounded-full bg-red-950/70 text-red-300 font-bold shadow-[0_0_8px_rgba(239,68,68,0.3)]" style="border: 1px solid rgba(239, 68, 68, 0.5);">' + esc(info.role || '突破 / 军势') + '</span>'
       + '  </div>'
       + '  <span class="font-mono text-[0.65rem] text-red-400/90 tracking-widest font-bold">LOCKED CLASS // 专属霸主职阶</span>'
       + '</div>'
