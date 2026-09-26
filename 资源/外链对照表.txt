@@ -1,6 +1,7 @@
 # ====================================================================
 # 开场初始化与战斗前端 资源外链对照表
 # R2 基础路径: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/
+# Imgur 图床基础路径: https://imgur.la/images/2026/09/26/
 # ====================================================================
 
 [背景音乐 BGM]
@@ -8,59 +9,59 @@ the_ecstasy_of_gold.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/ope
 (原: The Ecstasy Of Gold - Ennio Morricone.mp3 | Catbox: https://files.catbox.moe/o423us.mp3)
 
 [伊斯坎达尔]
-iskandar_portrait.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/iskandar_portrait.png
-(原: 伊斯坎达尔立绘.png | Catbox: https://files.catbox.moe/mem916.png)
+iskandar_portrait.png: https://imgur.la/images/2026/09/26/iskandar_portrait.png
+(原: 伊斯坎达尔立绘.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/iskandar_portrait.png | Catbox: https://files.catbox.moe/mem916.png)
 iskandar_voice.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/iskandar_voice.mp3
 (原: 伊斯坎达尔.mp3 | Catbox: https://files.catbox.moe/wfpuhs.mp3)
 
 [威廉·退尔]
-william_tell_portrait.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_tell_portrait.png
-(原: 威廉·退尔.png | Catbox: https://files.catbox.moe/90q8lq.png)
+william_tell_portrait.png: https://imgur.la/images/2026/09/26/william_tell_portrait.png
+(原: 威廉·退尔.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_tell_portrait.png | Catbox: https://files.catbox.moe/90q8lq.png)
 william_voice_stealth.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_voice_stealth.mp3
 (原: 威廉退尔（隐匿者）.mp3 | Catbox: https://files.catbox.moe/7nzfny.mp3)
 william_voice_berserker.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_voice_berserker.mp3
 (原: 威廉退尔（狂战士）.mp3 | Catbox: https://files.catbox.moe/s17qp7.mp3)
 william_voice_defender.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_voice_defender.mp3
 (原: 威廉退尔（防守者）.mp3 | Catbox: https://files.catbox.moe/m3138u.mp3)
-william_stealth.gif: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_stealth.gif
-(原: 威廉_隐匿者.gif | Catbox: https://files.catbox.moe/dwq042.gif)
-william_berserker.gif: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_berserker.gif
-(原: 威廉_狂战士.gif | Catbox: https://files.catbox.moe/y8l2j7.gif)
-william_defender.gif: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_defender.gif
-(原: 威廉_防守者.gif | Catbox: https://files.catbox.moe/d08n20.gif)
+william_stealth.gif: https://imgur.la/images/2026/09/26/william_stealth.gif
+(原: 威廉_隐匿者.gif | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_stealth.gif | Catbox: https://files.catbox.moe/dwq042.gif)
+william_berserker.gif: https://imgur.la/images/2026/09/26/william_berserker.gif
+(原: 威廉_狂战士.gif | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_berserker.gif | Catbox: https://files.catbox.moe/y8l2j7.gif)
+william_defender.gif: https://imgur.la/images/2026/09/26/william_defender.gif
+(原: 威廉_防守者.gif | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_defender.gif | Catbox: https://files.catbox.moe/d08n20.gif)
 
 [冯·霍恩海姆]
-hohenheim_portrait.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_portrait.png
-(原: 冯·霍恩海姆.png | Catbox: https://files.catbox.moe/1zg8rw.png)
+hohenheim_portrait.png: https://imgur.la/images/2026/09/26/hohenheim_portrait.png
+(原: 冯·霍恩海姆.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_portrait.png | Catbox: https://files.catbox.moe/1zg8rw.png)
 hohenheim_voice_caster.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_voice_caster.mp3
 (原: 冯·霍恩海姆（施法者）.mp3 | Catbox: https://files.catbox.moe/s88rh4.mp3)
 hohenheim_voice_cleric.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_voice_cleric.mp3
 (原: 冯·霍恩海姆（圣职者）.mp3 | Catbox: https://files.catbox.moe/uMtwf.mp3)
 hohenheim_voice_corruptor.mp3: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_voice_corruptor.mp3
 (原: 冯·霍恩海姆（灾厄使）.mp3 | Catbox: https://files.catbox.moe/271e1f.mp3)
-hohenheim_caster.gif: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_caster.gif
-(原: 冯_施法者.gif | Catbox: https://files.catbox.moe/l44y8k.gif)
-hohenheim_cleric.gif: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_cleric.gif
-(原: 冯_圣职者.gif | Catbox: https://files.catbox.moe/0oos9d.gif)
-hohenheim_corruptor.gif: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_corruptor.gif
-(原: 冯_灾厄使.gif | Catbox: https://files.catbox.moe/j08nr8.gif)
+hohenheim_caster.gif: https://imgur.la/images/2026/09/26/hohenheim_caster.gif
+(原: 冯_施法者.gif | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_caster.gif | Catbox: https://files.catbox.moe/l44y8k.gif)
+hohenheim_cleric.gif: https://imgur.la/images/2026/09/26/hohenheim_cleric.gif
+(原: 冯_圣职者.gif | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_cleric.gif | Catbox: https://files.catbox.moe/0oos9d.gif)
+hohenheim_corruptor.gif: https://imgur.la/images/2026/09/26/hohenheim_corruptor.gif
+(原: 冯_灾厄使.gif | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_corruptor.gif | Catbox: https://files.catbox.moe/j08nr8.gif)
 
 [战斗引导与拆图]
-guide_split_1_timeline.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_1_timeline.png
-(原: 拆图_1_行动时序条.png | Catbox: https://files.catbox.moe/hkanxr.png)
-guide_split_2_enemy_zone.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_2_enemy_zone.png
-(原: 拆图_2_敌方站位区.png | Catbox: https://files.catbox.moe/lyfsad.png)
-guide_split_3_current_actor.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_3_current_actor.png
-(原: 拆图_3_当前行动角色.png | Catbox: https://files.catbox.moe/qrvzxv.png)
-guide_split_4_ally_status.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_4_ally_status.png
-(原: 拆图_4_友方状态栏.png | Catbox: https://files.catbox.moe/37y60k.png)
-guide_split_5_action_panel.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_5_action_panel.png
-(原: 拆图_5_行动指令面板.png | Catbox: https://files.catbox.moe/gylcvw.png)
-guide_split_6_top_bar.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_6_top_bar.png
-(原: 拆图_6_顶部功能栏.png | Catbox: https://files.catbox.moe/ubn1ji.png)
-guide_split_enemy_target.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_enemy_target.png
-(原: 拆图_敌方目标面板.png | Catbox: https://files.catbox.moe/si0420.png)
-ui_guide_1_compressed.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/ui_guide_1_compressed.png
-(原: 界面说明_compressed.png | Catbox: https://files.catbox.moe/69cw2s.png)
-ui_guide_2_compressed.png: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/ui_guide_2_compressed.png
-(原: 界面说明2_compressed.png | Catbox: https://files.catbox.moe/ncm0vl.png)
+guide_split_1_timeline.png: https://imgur.la/images/2026/09/26/guide_split_1_timeline.png
+(原: 拆图_1_行动时序条.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_1_timeline.png | Catbox: https://files.catbox.moe/hkanxr.png)
+guide_split_2_enemy_zone.png: https://imgur.la/images/2026/09/26/guide_split_2_enemy_zone.png
+(原: 拆图_2_敌方站位区.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_2_enemy_zone.png | Catbox: https://files.catbox.moe/lyfsad.png)
+guide_split_3_current_actor.png: https://imgur.la/images/2026/09/26/guide_split_3_current_actor.png
+(原: 拆图_3_当前行动角色.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_3_current_actor.png | Catbox: https://files.catbox.moe/qrvzxv.png)
+guide_split_4_ally_status.png: https://imgur.la/images/2026/09/26/guide_split_4_ally_status.png
+(原: 拆图_4_友方状态栏.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_4_ally_status.png | Catbox: https://files.catbox.moe/37y60k.png)
+guide_split_5_action_panel.png: https://imgur.la/images/2026/09/26/guide_split_5_action_panel.png
+(原: 拆图_5_行动指令面板.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_5_action_panel.png | Catbox: https://files.catbox.moe/gylcvw.png)
+guide_split_6_top_bar.png: https://imgur.la/images/2026/09/26/guide_split_6_top_bar.png
+(原: 拆图_6_顶部功能栏.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_6_top_bar.png | Catbox: https://files.catbox.moe/ubn1ji.png)
+guide_split_enemy_target.png: https://imgur.la/images/2026/09/26/guide_split_enemy_target.png
+(原: 拆图_敌方目标面板.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_enemy_target.png | Catbox: https://files.catbox.moe/si0420.png)
+ui_guide_1_compressed.png: https://imgur.la/images/2026/09/26/ui_guide_1_compressed.png
+(原: 界面说明_compressed.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/ui_guide_1_compressed.png | Catbox: https://files.catbox.moe/69cw2s.png)
+ui_guide_2_compressed.png: https://imgur.la/images/2026/09/26/ui_guide_2_compressed.png
+(原: 界面说明2_compressed.png | R2: https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/ui_guide_2_compressed.png | Catbox: https://files.catbox.moe/ncm0vl.png)

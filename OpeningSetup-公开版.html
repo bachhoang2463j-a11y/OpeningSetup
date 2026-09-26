@@ -614,7 +614,7 @@
     -webkit-backdrop-filter: blur(20px) saturate(1.25);
     border: 1px solid var(--tooltip-border); border-radius: 12px; padding: 12px 14px;
     box-shadow: var(--tooltip-glow); position: relative; overflow-y: auto;
-    max-height: calc(100vh - 24px);
+    max-height: 640px;
   }
   .tooltip-glass-card::-webkit-scrollbar { width: 4px; }
   .tooltip-glass-card::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
@@ -894,7 +894,7 @@
       hero1: {
         id: 'hero1',
         name: '威廉·退尔', emoji: '🎯', title: '雾港神射手',
-        url: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_tell_portrait.png',
+        url: 'https://imgur.la/images/2026/09/26/william_tell_portrait.png',
         wearing: '👔 灰色风衣配贴身战术皮甲，腰间挂着改装弩机与箭筒',
         inner: '💭 「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
         classes: ['隐匿者', '狂战士', '防守者'],
@@ -922,7 +922,7 @@
       hero2: {
         id: 'hero2',
         name: '冯·霍恩海姆', emoji: '⚗️', title: '炼金术士',
-        url: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_portrait.png',
+        url: 'https://imgur.la/images/2026/09/26/hohenheim_portrait.png',
         wearing: '👔 墨绿纹章长袍，束金腰带，腰间挂着水银与贤者之石试管',
         inner: '💭 「所有遍布于大地的心爱之子，都是高贵星辰的闪耀。」',
         classes: ['施法者', '圣职者', '灾厄使'],
@@ -946,7 +946,7 @@
       hero_iskandar: {
         id: 'hero_iskandar',
         name: '伊斯坎达尔', emoji: '👑', title: '征服王',
-        url: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/iskandar_portrait.png',
+        url: 'https://imgur.la/images/2026/09/26/iskandar_portrait.png',
         wearing: '👔 红色希腊短袍，外披暗红色镶金大氅，铜质肩甲与护腕',
         inner: '💭 「所谓王者，当比任何人都有欲望，比任何人都更豪迈，比任何人都容易愤怒！」',
         classes: ['征伐者'],
@@ -962,13 +962,13 @@
 
     // 职业介绍（选择职业时展示；被动摘要对应 RpgCombat CLASS_PASSIVES 的实际效果）
     classIntro: {
-      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', role: '敏捷 / 刺客', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_stealth.gif' },
-      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留存最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', role: '强攻 / 绝地', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_berserker.gif' },
-      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', role: '防御 / 坚壁', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/william_defender.gif' },
+      '隐匿者': { intro: '雾是同谋，影子是证件。低仇恨开场，远程伤害随隐匿值加深，近战命中可能触发暗袭眩晕；隐匿攒满可获得额外行动。', passive: '低仇恨 · 隐匿加成 · 暗袭眩晕', role: '敏捷 / 刺客', gifUrl: 'https://imgur.la/images/2026/09/26/william_stealth.gif' },
+      '狂战士': { intro: '以伤换势的疯子。损血越多攻越高，濒死时攻击穿透并附加重伤；每场一次靠毅力留存最后一口气。', passive: '损血增攻 · 濒死穿透 · 毅力留存', role: '强攻 / 绝地', gifUrl: 'https://imgur.la/images/2026/09/26/william_berserker.gif' },
+      '防守者': { intro: '移动的街垒。天生高仇恨把火力揽在自己身上，受致命伤每场一次强制留存 1 HP，闪避后还会猛烈反击。', passive: '高仇恨嘲讽 · 致命留存 · 受击反打', role: '防御 / 坚壁', gifUrl: 'https://imgur.la/images/2026/09/26/william_defender.gif' },
       '风行者': { intro: '快得让子弹落空。闪避随 TP 水涨船高，施法有概率触发多重施法；每场一次完美闪避致命伤。', passive: '闪避成长 · 多重施法 · 回避致命', role: '极速 / 连击', gifUrl: '' },
-      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', role: '爆发 / 护盾', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_caster.gif' },
-      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', role: '支援 / 圣佑', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_cleric.gif' },
-      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', role: '减益 / 持续伤害', gifUrl: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/hohenheim_corruptor.gif' },
+      '施法者': { intro: '把法力变成第二层皮肤。开场自带相当于半数法力的护盾，每次耗蓝都可能转化为加速与爆发积攒。', passive: '开场护盾 · 法力回响', role: '爆发 / 护盾', gifUrl: 'https://imgur.la/images/2026/09/26/hohenheim_caster.gif' },
+      '圣职者': { intro: '队伍的良心与底线。治疗与祝福为团队托底，爆发激活时另有专属支援逻辑。', passive: '强治疗 · 团队祝福 · 支援爆发', role: '支援 / 圣佑', gifUrl: 'https://imgur.la/images/2026/09/26/hohenheim_cleric.gif' },
+      '灾厄使': { intro: '灾祸随身而行。目标每带一个减益，受到的伤害就多一成，出手还会附加剧毒。', passive: '减益增伤 · 附带剧毒', role: '减益 / 持续伤害', gifUrl: 'https://imgur.la/images/2026/09/26/hohenheim_corruptor.gif' },
       '征伐者': {
         intro: '以极致动能撕裂敌阵的霸道铁骑。行动速度凌驾对手时造成额外阶梯增伤，加速状态下冲锋必附暴击；天生突破前后排掩护且首回合极速拔足；面对慢速敌人时，速度优势将直接转化为闪避压制。',
         passive: '动能冲踏 · 破阵贯穿 · 先手优势',
@@ -3870,7 +3870,7 @@
       tag: 'CTB 动态时间轴',
       title: '行动时序与排轴',
       subTitle: 'ACTION TIMELINE & SPEED',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_1_timeline.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_1_timeline.png',
       imgAlt: '行动时序条 界面拆图',
       imgCaption: '左侧绿色方框 · 纵向行动时间轴',
       desc: '谁先动、谁后动，完全由角色当前「速度（Speed）」动态决定。',
@@ -3894,7 +3894,7 @@
       tag: '空间站位制约',
       title: '战场阵型与空间制约',
       subTitle: 'FORMATION & COVER MECHANICS',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_2_enemy_zone.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_2_enemy_zone.png',
       imgAlt: '敌方站位区 界面拆图',
       imgCaption: '上方黄色大方框 · 敌方战斗阵营',
       desc: '敌我双方分为「前排」与「后排」，站位直接决定攻防合法性与命中率。',
@@ -3916,7 +3916,7 @@
       tag: '轮次高亮与保命',
       title: '当前行动与仇恨索敌',
       subTitle: 'TURN ACTIVE & THREAT AGGRO',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_3_current_actor.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_3_current_actor.png',
       imgAlt: '当前行动角色 界面拆图',
       imgCaption: '中下部黄色中方框 · 当前行动角色卡（玛德琳）',
       desc: '轮到行动的角色获得金色光框；角色的职能决定了被敌人集火的概率与保命特质。',
@@ -3939,7 +3939,7 @@
       tag: '能量流转与爆发',
       title: '战技点 (TP) 循环与极限爆发',
       subTitle: 'TP ENERGY SYSTEM & LIMIT BREAK',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_4_ally_status.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_4_ally_status.png',
       imgAlt: '友方状态栏 界面拆图',
       imgCaption: '底部蓝色横向方框 · 友方全体状态与 TP 槽',
       desc: 'TP（战技点）是驱动高阶战技与极限爆发的核心动态资源，上限 100 点。',
@@ -3962,7 +3962,7 @@
       tag: '四大指令与非致命',
       title: '行动决策与指令操作',
       subTitle: 'COMMAND SELECTION & NON-LETHAL',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_5_action_panel.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_5_action_panel.png',
       imgAlt: '行动指令面板 界面拆图',
       imgCaption: '右下角红色方框 · 行动指令操作面板',
       desc: '右下角清晰聚合角色当前可执行的一切指令，并提供「非致命」开关。',
@@ -3988,7 +3988,7 @@
       tag: '系统导航与跨场接续',
       title: '战局控制与继续机制',
       subTitle: 'TOP BAR NAVIGATION & PERSISTENCE',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_6_top_bar.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_6_top_bar.png',
       imgAlt: '顶部功能栏 界面拆图',
       imgCaption: '顶部圆圈 1~6 按钮组 · 系统导航与战局交互',
       desc: '提供全方位的战局辅助工具，以及贯穿战前、战中、战后的无缝「继续推进」机制。',
@@ -4015,7 +4015,7 @@
       tag: '目标侦测与20种变种',
       title: '目标侦测与变种特质',
       subTitle: 'TARGET INSPECT & 20 MUTATION TRAITS',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_enemy_target.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_enemy_target.png',
       imgAlt: '敌方目标面板 界面拆图',
       imgCaption: '点击战场任意敌人弹出的全信息微晶面板',
       desc: '战场信息完全透明化，点击即可实时洞悉敌方的属性、特质、站位规则与技能库。',
@@ -4040,7 +4040,7 @@
       tag: '战力洞察与充能大招',
       title: '敌方战力与大招预警',
       subTitle: 'ENEMY STATS & SKILL CHARGE ALERT',
-      img: 'https://pub-28508adcb2484e98a7a7965b78878723.r2.dev/openingsetup/guide_split_enemy_target.png',
+      img: 'https://imgur.la/images/2026/09/26/guide_split_enemy_target.png',
       imgAlt: '敌方目标面板 界面拆图',
       imgCaption: '右侧核心三维、4大技能槽与底栏继续反应按钮',
       desc: '知己知彼，百战不殆：提前侦测敌方四维战力与技能库，预判敌方大招时机。',
