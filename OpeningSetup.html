@@ -69,7 +69,11 @@
   }
 
   html, body { margin: 0; padding: 0; background: var(--noir-bg); transition: background-color 0.4s ease, color 0.4s ease; }
+  /* 滚动宿主：酒馆助手将 iframe 高度设为 body.scrollHeight，缩放场景下根滚动器会失灵，
+     故滚动统一收敛到 #app 自身（元素级滚动不受 iframe 缩放影响） */
+  html, body { height: 100%; overflow: hidden; }
   body { font-family: 'Noto Serif SC', serif; color: #e8dcc0; overflow-x: hidden; }
+  #app { height: 100%; overflow-x: hidden; overflow-y: auto; }
   .font-tw { font-family: 'Special Elite', 'Courier New', monospace; }
 
   /* 环境光与装饰层 */
@@ -445,8 +449,18 @@
     box-shadow: 0 0 10px var(--amber-glow); transition: width 0.45s ease; }
 
   * { -webkit-tap-highlight-color: transparent; }
-  ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(198, 161, 84, 0.3); border-radius: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  /* 金色流光滚动条：琥珀金渐变 + 缓慢流光 */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.28); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f3dda0, #c6a154 40%, #9a7a34 70%, #e8c87d);
+    background-size: 100% 240%;
+    border: 1px solid rgba(64, 48, 18, 0.55);
+    border-radius: 4px;
+    animation: sb-gold-flow 3.2s linear infinite;
+  }
+  ::-webkit-scrollbar-thumb:hover { filter: brightness(1.18); }
+  @keyframes sb-gold-flow { from { background-position: 0 0; } to { background-position: 0 -240%; } }
 
   /* ===== demo 移植：立绘展台氛围粒子（静谧微粒缓慢漂浮升腾） ===== */
   .portrait-ambient-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
