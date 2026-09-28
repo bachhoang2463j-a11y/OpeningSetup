@@ -97,11 +97,11 @@
   }
 
   html, body { margin: 0; padding: 0; background: var(--noir-bg); transition: background-color 0.4s ease, color 0.4s ease; }
-  /* 滚动宿主：酒馆助手将 iframe 高度设为 body.scrollHeight，缩放场景下根滚动器会失灵，
-     故滚动统一收敛到 #app 自身（元素级滚动不受 iframe 缩放影响） */
-  html, body { height: 100%; overflow: hidden; }
   body { font-family: 'Noto Serif SC', serif; color: #e8dcc0; overflow-x: hidden; }
-  #app { height: 100%; overflow-x: hidden; overflow-y: auto; }
+  /* 裁剪兜底：仅当 iframe 显示高度被外力（页面缩放/折叠）压得小于内容高度时，
+   * 才切换为 #app 内部滚动；正常状态不干预，保持酒馆助手 auto-height 的完整展示 */
+  html.self-scroll, html.self-scroll body { height: 100%; overflow: hidden; }
+  html.self-scroll #app { height: 100%; overflow-x: hidden; overflow-y: auto; }
   .font-tw { font-family: 'Special Elite', 'Courier New', monospace; }
 
   /* 环境光与装饰层 */
@@ -555,18 +555,15 @@
     box-shadow: 0 0 10px var(--amber-glow); transition: width 0.45s ease; }
 
   * { -webkit-tap-highlight-color: transparent; }
-  /* 金色流光滚动条：琥珀金渐变 + 缓慢流光 */
+  /* 半透明毛玻璃滚动条 */
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.28); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.04); }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #f3dda0, #c6a154 40%, #9a7a34 70%, #e8c87d);
-    background-size: 100% 240%;
-    border: 1px solid rgba(64, 48, 18, 0.55);
-    border-radius: 4px;
-    animation: sb-gold-flow 3.2s linear infinite;
+    background: linear-gradient(180deg, rgba(240, 224, 180, 0.32), rgba(198, 161, 84, 0.22));
+    border: 1px solid rgba(255, 244, 214, 0.22);
+    border-radius: 9999px;
   }
-  ::-webkit-scrollbar-thumb:hover { filter: brightness(1.18); }
-  @keyframes sb-gold-flow { from { background-position: 0 0; } to { background-position: 0 -240%; } }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(240, 224, 180, 0.5); }
 
   /* ===== demo 移植：立绘展台氛围粒子（静谧微粒缓慢漂浮升腾） ===== */
   .portrait-ambient-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
@@ -4734,5 +4731,38 @@ ${sectionBlocks}
   </div>
 </div>
 
+<script>
+/* iframe 裁剪兜底：酒馆助手按 body.scrollHeight 拉伸 iframe 高度；
+ * 若其显示高度被外力压小（页面缩放等）导致内容被裁，则切换为 #app 内部滚动 */
+(function () {
+  let armed = false;
+  function clamped() {
+    try {
+      const fe = window.frameElement;
+      if (!fe) return false;
+      const styleH = parseFloat(fe.style.height);
+      if (!isFinite(styleH) || styleH <= 0) return false;
+      const zoom = parseFloat(getComputedStyle(fe).zoom) || 1;
+      return fe.getBoundingClientRect().height / zoom < styleH - 2;
+    } catch (e) { return false; }
+  }
+  function check() {
+    if (armed) return;
+    armed = true;
+    setTimeout(() => {
+      armed = false;
+      if (clamped()) document.documentElement.classList.add('self-scroll');
+    }, 150);
+  }
+  let raf = 0;
+  const queue = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; check(); }); };
+  window.addEventListener('resize', queue);
+  window.addEventListener('load', queue);
+  try { new ResizeObserver(queue).observe(document.body); } catch (e) {}
+  try { new ResizeObserver(queue).observe(window.frameElement); } catch (e) {}
+  setInterval(queue, 400);
+  queue();
+})();
+</script>
 </body>
 </html>
