@@ -919,7 +919,7 @@
         name: '威廉·退尔', emoji: '🎯', title: '荒野猎手',
         url: `${R2_BASE}/william_tell_portrait.png`,
         wearing: '👔 灰色风衣配贴身战术皮甲，腰间挂着改装弩机与箭筒',
-        inner: '💭 「要不要去看看设下的陷阱？差不多也该有猎物上钩了吧。」',
+        inner: '💭 「六十码外的靴声骗不了猎人的耳朵。后楼梯上来的那两组，该收网了。」',
         classes: ['隐匿者', '狂战士', '防守者'],
         // 随身枪械（纯叙事，走 Status_block 武器行，不进战斗档案——战斗逻辑由同名技能与弹药承担）
         weaponsByClass: {
@@ -971,7 +971,7 @@
         name: '伊斯坎达尔', emoji: '👑', title: '征服王',
         url: `${R2_BASE}/iskandar_portrait.png`,
         wearing: '👔 红色希腊短袍，外披暗红色镶金大氅，铜质肩甲与护腕',
-        inner: '💭 「所谓王者，当比任何人都有欲望，比任何人都更豪迈，比任何人都容易愤怒！」',
+        inner: '💭 「锈门、朽墙、仓皇的看门犬——正适合当作远征的第一块垫脚石。」',
         classes: ['征伐者'],
         fixedWeapons: ['塞浦路斯阔剑', '神威车轮'],
         classVoiceMap: {
@@ -1009,7 +1009,7 @@
       defaultName: '埃利亚斯',
       emoji: '📜',
       wearing: '👔 洗旧的深灰三件套西装，外搭米色防风大衣，右腕系着遮掩灼痕的皮腕带',
-      inner: '💭 「教团的血仇、暗中蔓延的蚀脑恶疾……我们必须赶在日全食前拿到解药。」',
+      inner: '💭 「验尸单与勘探图都到手了。下一站——赶在日全食前穿过大沙沙漠。」',
       // 自定义主角·职业对应随身武器（纯叙事，走 Status_block 武器行，不进战斗档案）
       weaponsByClass: {
         '隐匿者': ['韦伯利.455', '韦伯利.455'],
@@ -1182,6 +1182,7 @@
       '死寂的黑暗中，退尔的准星死死咬住了领头警官的咽喉；霍恩海姆掌中的手杖细剑微鸣，神经毒雾在指尖无声蓄势。',
       '',
       '暴雨如注。长廊两侧，杀戮的倒计时归零。',
+      '[点一首歌:the battle is to the strong - 梶浦由記 (Yuki Kajiura)]',
     ].join('\n'),
   };
   /* ============================== OPENING_DATA 配置区 END ============================== */
@@ -2285,16 +2286,18 @@
     const h1 = OPENING_DATA.party.hero1;
     const h2 = OPENING_DATA.party.hero2;
     const hIskandar = OPENING_DATA.party.hero_iskandar;
+    // 预置英灵不写 config.img：战斗前端按名字命中 RpgCombat AVATAR_MAP 的专属战斗头像
+    // （立绘只在状态栏用；写 img 会覆盖战斗头像）；自定义主角无预设战斗头像，仍用所选立绘
     const hero1 = buildHeroSave({
-      name: h1.name, url: h1.url, classType: state.hero1Class,
+      name: h1.name, url: null, classType: state.hero1Class,
       config: classConfigOf(state.hero1Class) || {}, skills: classSkills(state.hero1Class), items: classItems(state.hero1Class),
     });
     const hero2 = buildHeroSave({
-      name: h2.name, url: h2.url, classType: state.hero2Class,
+      name: h2.name, url: null, classType: state.hero2Class,
       config: classConfigOf(state.hero2Class) || {}, skills: classSkills(state.hero2Class), items: classItems(state.hero2Class),
     });
     const heroIskandar = buildHeroSave({
-      name: hIskandar.name, url: hIskandar.url, classType: state.heroIskandarClass,
+      name: hIskandar.name, url: null, classType: state.heroIskandarClass,
       config: classConfigOf(state.heroIskandarClass) || {}, skills: classSkills(state.heroIskandarClass), items: classItems(state.heroIskandarClass),
     });
     const hero3 = buildHeroSave({
@@ -2489,6 +2492,12 @@
         state.progress = Math.round(((i + 1) / steps.length) * 100);
         renderLoading();
       }
+      // 交接给开场白楼层：退出沉浸全屏，并停掉向导 BGM（让开场白的 [点一首歌] 接管播放）
+      try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* 宿主未授权时静默 */ }
+      try {
+        if (bgmFadeTimer) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; }
+        if (bgm) bgm.pause();
+      } catch (e) { /* 静默 */ }
       state.stage = 'done';
       render();
     } catch (err) {

@@ -43,6 +43,9 @@
 状态栏正则吃 `<Status_block>`：会在这条楼渲染状态栏并把 `stat_data` 持久化到楼层消息变量，
 前端战斗又从 `stat_data` 读初始数值——两个插件的既有同步链路自然打通。
 立绘不需要 `【立绘 键】` 标签：MMS 卡片按角色名自动匹配（`$mms_portrait_choice` 覆盖 + `PORTRAIT_MAP` 兜底）。
+预置英灵的 `config.img` 写 null——战斗前端按名字命中 RpgCombat `AVATAR_MAP` 的专属战斗头像
+（立绘只在状态栏用，写进 `config.img` 会把战斗头像覆盖掉）；自定义主角无预设战斗头像，仍写所选立绘。
+四步全部完成后自动退出沉浸全屏并暂停向导 BGM，把声音交还给开场白楼层的 `[点一首歌:…]`。
 
 ## 配置（全部在 `OpeningSetup.html` 的 OPENING_DATA 配置区）
 
@@ -61,9 +64,9 @@
 - **立绘**：`portraits[].key` 必须与 MiniMapStatus 图片表的立绘键（`PORTRAIT_MAP`）一致才能被识别；
   `url` 仅用于向导内预览。占位键为空 URL 时显示剪影。
 - **自定义立绘（玩家上传）**：立绘选择页支持玩家粘贴**图床直链**（推荐 catbox.moe / imgur.la）
-  自行添加立绘。确认时同步三处：战斗档案头像（`rpg_combat_roster` 的 `config.img`）、
+  自行添加立绘。确认时同步三处：战斗档案头像（`rpg_combat_roster` 的 `config.img`，仅自定义主角）、
   MMS 立绘表（合并进本机快照 `mms_img_data_llm_v1` 的 portrait 字典——MMS 官方默许的外部
-  集成路径，快照不存在或损坏时静默跳过）、开场白 `【立绘 键名】` 标签与 `$mms_portrait_choice`。
+  集成路径，快照不存在或损坏时静默跳过）、聊天变量 `$mms_portrait_choice`。
   同名重填即覆盖；自定义候选记录在 `$opening_setup_done.customPortraits`，强制重配时自动恢复。
   **不采用 IndexedDB/dataURL 方案**：大图 dataURL 写进聊天变量会撑爆聊天 JSON，IndexedDB 又锁
   在本机浏览器无法被 MMS/RpgCombat 读取（情绪头像项目即纯本机自用先例）；图床 URL 三方全通且可复用。

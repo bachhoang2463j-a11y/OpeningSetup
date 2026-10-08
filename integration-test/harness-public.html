@@ -274,6 +274,16 @@
           && h.items[0].name === '破片手雷' && h.items[1].name === '战地急救包'
           && h.items[1].isOthers === true ? true : h;
       });
+      assert('预置英灵不写 config.img（战斗头像走 RpgCombat AVATAR_MAP，不被立绘覆盖）', () => {
+        return roster.heroes[0].config.img === null && roster.heroes[1].config.img === null && roster.heroes[2].config.img === null
+          ? true : [roster.heroes[0].config.img, roster.heroes[1].config.img, roster.heroes[2].config.img];
+      });
+      assert('内心台词为夜袭场景设定稿（威廉/冯/大帝）', () => {
+        const m = ctx1.mock.created[0].message;
+        return m.indexOf('六十码外的靴声骗不了猎人的耳朵') >= 0
+          && m.indexOf('三柱亡魂同锚于一具凡躯之上') >= 0
+          && m.indexOf('锈门、朽墙、仓皇的看门犬') >= 0 ? true : (m.match(/内心: "[^"]*"/g) || []);
+      });
       assert('武器行：威廉隐匿者双持柯尔特、冯法杖小刀、主角灾厄使黑檀手杖+水银注射管', () => {
         const m = ctx1.mock.created[0].message;
         return m.indexOf('武器: "[柯尔特M1911][柯尔特M1911]"') >= 0
