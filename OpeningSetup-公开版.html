@@ -1198,11 +1198,11 @@
   function emptySkillData() {
     // fxTag 必须为 null（RpgCombat parseSkill 同款）：'none' 是 truthy，会让战斗前端
     // 误判"该技能配了特效"而跳过默认 SVG 刀光（无 [特效:x] 标签的技能即受此影响）
-    return { name: '', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: null, fxTag: null, cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null };
+    return { name: '', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: null, fxTag: null, cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, charge: 0, type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, slotTurns: null, slotTurns2: null, slotTurns3: null, barrierSub: null, barrierArmor: 0, summonTarget: null, summonNoLimit: false, ignoreRow: false };
   }
   // 物品持久化模板：字段集对齐 RpgCombat serializeHeroesForSave 的 items 契约
   function emptyItemData() {
-    return { name: '', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: null, damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] };
+    return { name: '', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: null, damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, slotTurns: null, slotTurns2: null, slotTurns3: null, summonTarget: null, summonNoLimit: false, ignoreRow: false, children: [] };
   }
   // 效果槽名全集：镜像 RpgCombat SKILL_TYPES 裸名（供裸标签/冒号简写兜底；带 power 主分支不做白名单）
   const SLOT_NAMES = ['单体', '群攻', '穿透', '群穿透', '散射', '群散射', '眩晕', '群眩晕', '单降', '群降', '单盲', '群盲', '单滞', '群滞', '单弱', '群弱', '中毒', '群中毒', '燃烧', '群燃烧', '麻痹', '群麻痹', '吸蓝', '单增', '群增', '单防', '群防', '单速', '群速', '单回', '群回', '单盾', '群盾', '单回蓝', '群回蓝', '单冲', '群冲', '单瞄', '群瞄', '嘲讽', '反击', '群反击', '再动', '回避', '群避', '单避', '免伤', '自盲', '自降', '自弱', '自滞', '自缓', '驱散', '群驱散'];
@@ -1231,6 +1231,8 @@
           slot++;
           entry.data[slot === 1 ? 'type' : 'type' + slot] = '[' + m[1].trim() + ']';
           entry.data[slot === 1 ? 'power' : 'power' + slot] = parseInt(m[2], 10);
+          // 槽位级 `;turns:M`：该槽自己的持续轮数，优先于技能级 [Turns:N]（RpgCombat slotTurns* 同款）
+          if (m[3]) entry.data[slot === 1 ? 'slotTurns' : 'slotTurns' + slot] = parseInt(m[3], 10);
         }
         // [肃正:子类型;power:N]：槽名与 power 照常占槽，子类型另落 barrierSub
         const szm = m[1].trim().match(/^肃正\s*[:：]\s*(近战|远程|法术)$/);
@@ -1253,7 +1255,14 @@
       if ((m = t.match(/^反应(?:\s*[:：]\s*(近战|远程|法术))?\s*$/))) { entry.data.isReaction = true; entry.data.reactionTarget = m[1] || 'all'; continue; }
       if ((m = t.match(/^看破(?:\s*[:：]\s*(近战|远程|法术|all))?\s*$/))) { entry.data.kanpoTarget = m[1] || 'all'; continue; }
       if ((m = t.match(/^舍身(?:\s*[:：]\s*(近战|远程|法术|all))?\s*$/))) { entry.data.sheshenTarget = m[1] || 'all'; continue; }
-      if ((m = t.match(/^召唤\s*[:：]\s*(.+)$/))) { entry.data.summonTarget = m[1].trim(); continue; }
+      if ((m = t.match(/^召唤\s*[:：]\s*(.+)$/))) {
+        // 多召：多个 [召唤:x] 标签按 RpgCombat 口径合并为 `A；B`（单个标签内的 ；/，分隔原样保留）
+        entry.data.summonTarget = entry.data.summonTarget ? entry.data.summonTarget + '；' + m[1].trim() : m[1].trim();
+        continue;
+      }
+      if ((m = t.match(/^(?:Charge|充能|蓄力)\s*[:：]\s*(\d+)$/i))) { entry.data.charge = parseInt(m[1], 10); continue; }
+      if (t === '众召') { entry.data.summonNoLimit = true; continue; }
+      if (t === '突进' || t === '无视站位') { entry.data.ignoreRow = true; continue; }
       if (t === '他人') { entry.data.isOthers = true; continue; }
       if (t === '必中') { entry.data.guaranteedHit = true; continue; }
       if (t === '转火') { entry.data.switchTarget = true; continue; }
