@@ -341,14 +341,14 @@
           && m.indexOf('【立绘') < 0
           && m.indexOf('<Combat_block>') >= 0 && m.indexOf('</Combat_block>') >= 0 ? true : ctx1.mock.created;
       });
-      assert('Combat_block：我方 4 角色（名字 + HP/MP，无技能/物品段）+ 敌方 2 条目 + 场地', () => {
+      assert('Combat_block：主角居首（1 号位不自动旁白）+ 4 角色 + 敌方 2 条目 + 场地', () => {
         const m = ctx1.mock.created[0].message;
         const block = m.slice(m.indexOf('<Combat_block>'), m.indexOf('</Combat_block>'));
         return (block.match(/    - 角色:/g) || []).length === 6
           && block.indexOf('我方列表(场地:有备而来):') >= 0
+          && block.indexOf('名字: "夜鸦"') >= 0 && block.indexOf('名字: "夜鸦"') < block.indexOf('名字: "威廉·退尔"')
           && block.indexOf('名字: "威廉·退尔"') >= 0
           && block.indexOf('属性: "[HP:140/140][MP:16/16]"') >= 0
-          && block.indexOf('名字: "夜鸦"') >= 0
           && block.indexOf('👮悉尼常规巡警*2[后排]') >= 0
           && block.indexOf('🛡️飞行小队突击警探[前排]') >= 0
           && block.indexOf('物品:') < 0 ? true : block;

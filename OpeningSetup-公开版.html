@@ -2377,11 +2377,12 @@
   // rpg_combat_roster 在战斗前端按名字合并补齐——YAML 缺省字段即走持久化值）；
   // 敌方写全属性与技能（取自世界书图鉴），保证「Yaml 载入」与「世界书载入」都开箱可打
   function buildCombatBlock() {
+    // 自定义主角必须排在首位：战斗前端以 heroesData[0] 为 1 号位（玩家主控，不自动触发旁白）
     const heroes = [
+      { name: hero3Name(), cfg: classConfigOf(state.hero3.classType) },
       { name: OPENING_DATA.party.hero1.name, cfg: classConfigOf(state.hero1Class) },
       { name: OPENING_DATA.party.hero2.name, cfg: classConfigOf(state.hero2Class) },
       { name: OPENING_DATA.party.hero_iskandar.name, cfg: classConfigOf(state.heroIskandarClass) },
-      { name: hero3Name(), cfg: classConfigOf(state.hero3.classType) },
     ];
     const lines = [];
     lines.push('战斗数据栏:');
