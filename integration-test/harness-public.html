@@ -223,6 +223,23 @@
         const d = C.classes['圣职者'].skills[4].data;
         return d.type === '[群回]' && d.power === 100 && d.type2 === '[群驱散]' && d.power2 === 1 ? true : d;
       });
+      assert('肃正解析：[肃正:法术;power:300;Armor:40] → 槽/子类型/护甲三处齐备', () => {
+        const d = C.classes['施法者'].skills.find(s => s.data.name === '圣域帷幕').data;
+        return d.type === '[肃正:法术]' && d.power === 300 && d.barrierSub === '法术' && d.barrierArmor === 40 ? true : d;
+      });
+      assert('fxTag 默认 null（无 [特效:x] 的技能走默认 SVG 刀光，不被 "none" 挡掉）', () => {
+        const d = C.classes['狂战士'].skills.find(s => s.data.name === '碎骨连打').data;
+        return d.fxTag === null && d.damageType === '近战' ? true : d;
+      });
+      assert('物品效果槽解析：塞浦路斯红酒 单回40 + 单冲20 + 他人 + 次数2', () => {
+        const d = C.classes['征伐者'].items.find(i => i.data.name === '塞浦路斯红酒').data;
+        return d.type === '[单回]' && d.power === 40 && d.type2 === '[单冲]' && d.power2 === 20
+          && d.isOthers === true && d.maxUses === 2 ? true : d;
+      });
+      assert('弹药效果槽强制清空（.45子弹：类别/数量保留，槽归零）', () => {
+        const d = C.classes['隐匿者'].items.find(i => i.data.name === '.45子弹').data;
+        return d.type === null && d.power === 0 && d.category === '弹药' && d.count === 40 ? true : d;
+      });
     } catch (e) { row('① 执行中断', false, e.message); }
 
     /* ============ ② 端到端主流程 ============ */

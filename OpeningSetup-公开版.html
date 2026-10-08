@@ -1196,7 +1196,9 @@
    * 标记，解析后挂在池条目上（scope/shopCost），不进 data。
    * ==================================================================== */
   function emptySkillData() {
-    return { name: '', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: null, fxTag: 'none', cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null };
+    // fxTag 必须为 null（RpgCombat parseSkill 同款）：'none' 是 truthy，会让战斗前端
+    // 误判"该技能配了特效"而跳过默认 SVG 刀光（无 [特效:x] 标签的技能即受此影响）
+    return { name: '', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: null, fxTag: null, cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, barrierSub: null, barrierArmor: 0, summonTarget: null };
   }
   // 物品持久化模板：字段集对齐 RpgCombat serializeHeroesForSave 的 items 契约
   function emptyItemData() {
@@ -1208,6 +1210,13 @@
     const nm = raw.match(/【([^】]+)】/);
     if (!nm) return false;
     entry.data.name = nm[1].trim();
+    // 【肃正】屏障护甲 [肃正…;Armor:N]：先摘除再解析——否则 `;Armor:40]` 会阻断效果槽主正则的
+    // `]` 匹配（整串落空、肃正失效）。与 RpgCombat parseSkill 同序同法。
+    const armorM = raw.match(/;Armor\s*[:：]\s*(\d+)/i);
+    if (armorM) {
+      entry.data.barrierArmor = parseInt(armorM[1], 10);
+      raw = raw.replace(/;Armor\s*[:：]\s*\d+/gi, '');
+    }
     const tags = raw.match(/\[([^\[\]]+)\]/g) || [];
     let slot = 0;
     for (let i = 0; i < tags.length; i++) {
@@ -1223,6 +1232,9 @@
           entry.data[slot === 1 ? 'type' : 'type' + slot] = '[' + m[1].trim() + ']';
           entry.data[slot === 1 ? 'power' : 'power' + slot] = parseInt(m[2], 10);
         }
+        // [肃正:子类型;power:N]：槽名与 power 照常占槽，子类型另落 barrierSub
+        const szm = m[1].trim().match(/^肃正\s*[:：]\s*(近战|远程|法术)$/);
+        if (szm) entry.data.barrierSub = szm[1];
         continue;
       }
       if ((m = t.match(/^(MP|HP|TP)\s*[:：]\s*(\d+)$/i))) {
@@ -1249,7 +1261,17 @@
       if (t === '传奇' || t === '神术') { entry.data.isLegendary = true; continue; }
       if (t === '近战' || t === '远程' || t === '法术') { entry.data.damageType = t; continue; }
       if ((m = t.match(/^特效\s*[:：]\s*(.+)$/))) { entry.data.fxTag = m[1].trim(); continue; }
-      if ((m = t.match(/^肃正\s*[:：]\s*(.+)$/))) { entry.data.barrierSub = m[1].trim(); continue; }
+      // [肃正] / [肃正:近战|远程|法术] 无 power 写法：手动占槽（power 默认 50，与 RpgCombat 一致）
+      if ((m = t.match(/^肃正(?:\s*[:：]\s*(近战|远程|法术))?$/))) {
+        const szTag = m[1] ? '[肃正:' + m[1] + ']' : '[肃正]';
+        if (slot < 3) {
+          slot++;
+          entry.data[slot === 1 ? 'type' : 'type' + slot] = szTag;
+          entry.data[slot === 1 ? 'power' : 'power' + slot] = 50;
+        }
+        if (m[1]) entry.data.barrierSub = m[1];
+        continue;
+      }
       // 裸效果槽（无 power，兜底 20）与冒号简写效果槽
       const colon = t.match(/^(.+?)\s*[:：]\s*(\d+)$/);
       const base = colon ? colon[1].trim() : t;
@@ -1259,9 +1281,15 @@
         entry.data[slot === 1 ? 'power' : 'power' + slot] = colon ? parseInt(colon[2], 10) : 20;
       }
     }
+    // 与 RpgCombat 同：写了 [肃正] 但未指定子类型时，用技能伤害类型兜底（[肃正;power:N][法术] → barrierSub='法术'）
+    if (entry.data.barrierSub == null && /\[肃正[;\]:：]/.test(raw)
+      && ['近战', '远程', '法术'].indexOf(entry.data.damageType) >= 0) {
+      entry.data.barrierSub = entry.data.damageType;
+    }
     return true;
   }
-  // 物品行解析：标签体系镜像 RpgCombat parseItem（类别/数量/次数/绑定），效果槽留待战斗端 YAML 提供
+  // 物品行解析：类别/数量/次数/绑定为物品专有；效果槽与全部战斗标签复用技能解析
+  // （RpgCombat parseItem 的效果槽正则与 parseSkill 完全同构——我方物品同样只走 roster，不靠 YAML）
   function parseItemLine(raw, entry) {
     const nm = raw.match(/【([^】]+)】/);
     if (!nm) return false;
@@ -1281,6 +1309,14 @@
         });
         continue;
       }
+    }
+    // 通用标签（效果槽/MP·HP·TP/延迟·加速/Aim/Turns/暴击/召唤/他人/必中/转火/叙事标签/伤害类型/特效/肃正）
+    parseSkillLine(raw, entry);
+    // 弹药是技能资源而非主动道具：效果槽无意义，强制清空（RpgCombat parseItem 同款）
+    if (entry.data.category === '弹药') {
+      entry.data.type = null; entry.data.power = 0;
+      entry.data.type2 = null; entry.data.power2 = 0;
+      entry.data.type3 = null; entry.data.power3 = 0;
     }
     return true;
   }
