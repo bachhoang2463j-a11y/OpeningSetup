@@ -17,6 +17,7 @@
 | `regex-开局初始化.json` | 产物：AI 消息中 `【开局引导】` → 整页向导 iframe |
 | `regex-开局引导清理[上下文].json` | 产物：promptOnly 剥离占位符（防 AI 模仿输出 + 省 token） |
 | `integration-test/harness.html` | 回归：mock 酒馆助手接口跑断言（不进真酒馆） |
+| `integration-test/harness-public.html` | 公开版专属回归（同断言集，适配四英雄 / 8 职业 / 4 章故事页 / 公开版武器表） |
 
 ## 使用流程
 
@@ -35,9 +36,13 @@
 | 开场白 | 聊天流 | `createChatMessages([{role:'assistant', message}], {insert_before:'end'})`；旧版酒馆助手降级 `triggerSlash('/sendas …')` |
 | 幂等标记 | 本组件 | 聊天变量 `$opening_setup_done` |
 
-开场白消息 = 叙事正文 + `【立绘 立绘键】` + `<Status_block>` 初始 YAML。
-状态栏正则吃同一标签：会在这条楼渲染状态栏并把 `stat_data` 持久化到楼层消息变量，
+开场白消息 = 叙事正文 + `<Combat_block>` 开局战斗块 + `<Status_block>` 初始 YAML。
+战斗块我方只写名字 + HP/MP 初值——技能/物品/职业/立绘由同一次写入的 `rpg_combat_roster`
+在战斗前端按名字合并补齐（`applyPersistedRoster`）；敌方写全数据（世界书图鉴同源），
+【Yaml 载入】与【世界书载入】两条路径都开箱可打。
+状态栏正则吃 `<Status_block>`：会在这条楼渲染状态栏并把 `stat_data` 持久化到楼层消息变量，
 前端战斗又从 `stat_data` 读初始数值——两个插件的既有同步链路自然打通。
+立绘不需要 `【立绘 键】` 标签：MMS 卡片按角色名自动匹配（`$mms_portrait_choice` 覆盖 + `PORTRAIT_MAP` 兜底）。
 
 ## 配置（全部在 `OpeningSetup.html` 的 OPENING_DATA 配置区）
 
@@ -62,7 +67,8 @@
   同名重填即覆盖；自定义候选记录在 `$opening_setup_done.customPortraits`，强制重配时自动恢复。
   **不采用 IndexedDB/dataURL 方案**：大图 dataURL 写进聊天变量会撑爆聊天 JSON，IndexedDB 又锁
   在本机浏览器无法被 MMS/RpgCombat 读取（情绪头像项目即纯本机自用先例）；图床 URL 三方全通且可复用。
-- **开场白**：`openingTemplate`（`{名字}{技能清单}{物品清单}` 占位）、`status`（日期/地点/行动选项）。
+- **开场白**：`openingTemplate`（叙事正文）、`status`（日期/地点/行动选项）、
+  `battle`（开局战斗块的场地与敌方列表；我方由所选职业自动生成名字 + HP/MP）。
 
 改完源码后**必须重新构建并重新导入**（酒馆渲染的是 JSON 里内嵌的副本）：
 
@@ -79,8 +85,10 @@ node build_regex.mjs
 ```
 node -e "<harness 技能内置静态服务器脚本>"   # 8123 起自动递增
 # 打开 http://127.0.0.1:<port>/OpeningSetup/integration-test/harness.html → 运行全部断言
+# 公开版：http://127.0.0.1:<port>/OpeningSetup/integration-test/harness-public.html（50 项）
 ```
 
-覆盖：端到端主流程（四步写入 shape 与顺序、全屏按钮、customPortraits）/ 幂等（重复 boot 不二次写入、重试防重复落楼）/
-边界（点数预算拒绝、非法 URL）/ 失败路径（接口抛错出错误面板可重试）/ 开关回退（done 标记存在时进摘要模式）/
-自定义立绘（无快照跳过合并、同名覆盖、MMS 快照合并与损坏防御）。
+覆盖：端到端主流程（四步写入 shape 与顺序、全屏按钮、customPortraits、开场白战斗块结构）/
+幂等（重复 boot 不二次写入、重试防重复落楼）/ 边界（点数预算拒绝、非法 URL）/
+失败路径（接口抛错出错误面板可重试）/ 开关回退（done 标记存在时进摘要模式）/
+自定义立绘（无快照跳过合并、同名覆盖、MMS 快照合并与损坏防御）/ 弹药按所选技能自动分配。
