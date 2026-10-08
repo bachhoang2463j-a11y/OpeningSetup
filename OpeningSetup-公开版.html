@@ -1081,7 +1081,7 @@
       field: '有备而来',
       enemies: [
         {
-          name: '👮悉尼常规巡警*2[后排]',
+          name: '👮悉尼常规巡警*4[后排]',
           attrs: '[HP:125/125][MP:10/10][Atk:65][Armor:20][Speed:55][行动次数:1][智慧]',
           skills: [
             '【警棍重击】[单体;power:75][Aim:115][近战]',
@@ -1439,6 +1439,7 @@
     submitting: false,
     openingSent: false, // 重试防重：开场白一成功就置位
     autoFullscreen: false, // 首屏"同时开启沉浸全屏"复选框（修仙开局同款）
+    bgmHandedOff: false,   // 提交完成后置位：向导 BGM 已交接给开场白楼层，render 不再恢复播放
     flash: '',
     soundOn: false,
     audioPlaying: false,
@@ -1474,6 +1475,7 @@
     bgFallback.style.opacity = wantVideo ? '0' : '1';
   }
   function updateBgmForStage(targetStage) {
+    if (state.bgmHandedOff) return;   // 已交接给开场白楼层：render 不再把向导 BGM 播回来
     const targetUrl = getBgmUrlForStage(targetStage);
     if (!targetUrl || !bgm) return;
 
@@ -2538,8 +2540,9 @@
         state.progress = Math.round(((i + 1) / steps.length) * 100);
         renderLoading();
       }
-      // 交接给开场白楼层：退出沉浸全屏，并停掉向导 BGM（让开场白的 [点一首歌] 接管播放）
-      try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* 宿主未授权时静默 */ }
+      // 交接给开场白楼层：停掉向导 BGM 并置位（置位后 render 不再恢复 BGM），让开场白的 [点一首歌] 接管
+      state.bgmHandedOff = true;
+      try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* 兜底：正常已在点击阶段同步退出 */ }
       try {
         if (bgmFadeTimer) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; }
         if (bgm) bgm.pause();
@@ -3879,7 +3882,11 @@
       case 'portrait-pick':
         state.hero3.portrait = t.getAttribute('data-portrait-key') || ''; render(); break;
       case 'portrait-add': addCustomPortrait(); break;
-      case 'confirm-submit': submitAll(); break;
+      case 'confirm-submit':
+        // 交接给开场白：退全屏必须在同步阶段完成——exitFullscreen 需要 user activation，
+        // 放到 submitAll 的异步写入之后再调会被浏览器拒绝（表现为"要点两次才退出"）
+        try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* 宿主未授权时静默 */ }
+        submitAll(); break;
       case 'retry': state.stage = 'loading'; state.stepRows = []; state.progress = 0; submitAll(); break;
       case 'force-redo':
         state.openingSent = false;
