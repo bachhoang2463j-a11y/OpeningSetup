@@ -1985,7 +1985,25 @@
     };
   }
 
-  function buildPartySave() {
+  // 本副本不管理的槽位（公开版新增的 hero_iskandar 大帝位等）：整档写入时原样保留。
+  // 背景：rpg_combat_roster / $opening_setup_done 都是整档覆盖，而职业在战斗端的唯一来源就是
+  // roster 档的 config.classType——旧版向导跑一次会把新版写入的角色档案与职业记录一起抹掉，
+  // 该角色的职业被动随之静默失效（无任何报错）。此处按名过滤保留，只覆盖自己管的三位。
+  function managedPartyNames() {
+    return [OPENING_DATA.party.hero1.name, OPENING_DATA.party.hero2.name, hero3Name()];
+  }
+  function preservedPartyEntries(prevRoster) {
+    const managed = managedPartyNames();
+    const list = (prevRoster && Array.isArray(prevRoster.heroes)) ? prevRoster.heroes : [];
+    return list.filter(function (h) { return h && h.name && managed.indexOf(h.name) < 0; });
+  }
+  function preservedDoneChars(prevDone) {
+    const managed = managedPartyNames();
+    const list = (prevDone && Array.isArray(prevDone.chars)) ? prevDone.chars : [];
+    return list.filter(function (c) { return c && c.name && managed.indexOf(c.name) < 0; });
+  }
+
+  function buildPartySave(prevRoster) {
     const h1 = OPENING_DATA.party.hero1;
     const h2 = OPENING_DATA.party.hero2;
     const hero1 = buildHeroSave({
@@ -2000,7 +2018,7 @@
       name: hero3Name(), url: hero3PortraitUrl(), classType: state.hero3.classType,
       config: hero3Config() || {}, skills: limitedSkills(state.hero3.classType).concat(genericSkillEntries()), items: hero3ItemEntries(),
     });
-    return { version: 1, heroes: [hero1, hero2, hero3] };
+    return { version: 1, heroes: [hero1, hero2, hero3].concat(preservedPartyEntries(prevRoster)) };
   }
 
   // 战斗物品分类词条（RpgCombat/MMS 通道：【弹药】【消耗品】【道具】独立行，格式 [名x数量] 供 _sbParseItems 解析）
@@ -2082,14 +2100,14 @@
     return narrative + '\n\n' + tags.join('') + '\n\n' + buildStatusBlock();
   }
 
-  function buildDoneFlag() {
+  function buildDoneFlag(prevDone) {
     return {
       ts: Date.now(),
       chars: [
         { slot: 'hero1', name: OPENING_DATA.party.hero1.name, classType: state.hero1Class },
         { slot: 'hero2', name: OPENING_DATA.party.hero2.name, classType: state.hero2Class },
         { slot: 'hero3', name: hero3Name(), classType: state.hero3.classType, portrait: state.hero3.portrait },
-      ],
+      ].concat(preservedDoneChars(prevDone)),
       customPortraits: state.hero3.customPortraits.slice(),
       skills: genericSkillEntries().map(function (e) { return e.data.name; }),
       items: itemEntries().map(function (e) { return e.data.name; }),
@@ -2134,7 +2152,8 @@
         mergeMmsPortraitSnapshot();
       }],
       ['战斗档案写入 · RpgCombat', async function () {
-        await TH.writeChatVars({ rpg_combat_roster: buildPartySave() });
+        const prevVars = await TH.readChatVars();
+        await TH.writeChatVars({ rpg_combat_roster: buildPartySave(prevVars && prevVars.rpg_combat_roster) });
       }],
       ['开场白以 AI 角色身份注入聊天流', async function () {
         if (state.openingSent) return; // 重试时防重复落楼
@@ -2142,7 +2161,8 @@
         state.openingSent = true;
       }],
       ['归档标记写入', async function () {
-        await TH.writeChatVars({ $opening_setup_done: buildDoneFlag() });
+        const prevVars = await TH.readChatVars();
+        await TH.writeChatVars({ $opening_setup_done: buildDoneFlag(prevVars && prevVars.$opening_setup_done) });
       }],
     ];
 
