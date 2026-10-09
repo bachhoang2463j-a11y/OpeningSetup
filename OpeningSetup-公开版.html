@@ -769,7 +769,7 @@
         名字: "狂战士"
         属性: "[HP:200/200][MP:8/8][Atk:60][Armor:60][Speed:50][职业:狂战士]"
         技能:
-          - "【战意激增】[通用][价:2][MP:2][单增;power:50][自盲;power:10]"
+          - "【战意激增】[通用][价:2][MP:2][单增;power:50;turns:3][自盲;power:10;turns:2]"
           - "【碎骨连打】[通用][价:1][单体;power:60][单体;power:60][Aim:100][转火][近战]"
           - "【鲁莽挥击】[通用][价:2][单体;power:180][HP:20][Aim:120][近战]"
           - "【沸血之躯】[限定][价:2][免伤;power:120][单冲;power:20][HP:20][MP:2][反应]"
@@ -1031,35 +1031,35 @@
     items: [
       {
         id: 'grenade', shopCost: 20, desc: '改装的霰弹雷管，拉环即掷，覆盖整片街角。',
-        data: { name: '破片手雷', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[群攻]', power: 140, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '物理', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '破片手雷', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[群攻]', power: 140, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '物理', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'firebomb', shopCost: 8, desc: '烈酒与碎布，瓶子碎裂的地方火舌不会熄灭。',
-        data: { name: '燃烧瓶', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[单体]', power: 30, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: '燃烧弹', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '燃烧瓶', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[单体]', power: 30, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: '燃烧弹', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'flashbang', shopCost: 8, desc: '镁光一闪，失神的敌人连回合都丢了。',
-        data: { name: '闪光弹', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[眩晕]', power: 15, type2: null, power2: 0, type3: null, power3: 0, hit: 120, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '闪光弹', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[眩晕]', power: 15, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 120, turns: null, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'medkit', shopCost: 8, desc: '绷带、碘酒与一卷胶带。',
-        data: { name: '战地急救包', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[单回]', power: 30, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: true, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '战地急救包', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[单回]', power: 30, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: true, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'morphine', shopCost: 5, desc: '军规镇痛剂，一针下去连疼痛都变得遥远。',
-        data: { name: '吗啡针剂', category: '消耗品', count: 1, maxUses: 0, bindings: [], type: '[单回]', power: 50, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: true, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '吗啡针剂', category: '消耗品', count: 1, maxUses: 0, bindings: [], type: '[单回]', power: 50, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: true, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: '治疗', cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'smoke', shopCost: 8, desc: '掷出后腾起浓白烟幕，遮蔽所有敌人的视线。',
-        data: { name: '烟雾弹', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[群盲]', power: 15, type2: null, power2: 0, type3: null, power3: 0, hit: 150, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '烟雾弹', category: '消耗品', count: 2, maxUses: 0, bindings: [], type: '[群盲]', power: 15, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 150, turns: null, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'charm', shopCost: 20, desc: '劣等圣遗物，握紧时为主人展开一次护盾。',
-        data: { name: '圣血护符', category: '道具', count: 1, maxUses: 1, bindings: [], type: '[单盾]', power: 80, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '圣血护符', category: '道具', count: 1, maxUses: 1, bindings: [], type: '[单盾]', power: 80, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
       {
         id: 'emblem', shopCost: 15, desc: '伪造的教会圣徽，可净化一人身上的一个减益。',
-        data: { name: '银质圣徽', category: '道具', count: 1, maxUses: 2, bindings: [], type: '[驱散]', power: 1, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
+        data: { name: '银质圣徽', category: '道具', count: 1, maxUses: 2, bindings: [], type: '[驱散]', power: 1, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: false, guaranteedHit: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: 'none', damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, summonTarget: null, children: [] },
       },
     ],
 
@@ -1198,11 +1198,11 @@
   function emptySkillData() {
     // fxTag 必须为 null（RpgCombat parseSkill 同款）：'none' 是 truthy，会让战斗前端
     // 误判"该技能配了特效"而跳过默认 SVG 刀光（无 [特效:x] 标签的技能即受此影响）
-    return { name: '', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: null, fxTag: null, cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: 0, delay: 0, haste: 0, maxUses: 0, charge: 0, type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, slotTurns: null, slotTurns2: null, slotTurns3: null, barrierSub: null, barrierArmor: 0, summonTarget: null, summonNoLimit: false, ignoreRow: false };
+    return { name: '', isReaction: false, reactionTarget: null, kanpoTarget: null, sheshenTarget: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, damageType: null, fxTag: null, cost: 0, hpCost: 0, tpCost: 0, hit: 100, turns: null, delay: 0, haste: 0, maxUses: 0, charge: 0, type: '[无]', power: 0, type2: '[无]', power2: 0, type3: '[无]', power3: 0, slotTurns: null, slotTurns2: null, slotTurns3: null, barrierSub: null, barrierArmor: 0, summonTarget: null, summonNoLimit: false, ignoreRow: false };
   }
   // 物品持久化模板：字段集对齐 RpgCombat serializeHeroesForSave 的 items 契约
   function emptyItemData() {
-    return { name: '', category: '道具', count: 1, maxUses: 0, bindings: [], type: null, power: 0, type2: null, power2: 0, type3: null, power3: 0, hit: 100, turns: 0, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: null, damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, slotTurns: null, slotTurns2: null, slotTurns3: null, summonTarget: null, summonNoLimit: false, ignoreRow: false, children: [] };
+    return { name: '', category: '道具', count: 1, maxUses: 0, bindings: [], type: '[无]', power: 0, type2: '[无]', power2: 0, type3: '[无]', power3: 0, hit: 100, turns: null, isOthers: false, guaranteedHit: false, switchTarget: false, critRate: 0, isHighTier: false, isLegendary: false, fxTag: null, damageType: null, cost: 0, hpCost: 0, tpCost: 0, delay: 0, haste: 0, slotTurns: null, slotTurns2: null, slotTurns3: null, summonTarget: null, summonNoLimit: false, ignoreRow: false, children: [] };
   }
   // 效果槽名全集：镜像 RpgCombat SKILL_TYPES 裸名（供裸标签/冒号简写兜底；带 power 主分支不做白名单）
   const SLOT_NAMES = ['单体', '群攻', '穿透', '群穿透', '散射', '群散射', '眩晕', '群眩晕', '单降', '群降', '单盲', '群盲', '单滞', '群滞', '单弱', '群弱', '中毒', '群中毒', '燃烧', '群燃烧', '麻痹', '群麻痹', '吸蓝', '单增', '群增', '单防', '群防', '单速', '群速', '单回', '群回', '单盾', '群盾', '单回蓝', '群回蓝', '单冲', '群冲', '单瞄', '群瞄', '嘲讽', '反击', '群反击', '再动', '回避', '群避', '单避', '免伤', '自盲', '自降', '自弱', '自滞', '自缓', '驱散', '群驱散'];
@@ -1323,9 +1323,9 @@
     parseSkillLine(raw, entry);
     // 弹药是技能资源而非主动道具：效果槽无意义，强制清空（RpgCombat parseItem 同款）
     if (entry.data.category === '弹药') {
-      entry.data.type = null; entry.data.power = 0;
-      entry.data.type2 = null; entry.data.power2 = 0;
-      entry.data.type3 = null; entry.data.power3 = 0;
+      entry.data.type = '[无]'; entry.data.power = 0;
+      entry.data.type2 = '[无]'; entry.data.power2 = 0;
+      entry.data.type3 = '[无]'; entry.data.power3 = 0;
     }
     return true;
   }
@@ -1828,13 +1828,10 @@
       if (tm) return parseInt(tm[1], 10);
     }
 
-    // 2. 自盲专属规则：用户明确指定"自盲基本都是2回合，造雾术是和敌方debuff区分开的"
-    if (mechKey === '自身致盲') return 2;
-
-    // 3. 眩晕（跳过行动）：默认 1 回合
+    // 2. 眩晕（跳过行动）：默认 1 回合
     if (mechKey === '眩晕') return 1;
 
-    // 4. 延迟蓄力准备
+    // 3. 延迟蓄力准备
     if (mechKey === '延迟') {
       if (targetTag) {
         const dm = targetTag.match(/延迟[:：](\d+)/i);
@@ -1843,13 +1840,13 @@
       return 1;
     }
 
-    // 5. 检查全局顶级 [Turns:N] 或 [持续:N] 声明
+    // 4. 检查全局顶级 [Turns:N] 或 [持续:N] 声明
     if (rawText) {
       const gm = rawText.match(/\[(?:Turns?|持续)[:：](\d+)/i);
       if (gm) return parseInt(gm[1], 10);
     }
 
-    // 6. 其他持续性 Buff / Debuff 状态遵循底层引擎默认 3 回合
+    // 5. 其他持续性 Buff / Debuff 状态遵循底层引擎默认 3 回合
     return 3;
   }
 
