@@ -370,6 +370,7 @@
       debug: !!d.state,
       buildStatusBlock: typeof d.buildStatusBlock === 'function',
       buildFreeOpeningInput: typeof d.buildFreeOpeningInput === 'function',
+      buildFreeOpeningBrief: typeof d.buildFreeOpeningBrief === 'function',
       openingMode: s && ('openingMode' in s),
       compact: s && ('compact' in s),
       innerEdited: !!(s && s.hero3 && ('innerEdited' in s.hero3)),
@@ -444,7 +445,7 @@
 
   // G2 自由开局交接
   async function g2() {
-    group('G2 自由开局交接（原文 + Status_block 多行 · 走宿主 send_but 一次 · 无落楼）');
+    group('G2 自由开局交接（开局背景先落楼 · 原文 + Status_block 走宿主 send_but 一次）');
     var ctx;
     try {
       ctx = await makeStage({});
@@ -453,6 +454,7 @@
       if (!PROBE.freeOpenBtn) {
         pending('点击自由按钮展开 stage=free', 'free-open 未落地'); dispose(); return;
       }
+      assert('buildFreeOpeningBrief 构建器已落地', function () { return PROBE.buildFreeOpeningBrief ? true : '未落地'; });
       clickAction(ctx, 'free-open');
       PROBE = probe(ctx); // 自由页元素需在进入 free 后重新探测
       assert('点击自由按钮进入 stage=free', function () { return S(ctx).stage === 'free' ? true : S(ctx).stage; });
@@ -476,9 +478,26 @@
       assert('自由提交后 state.openingMode=free', function () { return S(ctx).openingMode === 'free' ? true : S(ctx).openingMode; });
 
       assert('宿主 send_but 恰好被点击 1 次', function () { return HOST.sends.length === 1 ? true : HOST.sends.length; });
+      assert('开局背景以 AI 角色落楼 1 条（先于玩家输入 · 人名填充 · 无块无占位符）', function () {
+        var c = ctx.mock.created;
+        if (c.length !== 1 || c[0].role !== 'assistant') return c.map(function (x) { return x.role; });
+        var m = c[0].message;
+        return m.indexOf('1925 年，悉尼。') === 0
+          && m.indexOf('威廉·退尔') >= 0 && m.indexOf('冯·霍恩海姆') >= 0 && m.indexOf('伊斯坎达尔') >= 0
+          && m.indexOf('{名') < 0
+          && m.indexOf('<Status_block>') < 0 && m.indexOf('<Combat_block>') < 0 ? true : m.slice(0, 140);
+      });
+      assert('落楼先于归档（写入顺序 立绘→roster→create→归档）', function () {
+        var want = ['assign:$mms_portrait_choice', 'assign:rpg_combat_roster', 'create', 'assign:$opening_setup_done'];
+        return JSON.stringify(ctx.mock.log) === JSON.stringify(want) ? true : ctx.mock.log;
+      });
       assert('交接文本 = 自由原文（逐字保留多行/引号/反斜杠）', function () {
         var t = HOST.sends[0] || '';
         return t.indexOf(FREE_TEXT) >= 0 ? true : t.slice(0, 200);
+      });
+      assert('交接文本指示承接开局背景', function () {
+        var t = HOST.sends[0] || '';
+        return t.indexOf('上一条消息是开局背景') >= 0 ? true : t.slice(0, 160);
       });
       assert('交接文本含完整 Status_block 且为多行', function () {
         var t = HOST.sends[0] || '';
@@ -486,9 +505,6 @@
           ? true : { hasOpen: t.indexOf('<Status_block>') >= 0, hasClose: t.indexOf('</Status_block>') >= 0 };
       });
       assert('交接后输入栏被宿主清空（模拟酒馆）', function () { return hostInput().value === '' ? true : hostInput().value; });
-      assert('自由开局不落楼（createChatMessages 零调用）', function () {
-        return ctx.mock.created.length === 0 ? true : ctx.mock.created.map(function (c) { return c.role; });
-      });
       assert('自由开局无 generate / generateRaw 调用', function () {
         return ctx.mock.generateCalls === 0 && ctx.mock.generateRawCalls === 0
           ? true : { generate: ctx.mock.generateCalls, generateRaw: ctx.mock.generateRawCalls };
@@ -547,6 +563,11 @@
         var prop = (block.match(/道具: "/g) || []).length;
         return ammo === 4 && cons === 4 && prop === 4 ? true : { ammo: ammo, cons: cons, prop: prop };
       });
+      assert('据点词条：自由模板名称占位符 + 团队现金 800美元', function () {
+        return block.indexOf('据点:') >= 0
+          && block.indexOf('名称: "根据开场填写据点名称"') >= 0
+          && block.indexOf('现金: "800美元"') >= 0 ? true : (block.match(/[^\n]*据点:\n[^\n]*\n[^\n]*/) || ['缺据点块'])[0];
+      });
     } catch (e) { row('G3 执行中断', false, e.message); }
     dispose();
   }
@@ -600,6 +621,11 @@
       assert('引导 Status_block 使用默认内心原文', function () {
         var b = D(ctx).buildStatusBlock('guided');
         return b.indexOf(DATA.identity.inner) >= 0 ? true : '内心行缺失';
+      });
+      assert('引导模板四角色内心不含「」引号包裹', function () {
+        var b = D(ctx).buildStatusBlock('guided');
+        var inners = b.match(/内心: "[^"]*"/g) || [];
+        return inners.length === 4 && inners.every(function (s) { return s.indexOf('「') < 0 && s.indexOf('」') < 0; }) ? true : inners;
       });
       assert('自由模板（未编辑）主角内心为占位符', function () {
         var b = D(ctx).buildStatusBlock('free');
@@ -764,6 +790,7 @@
       var st2 = await waitStage(ctx, ['done', 'error']);
       assert('同 iframe 重试不被 inputHandedOff 误判为草稿', function () { return st2 === 'done' ? true : st2; });
       assert('重试后恰好发送 1 次', function () { return HOST.sends.length === 1 ? true : HOST.sends.length; });
+      assert('重试不重复落楼开局背景（created=1）', function () { return ctx.mock.created.length === 1 ? true : ctx.mock.created.length; });
 
       // 刷新：新 iframe，已归档 → 不自动发送
       var seedChat = JSON.parse(JSON.stringify(ctx.mock.store.chat));

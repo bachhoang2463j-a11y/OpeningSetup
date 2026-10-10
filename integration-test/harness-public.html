@@ -359,6 +359,23 @@
         const sb = m.slice(m.indexOf('<Status_block>'));
         return (sb.match(/- 角色:/g) || []).length === 4 && sb.indexOf('行动选项') >= 0 ? true : sb;
       });
+      assert('据点词条：名称=教团地下据点 + 团队现金 800美元', () => {
+        const m = ctx1.mock.created[0].message;
+        const sb = m.slice(m.indexOf('<Status_block>'));
+        return sb.indexOf('据点:') >= 0 && sb.indexOf('悉尼 · 教团地下据点') >= 0 && sb.indexOf('现金: "800美元"') >= 0
+          ? true : (sb.match(/据点:[\s\S]{0,90}/) || ['缺据点块'])[0];
+      });
+      assert('行动选项：emoji 前缀 + 【战斗结束后】（战斗过程归战斗前端）', () => {
+        const m = ctx1.mock.created[0].message;
+        const sb = m.slice(m.indexOf('<Status_block>'));
+        const opts = sb.match(/- "\d\. .+?【战斗结束后】/g) || [];
+        return opts.length === 3 ? true : (sb.match(/      - "[^"]*"/g) || []).slice(0, 5);
+      });
+      assert('内心独白不包「」引号', () => {
+        const m = ctx1.mock.created[0].message;
+        const inners = m.match(/内心: "[^"]*"/g) || [];
+        return inners.length === 4 && inners.every(s => s.indexOf('「') < 0 && s.indexOf('」') < 0) ? true : inners;
+      });
       assert('归档标记 chars 四角色', () => {
         const d = ctx1.mock.store.chat.$opening_setup_done;
         return d && Array.isArray(d.chars) && d.chars.length === 4 && d.chars[3].name === '夜鸦' ? true : d;

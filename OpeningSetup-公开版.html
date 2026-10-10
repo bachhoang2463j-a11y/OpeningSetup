@@ -884,11 +884,12 @@
    * · items：自定义角色的可选物品清单，data 内为 RpgCombat 持久化字段
    * · 战斗技能数据在页面底部 <script type="text/plain" id="combat-data">
    *   的 <Combat_block> YAML 里（改数值直接改文本）
-   * · status：开场白中 <Status_block> 的日期/地点/行动选项等
+   * · status：开场白中 <Status_block> 的日期/地点/据点（名称与团队现金）/行动选项等
    * · battle：开场白中 <Combat_block> 的开局战斗配置（我方只写名字 + HP/MP 初值，
    *   技能/物品/职业/立绘全部由 rpg_combat_roster 在战斗前端按名字合并补齐；
    *   敌方写全属性与技能，保证「Yaml 载入」与「世界书载入」两条路径都开箱可打）
    * · openingTemplate：开场白叙事模板
+   * · freeBrief：自由开局的简短开局背景（先于玩家输入以 AI 角色落楼）
    * ==================================================================== */
   const OPENING_DATA = {
     bgm: {
@@ -929,7 +930,7 @@
         name: '威廉·退尔', emoji: '🎯', title: '荒野猎手',
         url: `${R2_BASE}/william_tell_portrait.png`,
         wearing: '👔 灰色风衣配贴身战术皮甲，腰间挂着改装弩机与箭筒',
-        inner: '💭 「六十码外的靴声骗不了猎人的耳朵。后楼梯上来的那两组，该收网了。」',
+        inner: '💭 六十码外的靴声骗不了猎人的耳朵。后楼梯上来的那两组，该收网了。',
         classes: ['隐匿者', '狂战士', '防守者'],
         // 随身枪械（纯叙事，走 Status_block 武器行，不进战斗档案——战斗逻辑由同名技能与弹药承担）
         weaponsByClass: {
@@ -957,7 +958,7 @@
         name: '冯·霍恩海姆', emoji: '⚗️', title: '炼金术士',
         url: `${R2_BASE}/hohenheim_portrait.png`,
         wearing: '👔 白色高领长外袍，黑色肩饰及袖侧饰条，前襟缀红色菱形饰片与交叉纹；宽袖开衩长摆、淡紫内衬，内搭黑色贴身衣裤，戴黑色露指长手套，配银灰色护膝护胫',
-        inner: '💭 「三柱亡魂同锚于一具凡躯之上，早已远超那具肉身的承受极限……时间不站在我们这边。」',
+        inner: '💭 三柱亡魂同锚于一具凡躯之上，早已远超那具肉身的承受极限……时间不站在我们这边。',
         classes: ['施法者', '圣职者', '灾厄使'],
         // 随身武器（纯叙事，各职业固定：法杖与小刀）
         fixedWeapons: ['胡桃木法杖', '炼金小刀'],
@@ -981,7 +982,7 @@
         name: '伊斯坎达尔', emoji: '👑', title: '征服王',
         url: `${R2_BASE}/iskandar_portrait.png`,
         wearing: '👔 红色希腊短袍，外披暗红色镶金大氅，铜质肩甲与护腕',
-        inner: '💭 「锈门、朽墙、仓皇的看门犬——正适合当作远征的第一块垫脚石。」',
+        inner: '💭 锈门、朽墙、仓皇的看门犬——正适合当作远征的第一块垫脚石。',
         classes: ['征伐者'],
         fixedWeapons: ['塞浦路斯阔剑', '神威车轮'],
         classVoiceMap: {
@@ -1019,7 +1020,7 @@
       defaultName: '埃利亚斯',
       emoji: '📜',
       wearing: '👔 洗旧的深灰三件套西装，外搭米色防风大衣，右腕系着遮掩灼痕的皮腕带',
-      inner: '💭 「验尸单与勘探图都到手了。下一站——赶在日全食前穿过大沙沙漠。」',
+      inner: '💭 验尸单与勘探图都到手了。下一站——赶在日全食前穿过大沙沙漠。',
       // 自定义主角·职业对应随身武器（纯叙事，走 Status_block 武器行，不进战斗档案）
       weaponsByClass: {
         '隐匿者': ['韦伯利.455', '韦伯利.455'],
@@ -1076,10 +1077,13 @@
     status: {
       date: '⏰ 1925年 · 6月12日 · 星期五 · 深夜大雨',
       place: '📍 悉尼中央警察局 · 二楼绝密档案室',
+      // 据点词条（MiniMapStatus 固定模块 据点:{名称,现金}）：现金为团队初始现金
+      base: { name: '悉尼 · 教团地下据点', cash: '800美元' },
+      // 行动选项只写战斗结束后的安排（战斗过程由战斗前端呈现），每项以 emoji 开头
       options: [
-        '1. 迎击破门而入的警局增援，掩护队伍从后楼梯突围',
-        '2. 让冯·霍恩海姆释放神经毒雾，无声放倒两组包抄警员',
-        '3. 以翻倒的档案架为掩体正面强突，趁乱消失在雨幕里',
+        '1. 🧹 【战斗结束后】清理痕迹，抹去闯入档案室的一切证据',
+        '2. 🏚️ 【战斗结束后】带着验尸单与勘探图返回据点',
+        '3. 🌧️ 【战斗结束后】趁雨夜转移据点，避开警局追查',
       ],
       allies: [],
       npcs: [],
@@ -1193,6 +1197,18 @@
       '',
       '暴雨如注。长廊两侧，杀戮的倒计时归零。',
       '[点一首歌:the battle is to the strong - 梶浦由記 (Yuki Kajiura)]',
+    ].join('\n'),
+
+    // 自由开局·简短开局背景：提交时先于玩家输入以 AI 角色落楼一条，模型才知道此前发生了什么
+    // （场景中立的背景摘要，具体开场场景由玩家的自由开局要求定义；{名一}{名二}{名王} 与开场白同源填充）
+    freeBrief: [
+      '1925 年，悉尼。',
+      '',
+      '“黄金黎明”神秘学教团在伦敦一夜覆灭，导师与三十余名同门喋血，唯有我怀揣教团遗物逃上远洋货轮。为求对抗灾厄之力，我在这座城市的地下据点以史前能量为引悍然降灵——荒野猎手{名一}、炼金术士{名二}、征服王{名王}，三柱古代英灵被强行唤回人间，赋予血肉之躯，与我结成生死与共的小队。',
+      '',
+      '降灵仪式的反噬令我重伤咳血，至今未愈。而更大的阴影已至：一种来自星空的寄生虫随远洋货轮潜入悉尼，钻入人颅啃食脑髓，当局却封锁了一切死因报告；唯一的解药沉睡在西澳大沙沙漠地底的史前遗迹深处，休斯顿财阀的钻探队正日夜逼近那里。',
+      '',
+      '暴雨与迷雾之下，四人小队的旅程，自此开始。',
     ].join('\n'),
   };
   /* ============================== OPENING_DATA 配置区 END ============================== */
@@ -1451,6 +1467,7 @@
     openingSent: false, // 重试防重：开场白一成功就置位
     openingMode: 'guided',
     freeOpening: '',
+    freeBriefSent: false, // 重试防重：自由开局背景一落楼就置位
     inputHandedOff: '',
     pendingFlag: null,
     compact: false,
@@ -2476,6 +2493,11 @@
       lines.push('    盟友: ' + JSON.stringify(free ? [] : OPENING_DATA.status.allies));
       lines.push('    NPC: ' + JSON.stringify(free ? [] : OPENING_DATA.status.npcs));
     }
+    // 据点词条（MiniMapStatus 固定模块）：现金为团队初始现金，两种开局同额
+    const base = OPENING_DATA.status.base || {};
+    lines.push('  据点:');
+    lines.push('    名称: ' + yamlText(free ? '根据开场填写据点名称' : (base.name || '')));
+    lines.push('    现金: ' + yamlText(base.cash || '800美元'));
     lines.push('  行动选项:');
     lines.push('    名字: ' + yamlText('🧑 ' + hero3Name()));
     lines.push('    选项:');
@@ -2484,10 +2506,19 @@
     return '<Status_block>\n' + lines.join('\n') + '\n</Status_block>';
   }
 
+  // 自由开局·简短背景：先于玩家输入以 AI 角色落楼，模型才知道此前发生了什么
+  function buildFreeOpeningBrief() {
+    return fill(OPENING_DATA.freeBrief, {
+      名一: OPENING_DATA.party.hero1.name,
+      名二: OPENING_DATA.party.hero2.name,
+      名王: OPENING_DATA.party.hero_iskandar.name,
+    });
+  }
+
   function buildFreeOpeningInput() {
     return '【自由开局要求】\n' + state.freeOpening + '\n\n'
-      + '请按上述要求生成开场正文，并在回复末尾附上完整的 <Status_block>。\n'
-      + '下方模板中的四人姓名、职业属性、穿着、武器及物品数量已经按开局选择填写，请沿用这些初始配置。日期、地点、内心、在场人物和行动选项根据本次开场填写；玩家明确填写的主角内心保留其含义。\n'
+      + '上一条消息是开局背景。请承接该背景，按上述要求生成开场正文，并在回复末尾附上完整的 <Status_block>。\n'
+      + '下方模板中的四人姓名、职业属性、穿着、武器及物品数量、据点与团队现金已经按开局选择填写，请沿用这些初始配置。日期、地点、据点名称、内心、在场人物和行动选项根据本次开场填写；玩家明确填写的主角内心保留其含义。内心直接陈述，不要用引号包裹；行动选项每项以一个 emoji 开头，只写冲突或战斗结束后的下一步安排，不要替战斗前端描写战斗过程。\n'
       + '本轮默认不输出 <Combat_block>。\n\n' + buildStatusBlock('free');
   }
 
@@ -2598,7 +2629,10 @@
       if (!state.openingSent) {
         validatePartyName();
         if (!TH.hasAssign()) throw new Error('请启用或更新酒馆助手：缺少 insertOrAssignVariables');
-        if (state.openingMode === 'free') TH.inputControls();
+        if (state.openingMode === 'free') {
+          TH.inputControls(); // 先查草稿（有草稿即拒，不覆盖）；开局背景落楼同样依赖消息接口
+          if (!TH.hasCreateMsg()) throw new Error('请启用或更新酒馆助手：开局需要 createChatMessages 消息接口');
+        }
         else if (!TH.hasCreateMsg()) throw new Error('请启用或更新酒馆助手：开局需要 createChatMessages 消息接口');
       }
       const vars = await TH.readChatVars();
@@ -2611,8 +2645,13 @@
         ['战斗档案写入 · RpgCombat', async function () {
           await TH.writeChatVars({ rpg_combat_roster: buildPartySave(vars.rpg_combat_roster, vars.$opening_setup_done) });
         }],
-        [state.openingMode === 'free' ? '开局要求与状态模板填入酒馆输入栏' : '开场白以 AI 角色身份注入聊天流', async function () {
+        [state.openingMode === 'free' ? '开局背景落楼 · 要求与状态模板填入酒馆输入栏' : '开场白以 AI 角色身份注入聊天流', async function () {
           if (state.openingMode === 'free') {
+            // 先以 AI 角色落一条简短开局背景，玩家输入紧随其后，模型才有前情可承接
+            if (!state.freeBriefSent) {
+              await TH.sendAssistantMessage(buildFreeOpeningBrief());
+              state.freeBriefSent = true;
+            }
             const controls = TH.inputControls();
             state.inputHandedOff = buildFreeOpeningInput();
             controls.input.value = state.inputHandedOff;
@@ -3758,7 +3797,7 @@
           + rows('技能', listNames(hero3SkillEntries()))
           + rows('物品', listNames(hero3ItemEntries()))
           + rows('立绘', state.hero3.portrait || '（默认剪影）'))
-      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">两种开局都会保存四人配置。引导开局直接发布既定剧情与开局战斗；自由开局将你的要求与状态模板填入酒馆并正常发送，由当前模型回复。</div>'
+      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">两种开局都会保存四人配置。引导开局直接发布既定剧情与开局战斗；自由开局先发送一段简短开局背景，再将你的要求与状态模板填入酒馆正常发送，由当前模型回复。</div>'
       + '  </div>'
       + '  <div class="mt-8 w-full max-w-xl">'
       + '    <div class="opening-actions"><button class="btn-noir" data-action="confirm-submit" id="submit-btn">引导开局(推荐)</button>'
@@ -3774,7 +3813,7 @@
       + header('FREE OPENING · 自由开局', '你的开场')
       + '<div class="glass max-w-xl w-full px-8 py-8">'
       + '<label for="free-opening-input">开场要求</label>'
-      + '<p class="text-sm leading-relaxed mt-3 mb-4">保留已选队伍配置。写下时间、地点和想如何开始，提交后将附上状态模板，通过酒馆正常发送；首轮默认不输出战斗块。</p>'
+      + '<p class="text-sm leading-relaxed mt-3 mb-4">保留已选队伍配置。写下时间、地点和想如何开始，提交后会先以 AI 角色发送一段简短开局背景，再附上你的要求与状态模板，通过酒馆正常发送；首轮默认不输出战斗块。</p>'
       + '<textarea id="free-opening-input" class="free-opening-input" placeholder="例如：清晨，四人在达令港的一间旧药房外会合，从调查门上的符号开始。">' + esc(state.freeOpening) + '</textarea>'
       + '<div class="opening-actions mt-6"><button class="btn-ghost" data-action="back-confirm">返回</button><button class="btn-noir btn-free" data-action="free-submit">发送并开始</button></div>'
       + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
@@ -3796,7 +3835,7 @@
   function viewDone() {
     return '<div class="opening-compact-card"><h2>开局配置已保存</h2><p>'
       + (state.openingMode === 'free'
-        ? '开局要求与状态模板已交给酒馆。请查看正常聊天回复；若酒馆正在生成或未连接，文本会留在输入栏，可直接发送。'
+        ? '开局背景、要求与状态模板已交给酒馆。请查看正常聊天回复；若酒馆正在生成或未连接，要求文本会留在输入栏，可直接发送。'
         : '引导开场白已发布，状态栏与开局战斗可在下方查看。')
       + '</p></div>';
   }
@@ -4012,6 +4051,7 @@
         render(); break;
       case 'force-redo':
         state.openingSent = false;
+        state.freeBriefSent = false;
         state.submitting = false;
         state.pendingFlag = null;
         state.inputHandedOff = '';
@@ -4984,7 +5024,7 @@ ${sectionBlocks}
   }
 
   // 调试/测试钩子（MMS window.MMS 同款惯例，不影响产品行为）
-  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, COMBAT: COMBAT, instant: false, mergeMmsPortraitSnapshot: mergeMmsPortraitSnapshot, buildStatusBlock: buildStatusBlock, buildFreeOpeningInput: buildFreeOpeningInput };
+  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, COMBAT: COMBAT, instant: false, mergeMmsPortraitSnapshot: mergeMmsPortraitSnapshot, buildStatusBlock: buildStatusBlock, buildFreeOpeningInput: buildFreeOpeningInput, buildFreeOpeningBrief: buildFreeOpeningBrief };
 
   boot().catch(showBootError);
 })();
