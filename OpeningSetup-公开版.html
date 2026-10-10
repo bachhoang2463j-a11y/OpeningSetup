@@ -158,6 +158,16 @@
     font-weight: 700; transition: all 0.35s ease; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); }
   .btn-noir:hover:not(:disabled) { background: rgba(198, 161, 84, 0.24); box-shadow: 0 0 20px var(--accent-glow); border-color: var(--accent); transform: translateY(-1px); }
   .btn-noir:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-free { --accent: #b8bbc2; --accent-glow: rgba(184,187,194,0.38); --btn-border: rgba(184,187,194,0.5); --btn-bg: linear-gradient(135deg, rgba(184,187,194,0.24), rgba(184,187,194,0.06)); }
+  .btn-free:hover:not(:disabled) { background: rgba(184,187,194,0.24); }
+  .opening-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+  .free-opening-input { width: 100%; min-height: 180px; padding: 14px; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid var(--btn-border); border-radius: 6px; color: var(--text-main); font: inherit; line-height: 1.8; }
+  html.opening-compact, html.opening-compact body, html.opening-compact #app { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+  html.opening-compact body > :not(#app):not(script):not(style) { display: none !important; }
+  .opening-compact-card { margin: 0 auto; max-width: 640px; padding: 16px 20px; font-size: 0.85rem; line-height: 1.7; }
+  .opening-compact-card h2 { color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+  .opening-compact-card .progress-track { margin-bottom: 8px; }
+  .opening-compact-card .opening-actions { margin-top: 12px; }
   .btn-ghost { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 1.1rem;
     border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-muted); cursor: pointer;
     background: transparent; font-size: 0.82rem; letter-spacing: 0.1em; border-radius: 6px; transition: all 0.3s ease; }
@@ -946,7 +956,7 @@
         id: 'hero2',
         name: '冯·霍恩海姆', emoji: '⚗️', title: '炼金术士',
         url: `${R2_BASE}/hohenheim_portrait.png`,
-        wearing: '👔 墨绿纹章长袍，束金腰带，腰间挂着水银与贤者之石试管',
+        wearing: '👔 白色高领长外袍，黑色肩饰及袖侧饰条，前襟缀红色菱形饰片与交叉纹；宽袖开衩长摆、淡紫内衬，内搭黑色贴身衣裤，戴黑色露指长手套，配银灰色护膝护胫',
         inner: '💭 「三柱亡魂同锚于一具凡躯之上，早已远超那具肉身的承受极限……时间不站在我们这边。」',
         classes: ['施法者', '圣职者', '灾厄使'],
         // 随身武器（纯叙事，各职业固定：法杖与小刀）
@@ -1149,7 +1159,7 @@
       '',
       '“霍恩海姆。”',
       '',
-      '{冯(愤怒)}炼金术师仅扫了一眼“灰质硬化黏液”，灰绿色的瞳孔便骤然收紧，隔着薄羊皮手套扣紧了手杖银柄：“格式化神经反射弧的高维异物。常规医学不可能阻断其孵化，这是针对人类心智的纯粹清洗。”',
+      '{冯(愤怒)}炼金术师仅扫了一眼“灰质硬化黏液”，灰绿色的瞳孔便骤然收紧，戴着黑色露指长手套的手扣紧了手杖银柄：“格式化神经反射弧的高维异物。常规医学不可能阻断其孵化，这是针对人类心智的纯粹清洗。”',
       '',
       '“休斯顿在矿区调集了上千箱炸药，日全食前强行爆破。”青年转向其余两人，“解药在最底层。一旦遗迹塌陷，悉尼与整片大陆都将沦为死地。”',
       '',
@@ -1431,6 +1441,7 @@
       customPortraits: [], // 玩家自定义立绘 {key, name, desc, url}（图床直链）
       wearing: OPENING_DATA.identity.wearing, // 自定义穿着（叙事，写 Status_block）
       inner: OPENING_DATA.identity.inner,     // 自定义内心（叙事，写 Status_block）
+      innerEdited: false,
       storyItems: '',      // 自定义叙事物品自由文本（纯叙事，不进战斗档案）
       classType: '',
       skills: [],          // 已购通用技能名数组（切职业保留）
@@ -1438,6 +1449,11 @@
     selectedItems: new Set(),
     submitting: false,
     openingSent: false, // 重试防重：开场白一成功就置位
+    openingMode: 'guided',
+    freeOpening: '',
+    inputHandedOff: '',
+    pendingFlag: null,
+    compact: false,
     autoFullscreen: false, // 首屏"同时开启沉浸全屏"复选框（修仙开局同款）
     bgmHandedOff: false,   // 提交完成后置位：向导 BGM 已交接给开场白楼层，render 不再恢复播放
     flash: '',
@@ -2105,6 +2121,17 @@
   function esc(s) {
     return String(s == null ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;');
   }
+  function yamlText(value) { return JSON.stringify(String(value)); }
+  function partyNameKey(name) {
+    return String(name).replace(/[\p{Extended_Pictographic}\uFE0F\u200D\s【】\[\]()（）{}<>《》·•\-—―:：,，.。!！?？'"”‘’]/gu, '').toLowerCase();
+  }
+  function validatePartyName() {
+    const key = partyNameKey(hero3Name());
+    if (!key) throw new Error('姓名需要包含可识别的文字，不能只由符号组成');
+    if (Object.keys(OPENING_DATA.party).some(function (slot) { return partyNameKey(OPENING_DATA.party[slot].name) === key; })) {
+      throw new Error('主角姓名不能与预置队员重名，请返回身份登记修改');
+    }
+  }
   function fill(tpl, map) {
     let out = tpl;
     Object.keys(map).forEach(function (k) { out = out.split('{' + k + '}').join(map[k]); });
@@ -2282,26 +2309,28 @@
     hasVars: function () { return typeof getVariables === 'function'; },
     hasAssign: function () { return typeof insertOrAssignVariables === 'function'; },
     hasCreateMsg: function () { return typeof createChatMessages === 'function'; },
-    hasSlash: function () { return typeof triggerSlash === 'function'; },
     readChatVars: async function () {
-      if (!this.hasVars()) return null;
-      try { return (await getVariables({ type: 'chat' })) || null; } catch (e) { return null; }
+      if (!this.hasVars()) throw new Error('酒馆助手 getVariables 不可用');
+      return (await getVariables({ type: 'chat' })) || {};
     },
     writeChatVars: async function (payload) {
       if (!this.hasAssign()) throw new Error('酒馆助手 insertOrAssignVariables 不可用');
       await insertOrAssignVariables(payload, { type: 'chat' });
     },
     sendAssistantMessage: async function (message) {
-      if (this.hasCreateMsg()) {
-        await createChatMessages([{ role: 'assistant', message: message }], { insert_before: 'end' });
-        return 'createChatMessages';
-      }
-      if (this.hasSlash()) {
-        // 降级：/sendas 以角色名义发送（换行会被压平，属尽力而为的旧版兼容路径）
-        await triggerSlash('/sendas name=' + hero3Name() + ' ' + message.split('\n').join(' '));
-        return 'triggerSlash';
-      }
-      throw new Error('酒馆助手消息接口不可用（createChatMessages / triggerSlash 均未检测到）');
+      if (!this.hasCreateMsg()) throw new Error('请启用或更新酒馆助手：开局需要 createChatMessages 消息接口');
+      await createChatMessages([{
+        role: 'assistant', message: message,
+        data: { $opening_setup_receipt: { source: typeof getCurrentMessageId === 'function' ? getCurrentMessageId() : null, flag: state.pendingFlag } },
+      }], { insert_before: 'end', refresh: 'affected' });
+    },
+    inputControls: function () {
+      const host = window.parent.document;
+      const input = host.getElementById('send_textarea');
+      const send = host.getElementById('send_but');
+      if (!input || !send) throw new Error('未找到酒馆输入栏，请在酒馆聊天中使用自由开局');
+      if (input.value && input.value !== state.inputHandedOff) throw new Error('酒馆输入栏已有草稿，请先保存或清空草稿，再点击重试');
+      return { input: input, send: send };
     },
   };
 
@@ -2326,7 +2355,15 @@
     };
   }
 
-  function buildPartySave() {
+  function managedPartyNames(prevDone) {
+    const names = [OPENING_DATA.party.hero1.name, OPENING_DATA.party.hero2.name, OPENING_DATA.party.hero_iskandar.name, hero3Name()];
+    const slots = ['hero1', 'hero2', 'hero_iskandar', 'hero3'];
+    ((prevDone && prevDone.chars) || []).forEach(function (c) {
+      if (slots.indexOf(c.slot) >= 0) names.push(c.name);
+    });
+    return names;
+  }
+  function buildPartySave(prevRoster, prevDone) {
     const h1 = OPENING_DATA.party.hero1;
     const h2 = OPENING_DATA.party.hero2;
     const hIskandar = OPENING_DATA.party.hero_iskandar;
@@ -2348,7 +2385,9 @@
       name: hero3Name(), url: hero3PortraitUrl(), classType: state.hero3.classType,
       config: hero3Config() || {}, skills: limitedSkills(state.hero3.classType).concat(genericSkillEntries()), items: hero3ItemEntries(),
     });
-    return { version: 1, heroes: [hero1, hero2, heroIskandar, hero3] };
+    const managed = managedPartyNames(prevDone);
+    const preserved = ((prevRoster && prevRoster.heroes) || []).filter(function (h) { return managed.indexOf(h.name) < 0; });
+    return { version: 1, heroes: [hero1, hero2, heroIskandar, hero3].concat(preserved) };
   }
 
   // 战斗物品分类词条（RpgCombat/MMS 通道：【弹药】【消耗品】【道具】独立行，格式 [名x数量] 供 _sbParseItems 解析）
@@ -2388,7 +2427,7 @@
     lines.push('  我方列表' + (OPENING_DATA.battle.field ? '(场地:' + OPENING_DATA.battle.field + '):' : ':'));
     heroes.forEach(function (h) {
       lines.push('    - 角色:');
-      lines.push('        名字: "' + h.name + '"');
+      lines.push('        名字: ' + yamlText(h.name));
       lines.push('        属性: "[HP:' + h.cfg.maxHp + '/' + h.cfg.maxHp + '][MP:' + h.cfg.maxMp + '/' + h.cfg.maxMp + ']"');
     });
     lines.push('  敌方列表:');
@@ -2402,7 +2441,8 @@
     return '<Combat_block>\n' + lines.join('\n') + '\n</Combat_block>';
   }
 
-  function buildStatusBlock() {
+  function buildStatusBlock(mode) {
+    const free = mode === 'free';
     const h1 = OPENING_DATA.party.hero1;
     const h2 = OPENING_DATA.party.hero2;
     const hIskandar = OPENING_DATA.party.hero_iskandar;
@@ -2415,32 +2455,40 @@
     ];
     const lines = [];
     lines.push('状态栏:');
-    lines.push('  日期和时间: "' + OPENING_DATA.status.date + '"');
-    lines.push('  地点: "' + OPENING_DATA.status.place + '"');
+    lines.push('  日期和时间: ' + yamlText(free ? '⏰ 根据开场填写具体日期和时间' : OPENING_DATA.status.date));
+    lines.push('  地点: ' + yamlText(free ? '📍 根据开场填写具体地点' : OPENING_DATA.status.place));
     lines.push('  角色列表:');
-    roles.forEach(function (r) {
+    roles.forEach(function (r, i) {
       lines.push('    - 角色:');
-      lines.push('        名字: "' + r.emoji + r.name + '"');
-      lines.push('        属性: "' + (r.attrs || '未分配') + '"');
-      lines.push('        穿着: "' + r.wearing + '"');
-      lines.push('        内心: "' + r.inner + '"');
-      lines.push('        武器: "' + buildWeaponLine(r.weapons) + '"');
-      // 物品=叙事徽章（只叙事）；战斗物品走【弹药】【消耗品】【道具】词条与 RpgCombat 打通
-      lines.push('        物品: "' + buildStoryBadgeString(r.story) + '"');
-      lines.push('        弹药: "' + buildItemsOfCategory(r.items, '弹药') + '"');
-      lines.push('        消耗品: "' + buildItemsOfCategory(r.items, '消耗品') + '"');
-      lines.push('        道具: "' + buildItemsOfCategory(r.items, '道具') + '"');
+      lines.push('        名字: ' + yamlText(r.emoji + r.name));
+      lines.push('        属性: ' + yamlText(r.attrs || '未分配'));
+      lines.push('        穿着: ' + yamlText(r.wearing));
+      lines.push('        内心: ' + yamlText(free && !(i === 3 && state.hero3.innerEdited) ? '💭 根据开场填写当前内心' : r.inner));
+      lines.push('        武器: ' + yamlText(buildWeaponLine(r.weapons)));
+      // 物品=叙事徽章；战斗库存走弹药、消耗品、道具词条。
+      lines.push('        物品: ' + yamlText(buildStoryBadgeString(r.story)));
+      lines.push('        弹药: ' + yamlText(buildItemsOfCategory(r.items, '弹药')));
+      lines.push('        消耗品: ' + yamlText(buildItemsOfCategory(r.items, '消耗品')));
+      lines.push('        道具: ' + yamlText(buildItemsOfCategory(r.items, '道具')));
     });
-    if (OPENING_DATA.status.allies.length || OPENING_DATA.status.npcs.length) {
+    if (free || OPENING_DATA.status.allies.length || OPENING_DATA.status.npcs.length) {
       lines.push('  人物:');
-      lines.push('    盟友: ' + JSON.stringify(OPENING_DATA.status.allies));
-      lines.push('    NPC: ' + JSON.stringify(OPENING_DATA.status.npcs));
+      lines.push('    盟友: ' + JSON.stringify(free ? [] : OPENING_DATA.status.allies));
+      lines.push('    NPC: ' + JSON.stringify(free ? [] : OPENING_DATA.status.npcs));
     }
     lines.push('  行动选项:');
-    lines.push('    名字: "🧑 ' + hero3Name() + '"');
+    lines.push('    名字: ' + yamlText('🧑 ' + hero3Name()));
     lines.push('    选项:');
-    OPENING_DATA.status.options.forEach(function (o) { lines.push('      - "' + o + '"'); });
+    const options = free ? ['1. 根据开场填写行动选项', '2. 根据开场填写行动选项', '3. 根据开场填写行动选项'] : OPENING_DATA.status.options;
+    options.forEach(function (o) { lines.push('      - ' + yamlText(o)); });
     return '<Status_block>\n' + lines.join('\n') + '\n</Status_block>';
+  }
+
+  function buildFreeOpeningInput() {
+    return '【自由开局要求】\n' + state.freeOpening + '\n\n'
+      + '请按上述要求生成开场正文，并在回复末尾附上完整的 <Status_block>。\n'
+      + '下方模板中的四人姓名、职业属性、穿着、武器及物品数量已经按开局选择填写，请沿用这些初始配置。日期、地点、内心、在场人物和行动选项根据本次开场填写；玩家明确填写的主角内心保留其含义。\n'
+      + '本轮默认不输出 <Combat_block>。\n\n' + buildStatusBlock('free');
   }
 
   function buildOpeningMessage() {
@@ -2462,15 +2510,17 @@
     return narrative + '\n\n' + buildCombatBlock() + '\n\n' + buildStatusBlock();
   }
 
-  function buildDoneFlag() {
+  function buildDoneFlag(prevDone) {
+    const managed = managedPartyNames(prevDone);
     return {
       ts: Date.now(),
+      mode: state.openingMode,
       chars: [
         { slot: 'hero1', name: OPENING_DATA.party.hero1.name, classType: state.hero1Class },
         { slot: 'hero2', name: OPENING_DATA.party.hero2.name, classType: state.hero2Class },
         { slot: 'hero_iskandar', name: OPENING_DATA.party.hero_iskandar.name, classType: state.heroIskandarClass },
         { slot: 'hero3', name: hero3Name(), classType: state.hero3.classType, portrait: state.hero3.portrait },
-      ],
+      ].concat(((prevDone && prevDone.chars) || []).filter(function (c) { return managed.indexOf(c.name) < 0; })),
       customPortraits: state.hero3.customPortraits.slice(),
       skills: genericSkillEntries().map(function (e) { return e.data.name; }),
       items: itemEntries().map(function (e) { return e.data.name; }),
@@ -2502,33 +2552,81 @@
     } catch (e) { /* 存储不可用：跳过 */ }
   }
 
+  function releaseOpeningView() {
+    state.compact = true;
+    state.bgmHandedOff = true;
+    state.soundOn = false;
+    document.documentElement.classList.remove('self-scroll');
+    document.documentElement.classList.add('opening-compact');
+    try {
+      if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
+    } catch (e) { /* 不支持全屏的宿主仍可收起内容 */ }
+    if (bgmFadeTimer) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; }
+    bgm.pause();
+    voiceAudio.pause();
+    bgVideo.pause();
+  }
+
+  function expandOpeningView() {
+    state.compact = false;
+    state.bgmHandedOff = false;
+    document.documentElement.classList.remove('opening-compact');
+    bgVideo.play().catch(function () {});
+  }
+
+  async function findOpeningReceipt() {
+    if (typeof getCurrentMessageId !== 'function' || typeof getChatMessages !== 'function') return null;
+    const source = getCurrentMessageId();
+    const messages = await getChatMessages(source + '-{{lastMessageId}}', { role: 'assistant' });
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const receipt = messages[i].data && messages[i].data.$opening_setup_receipt;
+      if (receipt && receipt.source === source && receipt.flag) return receipt.flag;
+    }
+    return null;
+  }
+
   async function submitAll() {
     if (state.submitting) return;
     state.submitting = true;
+    releaseOpeningView();
     state.stage = 'loading';
     state.progress = 0;
     state.stepRows = [];
     render();
 
-    const steps = [
-      ['立绘选择同步 · MiniMapStatus', async function () {
-        if (state.hero3.portrait) await TH.writeChatVars({ $mms_portrait_choice: state.hero3.portrait });
-        mergeMmsPortraitSnapshot();
-      }],
-      ['战斗档案写入 · RpgCombat', async function () {
-        await TH.writeChatVars({ rpg_combat_roster: buildPartySave() });
-      }],
-      ['开场白以 AI 角色身份注入聊天流', async function () {
-        if (state.openingSent) return; // 重试时防重复落楼
-        await TH.sendAssistantMessage(buildOpeningMessage());
-        state.openingSent = true;
-      }],
-      ['归档标记写入', async function () {
-        await TH.writeChatVars({ $opening_setup_done: buildDoneFlag() });
-      }],
-    ];
-
     try {
+      if (!state.openingSent) {
+        validatePartyName();
+        if (!TH.hasAssign()) throw new Error('请启用或更新酒馆助手：缺少 insertOrAssignVariables');
+        if (state.openingMode === 'free') TH.inputControls();
+        else if (!TH.hasCreateMsg()) throw new Error('请启用或更新酒馆助手：开局需要 createChatMessages 消息接口');
+      }
+      const vars = await TH.readChatVars();
+      if (!state.pendingFlag) state.pendingFlag = buildDoneFlag(vars.$opening_setup_done);
+      const steps = state.openingSent ? [] : [
+        ['立绘选择同步 · MiniMapStatus', async function () {
+          await TH.writeChatVars({ $mms_portrait_choice: state.hero3.portrait });
+          mergeMmsPortraitSnapshot();
+        }],
+        ['战斗档案写入 · RpgCombat', async function () {
+          await TH.writeChatVars({ rpg_combat_roster: buildPartySave(vars.rpg_combat_roster, vars.$opening_setup_done) });
+        }],
+        [state.openingMode === 'free' ? '开局要求与状态模板填入酒馆输入栏' : '开场白以 AI 角色身份注入聊天流', async function () {
+          if (state.openingMode === 'free') {
+            const controls = TH.inputControls();
+            state.inputHandedOff = buildFreeOpeningInput();
+            controls.input.value = state.inputHandedOff;
+            controls.input.dispatchEvent(new controls.input.ownerDocument.defaultView.Event('input', { bubbles: true }));
+          } else {
+            await TH.sendAssistantMessage(buildOpeningMessage());
+            state.openingSent = true;
+          }
+        }],
+      ];
+      steps.push(['归档标记写入', async function () {
+        await TH.writeChatVars({ $opening_setup_done: state.pendingFlag });
+        state.doneFlag = state.pendingFlag;
+      }]);
       for (let i = 0; i < steps.length; i++) {
         state.stepRows.push({ label: steps[i][0], status: 'run' });
         renderLoading();
@@ -2537,15 +2635,14 @@
         state.progress = Math.round(((i + 1) / steps.length) * 100);
         renderLoading();
       }
-      // 交接给开场白楼层：停掉向导 BGM 并置位（置位后 render 不再恢复 BGM），让开场白的 [点一首歌] 接管
-      state.bgmHandedOff = true;
-      try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* 兜底：正常已在点击阶段同步退出 */ }
-      try {
-        if (bgmFadeTimer) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; }
-        if (bgm) bgm.pause();
-      } catch (e) { /* 静默 */ }
       state.stage = 'done';
       render();
+      if (state.openingMode === 'free' && !state.openingSent) {
+        const controls = TH.inputControls();
+        // 正常生成由酒馆接管，归档后不因模型取消或失败重复自动发送。
+        state.openingSent = true;
+        if (controls.input.value === state.inputHandedOff) controls.send.click();
+      }
     } catch (err) {
       state.submitting = false;
       state.errorMsg = (err && err.message) || String(err);
@@ -2575,6 +2672,7 @@
       case 'c3skill': html = viewC3skill(); break;
       case 'c3item': html = viewItems(); break;
       case 'confirm': html = viewConfirm(); break;
+      case 'free': html = viewFreeOpening(); break;
       case 'loading': html = viewLoading(); break;
       case 'done': html = viewDone(); break;
       case 'archived': html = viewArchived(); break;
@@ -2594,12 +2692,19 @@
     }
     updateBgmForStage(state.stage);
     updateBgLayers(state.stage);
+    resizeCompactFrame();
+  }
+
+  function resizeCompactFrame() {
+    if (!state.compact) return;
+    // 宿主常规自适应经过 rAF；退场时直接同步高度，避免后台 iframe 等待绘制。
+    if (window.frameElement) window.frameElement.style.height = document.body.scrollHeight + 'px';
   }
 
   function renderLoading() {
     // 只更新进度区，避免整屏重绘闪烁
     const box = document.getElementById('loading-body');
-    if (box) { box.innerHTML = loadingBody(); return; }
+    if (box) { box.innerHTML = loadingBody(); resizeCompactFrame(); return; }
     render();
   }
 
@@ -2611,6 +2716,8 @@
         if (nxt) nxt.classList.remove('hidden');
       });
     }
+    const freeInput = document.getElementById('free-opening-input');
+    if (freeInput) freeInput.addEventListener('input', function () { state.freeOpening = freeInput.value; });
     const nameInput = document.getElementById('name-input');
     if (nameInput) {
       nameInput.addEventListener('input', function () { state.hero3.name = nameInput.value.trim() || OPENING_DATA.identity.defaultName; });
@@ -2621,7 +2728,10 @@
     }
     const innerInput = document.getElementById('inner-input');
     if (innerInput) {
-      innerInput.addEventListener('input', function () { state.hero3.inner = innerInput.value.trim() || OPENING_DATA.identity.inner; });
+      innerInput.addEventListener('input', function () {
+        state.hero3.innerEdited = !!innerInput.value.trim();
+        state.hero3.inner = innerInput.value.trim() || OPENING_DATA.identity.inner;
+      });
     }
     const storyItemsInput = document.getElementById('story-items-input');
     if (storyItemsInput) {
@@ -3291,6 +3401,7 @@
       + '      <button class="btn-ghost" data-action="back-c_iskandar">← 返回征服王</button>'
       + '      <button class="btn-noir" data-action="c3id-done">确定 · 配置职业</button>'
       + '    </div>'
+      + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
       + '  </div>'
       + '</div>';
   }
@@ -3647,14 +3758,27 @@
           + rows('技能', listNames(hero3SkillEntries()))
           + rows('物品', listNames(hero3ItemEntries()))
           + rows('立绘', state.hero3.portrait || '（默认剪影）'))
-      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">签署后：立绘写入 MiniMapStatus，四份战斗档案写入前端战斗，开场白将以队伍名义落入聊天流。此操作一次性执行，可安全重试。</div>'
+      + '    <div class="mt-6 text-[0.7rem] text-[rgba(44,36,22,0.55)] leading-relaxed">两种开局都会保存四人配置。引导开局直接发布既定剧情与开局战斗；自由开局将你的要求与状态模板填入酒馆并正常发送，由当前模型回复。</div>'
       + '  </div>'
-      + '  <div class="mt-8 flex items-center justify-between w-full max-w-xl">'
-      + '    <button class="btn-ghost" data-action="back-c3item">返回</button>'
-      + '    <button class="btn-noir" data-action="confirm-submit" id="submit-btn">确认誓约 · 破门突围</button>'
+      + '  <div class="mt-8 w-full max-w-xl">'
+      + '    <div class="opening-actions"><button class="btn-noir" data-action="confirm-submit" id="submit-btn">引导开局(推荐)</button>'
+      + '    <button class="btn-noir btn-free" data-action="free-open">自由开局</button></div>'
+      + '    <button class="btn-ghost mt-4" data-action="back-c3item">返回</button>'
       + '  </div>'
       + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
       + '</div>';
+  }
+
+  function viewFreeOpening() {
+    return '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
+      + header('FREE OPENING · 自由开局', '你的开场')
+      + '<div class="glass max-w-xl w-full px-8 py-8">'
+      + '<label for="free-opening-input">开场要求</label>'
+      + '<p class="text-sm leading-relaxed mt-3 mb-4">保留已选队伍配置。写下时间、地点和想如何开始，提交后将附上状态模板，通过酒馆正常发送；首轮默认不输出战斗块。</p>'
+      + '<textarea id="free-opening-input" class="free-opening-input" placeholder="例如：清晨，四人在达令港的一间旧药房外会合，从调查门上的符号开始。">' + esc(state.freeOpening) + '</textarea>'
+      + '<div class="opening-actions mt-6"><button class="btn-ghost" data-action="back-confirm">返回</button><button class="btn-noir btn-free" data-action="free-submit">发送并开始</button></div>'
+      + (state.flash ? '<div class="flash-warn mt-3">' + esc(state.flash) + '</div>' : '')
+      + '</div></div>';
   }
 
   function loadingBody() {
@@ -3666,26 +3790,15 @@
   }
 
   function viewLoading() {
-    return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
-      + header('PROCESSING · 正在归档', '档案誊写中')
-      + '  <div class="glass max-w-md w-full px-8 py-8 fade-in" id="loading-body">' + loadingBody() + '</div>'
-      + '</div>';
+    return '<div class="opening-compact-card"><h2>正在准备开局</h2><div id="loading-body">' + loadingBody() + '</div></div>';
   }
 
   function viewDone() {
-    return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
-      + header('FILED · 归档完成', '故事开始')
-      + '  <div class="glass max-w-xl w-full px-8 py-8 text-center fade-in">'
-      + '    <div class="stamp mb-6">档案已归档</div>'
-      + '    <div class="text-sm text-[rgba(232,220,192,0.85)] leading-loose">'
-      + '      <p>' + esc(hero3Name()) + ' 一行的开场白已以 AI 角色身份注入聊天流，</p>'
-      + '      <p>状态栏将随开场白一同渲染，四位角色的立绘与战斗档案均已写入。</p>'
-      + '    </div>'
-      + '    <div class="mt-6 font-tw text-[0.7rem] text-[rgba(198,161,84,0.65)] tracking-wider">请关闭本界面，向下滚动查看开场楼 · 本向导重新打开时将显示归档摘要</div>'
-      + '  </div>'
-      + '</div>';
+    return '<div class="opening-compact-card"><h2>开局配置已保存</h2><p>'
+      + (state.openingMode === 'free'
+        ? '开局要求与状态模板已交给酒馆。请查看正常聊天回复；若酒馆正在生成或未连接，文本会留在输入栏，可直接发送。'
+        : '引导开场白已发布，状态栏与开局战斗可在下方查看。')
+      + '</p></div>';
   }
 
   function viewArchived() {
@@ -3702,8 +3815,8 @@
       return rows(slotLabel[c.slot] || '角色', c.name + (c.classType ? ' · ' + c.classType : ''));
     }).join('');
     return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
-      + header('FILED · 已初始化', '档案摘要')
+      + '<div class="opening-compact-card">'
+      + '<h2>档案摘要 · 已初始化</h2>'
       + '  <div class="paper max-w-xl w-full px-9 py-8 fade-in">'
       + '    <div class="flex items-center justify-between mb-4">'
       + '      <div class="font-black tracking-[0.4em] text-lg">归档摘要</div>'
@@ -3720,15 +3833,11 @@
   }
 
   function viewError() {
-    return ''
-      + '<div class="min-h-screen flex flex-col items-center justify-center px-6 py-14">'
-      + header('ERROR · 归档受阻', '写入失败')
-      + '  <div class="glass max-w-xl w-full px-8 py-8 fade-in" style="border-color:rgba(160,48,48,0.55)">'
-      + '    <div class="text-sm text-[rgba(232,220,192,0.85)] leading-relaxed mb-4">写入过程中出现问题；已完成的步骤幂等，可直接重试：</div>'
-      + '    <div class="font-tw text-[0.75rem] text-[#d98c8c] bg-[rgba(0,0,0,0.35)] rounded p-3 break-all">' + esc(state.errorMsg || '未知错误') + '</div>'
-      + '    <div class="mt-6 text-right"><button class="btn-noir" data-action="retry">重试</button></div>'
-      + '  </div>'
-      + '</div>';
+    return '<div class="opening-compact-card"><h2>开局交接未完成</h2>'
+      + '<p>' + esc(state.errorMsg || '未知错误') + '</p>'
+      + '<div class="opening-actions">'
+      + (!state.openingSent ? '<button class="btn-ghost" data-action="edit-opening">返回编辑</button>' : '')
+      + '<button class="btn-noir" data-action="retry">重试</button></div></div>';
   }
 
   /* 跨阶段导航：柔和沉浸淡出淡入转场（250ms 淡出 + 300ms 淡入），支持 instant 测试。
@@ -3844,6 +3953,8 @@
         gotoStageWithCrossfade('c3id');
         break;
       case 'c3id-done':
+        try { validatePartyName(); } catch (e) { state.flash = e.message; render(); break; }
+        state.flash = '';
         gotoStageWithCrossfade('c3class');
         break;
       case 'c3-class-pick':
@@ -3880,14 +3991,31 @@
         state.hero3.portrait = t.getAttribute('data-portrait-key') || ''; render(); break;
       case 'portrait-add': addCustomPortrait(); break;
       case 'confirm-submit':
-        // 交接给开场白：退全屏必须在同步阶段完成——exitFullscreen 需要 user activation，
-        // 放到 submitAll 的异步写入之后再调会被浏览器拒绝（表现为"要点两次才退出"）
-        try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* 宿主未授权时静默 */ }
+        state.openingMode = 'guided';
         submitAll(); break;
-      case 'retry': state.stage = 'loading'; state.stepRows = []; state.progress = 0; submitAll(); break;
+      case 'free-open':
+        state.flash = ''; state.stage = 'free'; render(); break;
+      case 'back-confirm':
+        state.flash = ''; state.stage = 'confirm'; render(); break;
+      case 'free-submit':
+        if (!state.freeOpening.trim()) { state.flash = '请先填写开场要求'; render(); break; }
+        state.openingMode = 'free';
+        submitAll(); break;
+      case 'retry':
+        if (state.bootFailed) boot().catch(showBootError);
+        else submitAll();
+        break;
+      case 'edit-opening':
+        state.pendingFlag = null;
+        expandOpeningView();
+        state.stage = state.openingMode === 'free' ? 'free' : 'c3id';
+        render(); break;
       case 'force-redo':
         state.openingSent = false;
-        state.doneFlag = null;
+        state.submitting = false;
+        state.pendingFlag = null;
+        state.inputHandedOff = '';
+        expandOpeningView();
         gotoStageWithCrossfade('title');
         break;
       case 'back-c1': gotoStageWithCrossfade('c1'); break;
@@ -4800,19 +4928,18 @@ ${sectionBlocks}
   /* ==================== 启动 ==================== */
 
   async function boot() {
-    // 全屏按钮：独立常驻控件，不随阶段重绘
-    const fsBtn = document.getElementById('fs-btn');
-    if (fsBtn) fsBtn.addEventListener('click', toggleFs);
-    document.addEventListener('fullscreenchange', updateFsIcon);
-
-    // demo 移植：悬浮窗 / 实机视窗 hover / 规则弹窗的一次性事件挂载
-    // （规则弹窗静态 DOM 位于主脚本之后，须等 DOM 解析完成再绑定，boot 时还是 null）
-    initTooltipGlobalEvents();
-    initCombatMonitorHover();
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initRulesModal);
-    } else {
-      initRulesModal();
+    if (state.stage === 'boot') {
+      const fsBtn = document.getElementById('fs-btn');
+      if (fsBtn) fsBtn.addEventListener('click', toggleFs);
+      document.addEventListener('fullscreenchange', updateFsIcon);
+      document.addEventListener('fullscreenchange', resizeCompactFrame);
+      initTooltipGlobalEvents();
+      initCombatMonitorHover();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRulesModal);
+      } else {
+        initRulesModal();
+      }
     }
 
     // 背景视频 / BGM 配置应用
@@ -4824,23 +4951,42 @@ ${sectionBlocks}
     }
 
     // 幂等检查：本聊天已初始化 → 归档摘要，不再进向导
+    state.bootFailed = false;
     const vars = await TH.readChatVars();
-    const done = vars ? vars.$opening_setup_done : null;
+    const done = vars.$opening_setup_done;
     if (done && typeof done === 'object') {
       state.doneFlag = done;
-      // 恢复玩家自定义立绘候选（强制重配时可复用）
       if (Array.isArray(done.customPortraits)) state.hero3.customPortraits = done.customPortraits;
       state.stage = 'archived';
+      releaseOpeningView();
     } else {
-      state.stage = 'title';
+      const receipt = await findOpeningReceipt();
+      if (receipt) {
+        state.pendingFlag = receipt;
+        state.openingSent = true;
+        state.errorMsg = '开场白已经发布，归档尚未完成。点击重试仅补写归档，不会重复发布。';
+        state.stage = 'error';
+        releaseOpeningView();
+      } else {
+        expandOpeningView();
+        state.stage = 'title';
+      }
     }
     render();
   }
 
-  // 调试/测试钩子（MMS window.MMS 同款惯例，不影响产品行为）
-  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, COMBAT: COMBAT, instant: false, mergeMmsPortraitSnapshot: mergeMmsPortraitSnapshot };
+  function showBootError(err) {
+    state.bootFailed = true;
+    state.errorMsg = '读取开局档案失败：' + err.message;
+    state.stage = 'error';
+    releaseOpeningView();
+    render();
+  }
 
-  boot();
+  // 调试/测试钩子（MMS window.MMS 同款惯例，不影响产品行为）
+  window.__OPENING_DEBUG__ = { state: state, DATA: OPENING_DATA, COMBAT: COMBAT, instant: false, mergeMmsPortraitSnapshot: mergeMmsPortraitSnapshot, buildStatusBlock: buildStatusBlock, buildFreeOpeningInput: buildFreeOpeningInput };
+
+  boot().catch(showBootError);
 })();
 </script>
 
@@ -4945,7 +5091,7 @@ ${sectionBlocks}
     armed = true;
     setTimeout(() => {
       armed = false;
-      if (clamped()) document.documentElement.classList.add('self-scroll');
+      if (!document.documentElement.classList.contains('opening-compact') && clamped()) document.documentElement.classList.add('self-scroll');
     }, 150);
   }
   let raf = 0;

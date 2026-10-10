@@ -236,9 +236,10 @@
         return d.type === '[单回]' && d.power === 40 && d.type2 === '[单冲]' && d.power2 === 20
           && d.isOthers === true && d.maxUses === 2 ? true : d;
       });
-      assert('弹药效果槽强制清空（.45子弹：类别/数量保留，槽归零）', () => {
+      assert('弹药效果槽强制清空（.45子弹：类别/数量保留，三槽归零为 [无]）', () => {
         const d = C.classes['隐匿者'].items.find(i => i.data.name === '.45子弹').data;
-        return d.type === null && d.power === 0 && d.category === '弹药' && d.count === 40 ? true : d;
+        return d.type === '[无]' && d.power === 0 && d.type2 === '[无]' && d.power2 === 0
+          && d.type3 === '[无]' && d.power3 === 0 && d.category === '弹药' && d.count === 40 ? true : d;
       });
       assert('槽位级轮数 ;turns:N：拉莱耶造雾术 群盲4轮 + 自盲2轮（slotTurns*）', () => {
         const d = C.classes['灾厄使'].skills.find(s => s.data.name === '拉莱耶造雾术').data;

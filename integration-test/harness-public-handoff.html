@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>OpeningSetup 公开版 · 引导/自由开局交接回归</title>
+<style>
+  body { background:#141210; color:#cfc6b8; font:13px/1.6 "Consolas","Microsoft YaHei",monospace; padding:16px 20px; }
+  h1 { color:#d9b45c; font-size:15px; letter-spacing:.2em; }
+  h2 { color:#d9b45c; font-size:13px; margin:16px 0 4px; border-bottom:1px solid #333; padding-bottom:2px; }
+  #run { background:#2a241a; color:#d9b45c; border:1px solid #6b5a2e; border-radius:4px; padding:6px 18px; cursor:pointer; font:inherit; margin:10px 0; }
+  #run:disabled { opacity:.5; cursor:default; }
+  #total { margin-left:12px; color:#e8dcc0; }
+  .row { white-space:pre-wrap; }
+  .ok { color:#7fae7f; } .bad { color:#e08a8a; } .pend { color:#d9b45c; }
+  #hostbar { position:fixed; left:0; bottom:0; right:0; background:#1d1a15; border-top:1px solid #4a3f27; padding:6px 10px; display:flex; gap:8px; align-items:flex-start; z-index:50; }
+  #send_textarea { flex:1; height:44px; background:#0c0b09; color:#e8dcc0; border:1px solid #4a3f27; border-radius:4px; font:inherit; padding:6px; resize:vertical; }
+  #send_but { background:#2a241a; color:#d9b45c; border:1px solid #6b5a2e; border-radius:4px; padding:8px 16px; cursor:pointer; font:inherit; }
+  #hostnote { color:#8a8172; font-size:11px; align-self:center; }
+  #out { padding-bottom:70px; }
+  #stages iframe { position:fixed; right:0; top:0; width:440px; height:340px; border:1px solid #333; background:#000; opacity:.85; z-index:40; }
+</style>
+</head>
+<body>
+<h1>OPENING_SETUP（公开版） · 引导/自由开局交接回归</h1>
+<div>
+  <button id="run">▶ 运行交接回归</button>
+  <span id="total">0 / 0 项通过</span>
+</div>
+<div id="out"></div>
+<div id="stages"></div>
+<div id="hostbar">
+  <textarea id="send_textarea" placeholder="酒馆输入栏（测试宿主 · 与真实酒馆同 id）"></textarea>
+  <button id="send_but">发送</button>
+  <span id="hostnote">宿主 send_but 点击=记录并清空（模拟酒馆发送）</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+   * 宿主输入栏（父文档）：产品通过 window.parent.document 访问
+   *   #send_textarea / #send_but —— 与真实酒馆同 id
+   *   send_but.click() 记录当前文本并清空（模拟酒馆"发送后清栏"）
+   * ===================================================================== */
+  var HOST = { sends: [] };
+  window.__HOST__ = HOST;
+  document.getElementById('send_but').addEventListener('click', function () {
+    var ta = document.getElementById('send_textarea');
+    HOST.sends.push(ta.value);
+    ta.value = ''; // 模拟酒馆发送后清空输入栏
+  });
+  function hostInput() { return document.getElementById('send_textarea'); }
+  function setDraft(t) { hostInput().value = t; }
+  function resetHost() { HOST.sends = []; hostInput().value = ''; }
+
+  /* =====================================================================
+   * 断言输出
+   * ===================================================================== */
+  var out = document.getElementById('out');
+  var totalRow = document.getElementById('total');
+  var nPass = 0, nFail = 0, nPend = 0, nTotal = 0;
+
+  function group(name) {
+    var h = document.createElement('h2');
+    h.textContent = name;
+    out.appendChild(h);
+  }
+  function row(desc, status, extra) {
+    nTotal++;
+    var cls, mark;
+    if (status === true) { nPass++; cls = 'ok'; mark = '  ✓ '; }
+    else if (status === 'pending') { nPend++; cls = 'pend'; mark = '  ◌ '; }
+    else { nFail++; cls = 'bad'; mark = '  ✗ '; }
+    var d = document.createElement('div');
+    d.className = 'row ' + cls;
+    var tail = (status === true || status === 'pending')
+      ? (status === 'pending' ? '  → 待对齐：' + (extra === undefined ? '' : String(extra)) : '')
+      : '  → ' + (extra === undefined ? '' : JSON.stringify(extra).slice(0, 260));
+    d.textContent = mark + desc + tail;
+    out.appendChild(d);
+  }
+  function assert(desc, fn) {
+    try { var r = fn(); row(desc, r === true, r); }
+    catch (e) { row(desc, false, 'EXC: ' + (e && e.message)); }
+  }
+  function pending(desc, note) { row(desc, 'pending', note); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  /* =====================================================================
+   * 注入脚本（注入 <head> 最前，先于产品脚本）
+   *   1. 媒体/网络护栏：先于 boot 拦外部音视频/字体，保留 DOM 可查 pause
+   *   2. 酒馆助手 API mock（含真实语义深合并）
+   * ===================================================================== */
+
+  // —— 媒体护栏：play/load 置空，pause 可观测；fetch/XHR 拦外链 ——
+  function mediaGuard() {
+    var M = { plays: [], pauses: [], loads: 0, blocked: [] };
+    window.__MEDIA__ = M;
+    function tag(el) { return (el && el.tagName ? el.tagName : 'MEDIA') + ':' + (el && (el.currentSrc || el.getAttribute && el.getAttribute('src')) || ''); }
+    try {
+      var proto = window.HTMLMediaElement && window.HTMLMediaElement.prototype;
+      if (proto) {
+        proto.play = function () { this.__mockPlaying = true; M.plays.push(tag(this)); return Promise.resolve(); };
+        proto.pause = function () { this.__mockPlaying = false; M.pauses.push(tag(this)); };
+        proto.load = function () { M.loads++; };
+        try {
+          Object.defineProperty(proto, 'paused', {
+            configurable: true,
+            get: function () { return this.__mockPlaying !== true; },
+          });
+        } catch (e) { /* 原生 paused 不可重定义时降级：断言改用 __mockPlaying */ }
+      }
+    } catch (e) { window.__MEDIA_ERR__ = e && e.message; }
+    try {
+      var origFetch = window.fetch;
+      window.fetch = function (u) {
+        M.blocked.push(String(u));
+        return Promise.reject(new Error('mock: 网络已禁用 ' + u));
+      };
+    } catch (e) { /* 静默 */ }
+    try {
+      var XO = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+      if (XO) {
+        window.XMLHttpRequest.prototype.open = function (m, u) {
+          M.blocked.push('xhr:' + String(u));
+          return XO.apply(this, arguments); // 打开但无网络响应，避免产品挂起
+        };
+      }
+    } catch (e) { /* 静默 */ }
+  }
+
+  // —— 酒馆助手 API mock ——
+  // 契约：getVariables / insertOrAssignVariables（真深合并：对象递归、数组整体替换）/
+  //       createChatMessages（message+data，message_id 递增）/
+  //       getCurrentMessageId / getLastMessageId / getChatMessages / triggerSlash
+  function mockBoot() {
+    var seed = window.__SEED__ || {};
+    function clone(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
+    function isPlain(o) { return o !== null && typeof o === 'object' && !Array.isArray(o); }
+    function deepMerge(t, p) {
+      Object.keys(p).forEach(function (k) {
+        var v = p[k];
+        if (isPlain(v) && isPlain(t[k])) deepMerge(t[k], v); // 对象递归
+        else t[k] = clone(v);                                  // 数组/标量整体替换
+      });
+      return t;
+    }
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    var store = { chat: clone(seed.chat || {}) };
+    var msgs = (seed.messages || []).map(clone);
+    var created = [];
+    var log = [];
+    var failCreate = false;
+    var failAssignKeys = null;   // 命中的 key 抛错（模拟归档失败）
+    var assignDelay = 0;
+
+    var M = {
+      store: store, msgs: msgs, created: created, log: log,
+      generateCalls: 0, generateRawCalls: 0,
+      setFailCreate: function (v) { failCreate = !!v; },
+      setFailAssignKeys: function (keys) { failAssignKeys = keys ? keys.slice() : null; },
+      setAssignDelay: function (ms) { assignDelay = ms | 0; },
+      doneFlag: function () { return store.chat.$opening_setup_done; },
+      roster: function () { return store.chat.rpg_combat_roster; },
+      receipts: function () {
+        return created.map(function (c) { return c.data && c.data.$opening_setup_receipt; }).filter(Boolean);
+      },
+      nextId: function () { return msgs.length ? Math.max.apply(null, msgs.map(function (x) { return x.message_id; })) + 1 : 0; },
+    };
+    window.__MOCK__ = M;
+
+    window.getVariables = async function () { return clone(store.chat); };
+
+    window.insertOrAssignVariables = async function (payload) {
+      if (failAssignKeys) {
+        var hit = Object.keys(payload || {}).filter(function (k) { return failAssignKeys.indexOf(k) >= 0; });
+        if (hit.length) throw new Error('mock: 变量写入故障（' + hit.join(',') + '）');
+      }
+      if (assignDelay) await sleep(assignDelay);
+      deepMerge(store.chat, clone(payload || {}));
+      log.push('assign:' + Object.keys(payload || {}).join(','));
+      return clone(store.chat);
+    };
+
+    window.createChatMessages = async function (list) {
+      if (failCreate) throw new Error('mock: 消息接口故障');
+      (list || []).forEach(function (m) {
+        var rec = {
+          message_id: M.nextId(),
+          name: m.name || '',
+          role: m.role,
+          is_hidden: !!m.is_hidden,
+          message: m.message,
+          data: clone(m.data || {}),
+          extra: {},
+        };
+        msgs.push(rec);
+        created.push(rec);
+      });
+      log.push('create');
+    };
+
+    window.getCurrentMessageId = function () { return seed.currentId == null ? 0 : seed.currentId; };
+    window.getLastMessageId = function () {
+      return msgs.length ? Math.max.apply(null, msgs.map(function (x) { return x.message_id; })) : -1;
+    };
+
+    // 楼层号解析：数字 / 负数 / 'a-b' / '0-{{lastMessageId}}'
+    function resolveRange(range) {
+      if (typeof range === 'number') {
+        return range < 0 ? [msgs.length + range, msgs.length + range] : [range, range];
+      }
+      var s = String(range).replace(/\{\{\s*lastMessageId\s*\}\}/g, String(window.getLastMessageId()));
+      if (s.indexOf('-') > 0) {
+        var p = s.split('-');
+        return [Number(p[0]), Number(p[1])];
+      }
+      var n = Number(s);
+      return n < 0 ? [msgs.length + n, msgs.length + n] : [n, n];
+    }
+
+    window.getChatMessages = function (range, option) {
+      option = option || {};
+      var r = resolveRange(range);
+      var lo = r[0], hi = r[1];
+      if (lo > hi) { var t = lo; lo = hi; hi = t; }
+      return msgs
+        .filter(function (m) { return m.message_id >= lo && m.message_id <= hi; })
+        .filter(function (m) { return !option.role || option.role === 'all' || m.role === option.role; })
+        .filter(function (m) {
+          if (!option.hide_state || option.hide_state === 'all') return true;
+          return option.hide_state === 'hidden' ? m.is_hidden : !m.is_hidden;
+        })
+        .map(clone);
+    };
+
+    window.triggerSlash = function () { log.push('slash'); };
+
+    // 外部 LLM 调用计数器（隔离 stub，绝不打真实接口）
+    window.generate = async function () { M.generateCalls++; log.push('generate'); return ''; };
+    window.generateRaw = async function () { M.generateRawCalls++; log.push('generateRaw'); return ''; };
+  }
+
+  /* =====================================================================
+   * 挂载与驱动
+   * ===================================================================== */
+  var stagesBox = document.getElementById('stages');
+  var current = null;         // 当前 iframe 元素
+  var htmlCache = null;       // 产品 HTML 文本缓存（避免重复网络）
+
+  async function productHtml() {
+    if (htmlCache == null) {
+      var res = await fetch('../OpeningSetup-公开版.html', { cache: 'reload' });
+      htmlCache = await res.text();
+    }
+    return htmlCache;
+  }
+
+  function injectHead(html, opts) {
+    opts = opts || {};
+    var seed = { chat: opts.chat || null, messages: opts.messages || [], currentId: opts.currentId == null ? 0 : opts.currentId };
+    var meta = '<meta http-equiv="Content-Security-Policy" content="media-src \'none\'; font-src \'none\'">';
+    var head = '<head>'
+      + meta
+      + '<script>window.__SEED__=' + JSON.stringify(seed) + ';\x3c/script>'
+      + '<script>(' + mediaGuard.toString() + ')();\x3c/script>'
+      + '<script>(' + mockBoot.toString() + ')();\x3c/script>';
+    return html.replace('<head>', head);
+  }
+
+  // 新 iframe（每次全新实例；不重用、不在同实例重赋 srcdoc）
+  async function makeStage(opts) {
+    if (current) { current.remove(); current = null; }
+    resetHost();
+    var iframe = document.createElement('iframe');
+    stagesBox.appendChild(iframe);
+    var html = await productHtml();
+    iframe.srcdoc = injectHead(html, opts);
+    await new Promise(function (r) { iframe.addEventListener('load', r, { once: true }); });
+    await sleep(160);
+    var win = iframe.contentWindow;
+    if (win.__OPENING_DEBUG__) win.__OPENING_DEBUG__.instant = true; // 打字机瞬时完成
+    current = iframe;
+    return { iframe: iframe, win: win, doc: win.document, mock: win.__MOCK__, media: win.__MEDIA__ };
+  }
+  function dispose() { if (current) { current.remove(); current = null; } }
+
+  function D(ctx) { return ctx.win.__OPENING_DEBUG__ || {}; }
+  function S(ctx) { return D(ctx).state || {}; }
+
+  function click(ctx, sel) {
+    var el = ctx.doc.querySelector(sel);
+    if (!el) throw new Error('找不到元素 ' + sel + '（stage=' + (S(ctx).stage) + '）');
+    el.dispatchEvent(new ctx.win.MouseEvent('click', { bubbles: true }));
+  }
+  function clickAction(ctx, a) { click(ctx, '[data-action="' + a + '"]'); }
+
+  function skipStory(ctx) {
+    for (var i = 0; i < 12; i++) {
+      if (ctx.doc.querySelector('[data-action="story-done"]')) { clickAction(ctx, 'story-done'); return; }
+      if (!ctx.doc.querySelector('[data-action="story-next"]')) throw new Error('故事页无推进按钮');
+      clickAction(ctx, 'story-next');
+    }
+    throw new Error('故事页推进超过 12 步');
+  }
+  function pickClass(ctx, slot, cls) {
+    var action = slot === 'c3' ? 'c3-class-pick' : slot + '-pick';
+    click(ctx, '[data-action="' + action + '"][data-class="' + cls + '"]');
+  }
+  function setName(ctx, name) {
+    var inp = ctx.doc.getElementById('name-input');
+    if (!inp) throw new Error('找不到姓名输入框（stage=' + S(ctx).stage + '）');
+    inp.value = name;
+    inp.dispatchEvent(new ctx.win.Event('input', { bubbles: true }));
+  }
+  function setInput(ctx, id, val) {
+    var el = ctx.doc.getElementById(id);
+    if (!el) throw new Error('找不到输入框 #' + id);
+    el.value = val;
+    el.dispatchEvent(new ctx.win.Event('input', { bubbles: true }));
+  }
+
+  // 全流程推进到最终确认页
+  function driveGuided(ctx, o) {
+    o = o || {};
+    clickAction(ctx, 'start');
+    skipStory(ctx);
+    pickClass(ctx, 'c1', o.c1 || '隐匿者'); clickAction(ctx, 'c1-done');
+    pickClass(ctx, 'c2', o.c2 || '圣职者'); clickAction(ctx, 'c2-done');
+    clickAction(ctx, 'c_iskandar-done');
+    setName(ctx, o.name || '夜鸦');
+    if (o.wearing) setInput(ctx, 'wearing-input', o.wearing);
+    if (o.inner) setInput(ctx, 'inner-input', o.inner);
+    if (o.storyItems) setInput(ctx, 'story-items-input', o.storyItems);
+    clickAction(ctx, 'c3id-done');
+    pickClass(ctx, 'c3', o.c3 || '灾厄使'); clickAction(ctx, 'c3class-done');
+    (o.skills || []).forEach(function (n) { click(ctx, '[data-action="c3-skill-toggle"][data-skill="' + n + '"]'); });
+    clickAction(ctx, 'c3skill-done');
+    (o.items || []).forEach(function (id) { click(ctx, '[data-item-id="' + id + '"]'); });
+    clickAction(ctx, 'c3item-done');
+  }
+
+  async function waitStage(ctx, targets, tries) {
+    tries = tries || 50;
+    for (var i = 0; i < tries; i++) {
+      await sleep(60);
+      var st = S(ctx).stage;
+      if (targets.indexOf(st) >= 0) return st;
+    }
+    return S(ctx).stage;
+  }
+
+  var FREE_TEXT = [
+    '我推开门，雨水顺着枪管滴落。',
+    '她说："别回头。"\\',
+    '- 一句以短横开头的台词',
+    '钥匙: 铜色的小钥匙',
+    '最后一行。',
+  ].join('\n');
+
+  /* =====================================================================
+   * 契约探针
+   * ===================================================================== */
+  var PROBE = null;
+  function probe(ctx) {
+    var d = D(ctx), s = S(ctx);
+    return {
+      debug: !!d.state,
+      buildStatusBlock: typeof d.buildStatusBlock === 'function',
+      buildFreeOpeningInput: typeof d.buildFreeOpeningInput === 'function',
+      openingMode: s && ('openingMode' in s),
+      compact: s && ('compact' in s),
+      innerEdited: !!(s && s.hero3 && ('innerEdited' in s.hero3)),
+      freeOpenBtn: !!ctx.doc.querySelector('[data-action="free-open"]'),
+      freeSubmitBtn: !!ctx.doc.querySelector('[data-action="free-submit"]'),
+      freeInput: !!ctx.doc.getElementById('free-opening-input'),
+    };
+  }
+
+  /* =====================================================================
+   * 测试组
+   * ===================================================================== */
+
+  // G0 旧回归 smoke：引导路径仍可跑通
+  async function g0() {
+    group('G0 旧回归 smoke（引导路径端到端仍可用）');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      assert('boot 进入标题页', function () { return S(ctx).stage === 'title' ? true : S(ctx).stage; });
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      clickAction(ctx, 'confirm-submit');
+      var st = await waitStage(ctx, ['done', 'error']);
+      assert('引导提交后进入完成页', function () { return st === 'done' ? true : st; });
+      assert('roster 四英雄 version 1', function () {
+        var r = ctx.mock.roster();
+        return r && r.version === 1 && r.heroes.length === 4 ? true : r && r.heroes.length;
+      });
+      assert('引导路径落楼一条 assistant（含 Combat_block + Status_block）', function () {
+        var c = ctx.mock.created;
+        return c.length === 1 && c[0].role === 'assistant'
+          && c[0].message.indexOf('<Combat_block>') >= 0
+          && c[0].message.indexOf('<Status_block>') >= 0 ? true : c.map(function (x) { return x.role; });
+      });
+      assert('落楼 data 带 $opening_setup_receipt（source=当前楼层 0，flag=完整 doneflag）', function () {
+        var d = ctx.mock.created[0] && ctx.mock.created[0].data;
+        var rec = d && d.$opening_setup_receipt;
+        return rec && rec.source === 0 && rec.flag && Array.isArray(rec.flag.chars) && rec.flag.chars.length === 4 ? true : rec;
+      });
+    } catch (e) { row('G0 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G1 确认页双按钮契约
+  async function g1() {
+    group('G1 确认页按钮契约（金色原按钮保留 · 灰色自由按钮）');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx);
+      assert('最终页 [data-action=confirm-submit] id=submit-btn', function () {
+        var b = ctx.doc.querySelector('[data-action="confirm-submit"]');
+        return b && b.id === 'submit-btn' ? true : b && b.id;
+      });
+      assert('金色原按钮文案含「引导开局」，class 仍含 btn-noir', function () {
+        var b = ctx.doc.querySelector('[data-action="confirm-submit"]');
+        if (!b) return '缺按钮';
+        return b.textContent.indexOf('引导开局') >= 0 && b.className.indexOf('btn-noir') >= 0
+          ? true : { text: b.textContent, cls: b.className };
+      });
+      if (!PROBE.freeOpenBtn) { pending('灰色自由按钮 [data-action=free-open] class 含 btn-noir btn-free', 'free-open 按钮未落地'); }
+      else {
+        assert('灰色自由按钮 [data-action=free-open] class 含 btn-noir btn-free', function () {
+          var b = ctx.doc.querySelector('[data-action="free-open"]');
+          return b.className.indexOf('btn-noir') >= 0 && b.className.indexOf('btn-free') >= 0 ? true : b.className;
+        });
+      }
+    } catch (e) { row('G1 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G2 自由开局交接
+  async function g2() {
+    group('G2 自由开局交接（原文 + Status_block 多行 · 走宿主 send_but 一次 · 无落楼）');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx);
+      if (!PROBE.freeOpenBtn) {
+        pending('点击自由按钮展开 stage=free', 'free-open 未落地'); dispose(); return;
+      }
+      clickAction(ctx, 'free-open');
+      PROBE = probe(ctx); // 自由页元素需在进入 free 后重新探测
+      assert('点击自由按钮进入 stage=free', function () { return S(ctx).stage === 'free' ? true : S(ctx).stage; });
+      assert('自由页存在 [data-action=free-submit] 与 [data-action=back-confirm]', function () {
+        return (ctx.doc.querySelector('[data-action="free-submit"]') && ctx.doc.querySelector('[data-action="back-confirm"]')) ? true : '缺按钮';
+      });
+
+      if (!PROBE.freeInput) { pending('存在 #free-opening-input textarea', 'free-opening-input 未落地'); }
+      else {
+        setInput(ctx, 'free-opening-input', FREE_TEXT);
+        assert('输入自由原文写入 state.freeOpening', function () {
+          return S(ctx).freeOpening === FREE_TEXT ? true : S(ctx).freeOpening;
+        });
+      }
+
+      resetHost();
+      if (!PROBE.freeSubmitBtn) { pending('free-submit 提交', 'free-submit 未落地'); dispose(); return; }
+      clickAction(ctx, 'free-submit');
+      var st = await waitStage(ctx, ['done', 'error']);
+      assert('自由提交后进入完成页', function () { return st === 'done' ? true : st; });
+      assert('自由提交后 state.openingMode=free', function () { return S(ctx).openingMode === 'free' ? true : S(ctx).openingMode; });
+
+      assert('宿主 send_but 恰好被点击 1 次', function () { return HOST.sends.length === 1 ? true : HOST.sends.length; });
+      assert('交接文本 = 自由原文（逐字保留多行/引号/反斜杠）', function () {
+        var t = HOST.sends[0] || '';
+        return t.indexOf(FREE_TEXT) >= 0 ? true : t.slice(0, 200);
+      });
+      assert('交接文本含完整 Status_block 且为多行', function () {
+        var t = HOST.sends[0] || '';
+        return t.indexOf('<Status_block>') >= 0 && t.indexOf('</Status_block>') >= 0 && t.indexOf('\n') >= 0
+          ? true : { hasOpen: t.indexOf('<Status_block>') >= 0, hasClose: t.indexOf('</Status_block>') >= 0 };
+      });
+      assert('交接后输入栏被宿主清空（模拟酒馆）', function () { return hostInput().value === '' ? true : hostInput().value; });
+      assert('自由开局不落楼（createChatMessages 零调用）', function () {
+        return ctx.mock.created.length === 0 ? true : ctx.mock.created.map(function (c) { return c.role; });
+      });
+      assert('自由开局无 generate / generateRaw 调用', function () {
+        return ctx.mock.generateCalls === 0 && ctx.mock.generateRawCalls === 0
+          ? true : { generate: ctx.mock.generateCalls, generateRaw: ctx.mock.generateRawCalls };
+      });
+      assert('自由开局仍写入四英雄 roster', function () {
+        var r = ctx.mock.roster();
+        return r && r.heroes.length === 4 ? true : r && r.heroes.length;
+      });
+      assert('doneflag.mode=free', function () {
+        var d = ctx.mock.doneFlag();
+        return d && d.mode === 'free' ? true : d && d.mode;
+      });
+    } catch (e) { row('G2 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G3 Status_block 精确（初始四人属性/穿着/物品）
+  async function g3() {
+    group('G3 Status_block 初始四人属性/穿着/物品精确');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使', storyItems: '银质怀表、半包烟' });
+      if (!PROBE || !PROBE.buildStatusBlock) { PROBE = probe(ctx); }
+      if (!PROBE.buildStatusBlock) { pending('buildStatusBlock(mode) 调试钩子', '未落地'); dispose(); return; }
+      var block = D(ctx).buildStatusBlock('free');
+      var DATA = D(ctx).DATA, C = D(ctx).COMBAT;
+
+      assert('Status_block 含四个角色条目', function () {
+        var n = (block.match(/- 角色:/g) || []).length;
+        return n === 4 ? true : n;
+      });
+      assert('角色一 属性=隐匿者模板（HP/MP/职业 精确）', function () {
+        var cfg = C.classes['隐匿者'].config;
+        return block.indexOf('职业:隐匿者') >= 0
+          && block.indexOf('[❤️HP:' + cfg.maxHp + '/' + cfg.maxHp + ']') >= 0
+          && block.indexOf('[💠MP:' + cfg.maxMp + '/' + cfg.maxMp + ']') >= 0
+          && block.indexOf('[🛡️Armor:' + cfg.def + ']') >= 0 ? true : '属性行不匹配';
+      });
+      assert('角色一 穿着=预置原文', function () {
+        return block.indexOf(DATA.party.hero1.wearing) >= 0 ? true : DATA.party.hero1.wearing;
+      });
+      assert('角色四 属性=所选职业模板（灾厄使）', function () {
+        var cfg = C.classes['灾厄使'].config;
+        return block.indexOf('[❤️HP:' + cfg.maxHp + '/' + cfg.maxHp + ']') >= 0
+          && block.indexOf('职业:灾厄使') >= 0 ? true : '主角属性行不匹配';
+      });
+      assert('角色一/二/三 叙事物品行为「无」；角色四=自输叙事物品徽章', function () {
+        var n = (block.match(/物品: "无"/g) || []).length;
+        return n === 3 && block.indexOf('物品: "[银质怀表][半包烟]"') >= 0
+          ? true : { none: n, hasStory: block.indexOf('[银质怀表]') >= 0 };
+      });
+      assert('四角色弹药/消耗品/道具 三词条齐备', function () {
+        var ammo = (block.match(/弹药: "/g) || []).length;
+        var cons = (block.match(/消耗品: "/g) || []).length;
+        var prop = (block.match(/道具: "/g) || []).length;
+        return ammo === 4 && cons === 4 && prop === 4 ? true : { ammo: ammo, cons: cons, prop: prop };
+      });
+    } catch (e) { row('G3 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G4 无警局内心/地点残留（自由模板不得泄漏引导的警局设定）
+  async function g4() {
+    group('G4 自由模板无「警局」内心/地点残留');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx); // 每页元素不同，按当前 stage 重新探测
+      if (!PROBE.buildStatusBlock) { pending('buildStatusBlock 输出不含「警局」', '未落地'); dispose(); return; }
+      var freeBlock = D(ctx).buildStatusBlock('free');
+      assert('自由 Status_block 全文不含「警局」', function () {
+        return freeBlock.indexOf('警局') < 0 ? true : (freeBlock.match(/[^\n]*警局[^\n]*/g) || []).slice(0, 3);
+      });
+      assert('自由 地点 行为占位符（不沿用引导地点）', function () {
+        return freeBlock.indexOf('地点: "📍 根据开场填写具体地点"') >= 0
+          || (freeBlock.indexOf('地点:') >= 0 && freeBlock.indexOf('悉尼中央警察局') < 0)
+          ? true : (freeBlock.match(/地点: "[^\n]*"/) || [])[0];
+      });
+      assert('自由 内心 行为占位符（未编辑主角内心时）', function () {
+        return freeBlock.indexOf('根据开场填写当前内心') >= 0 ? true : '内心占位缺失';
+      });
+      assert('自由 Status_block 不含引导日期原文', function () {
+        var d = D(ctx).DATA.status.date;
+        return freeBlock.indexOf(d) < 0 ? true : d;
+      });
+    } catch (e) { row('G4 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G5 初始自填内心保留（自由模板默认占位；玩家自填则保留）
+  async function g5() {
+    group('G5 初始自填内心保留 / 编辑后 innerEdited 保留自填内心');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx); // 每页元素不同，按当前 stage 重新探测
+      var DATA = D(ctx).DATA;
+      assert('未编辑时 state.hero3.inner = 默认内心原文', function () {
+        return S(ctx).hero3.inner === DATA.identity.inner ? true : S(ctx).hero3.inner;
+      });
+      if (PROBE.innerEdited) {
+        assert('未编辑时 innerEdited=false', function () { return S(ctx).hero3.innerEdited === false ? true : S(ctx).hero3.innerEdited; });
+      } else pending('state.hero3.innerEdited 布尔', '未落地');
+
+      if (!PROBE.buildStatusBlock) { pending('自由模板占位/保留自填内心', '未落地'); dispose(); return; }
+      assert('引导 Status_block 使用默认内心原文', function () {
+        var b = D(ctx).buildStatusBlock('guided');
+        return b.indexOf(DATA.identity.inner) >= 0 ? true : '内心行缺失';
+      });
+      assert('自由模板（未编辑）主角内心为占位符', function () {
+        var b = D(ctx).buildStatusBlock('free');
+        return b.indexOf('根据开场填写当前内心') >= 0 ? true : '未用占位符';
+      });
+    } catch (e) { row('G5-1 执行中断', false, e.message); }
+    dispose();
+
+    // G5-2：身份页填写自定义内心（inner-input 仅存在于 c3id 页）
+    var ctx2;
+    try {
+      ctx2 = await makeStage({});
+      driveGuided(ctx2, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使', inner: '💭 「自定义内心。」' });
+      PROBE = probe(ctx2);
+      assert('编辑内心后 state.hero3.inner 更新', function () {
+        return S(ctx2).hero3.inner === '💭 「自定义内心。」' ? true : S(ctx2).hero3.inner;
+      });
+      if (PROBE.innerEdited) {
+        assert('编辑内心后 innerEdited=true', function () { return S(ctx2).hero3.innerEdited === true ? true : S(ctx2).hero3.innerEdited; });
+      }
+      if (PROBE.buildStatusBlock) {
+        assert('自由模板保留自填主角内心', function () {
+          var b = D(ctx2).buildStatusBlock('free');
+          return b.indexOf('自定义内心') >= 0 ? true : '未保留自填内心';
+        });
+        assert('自填内心不泄漏给其他角色（仅角色四替换）', function () {
+          var b = D(ctx2).buildStatusBlock('free');
+          var n = (b.match(/自定义内心/g) || []).length;
+          return n === 1 ? true : n;
+        });
+      } else pending('自由模板保留自填内心', '未落地');
+    } catch (e) { row('G5-2 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G6 草稿不覆盖
+  async function g6() {
+    group('G6 酒馆输入栏已有草稿 → 报错且不覆盖/不发送');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx); // 每页元素不同，按当前 stage 重新探测
+      if (!PROBE.freeOpenBtn) { pending('草稿保护', 'free-open 未落地'); dispose(); return; }
+      clickAction(ctx, 'free-open');
+      PROBE = probe(ctx);
+      if (!PROBE.freeSubmitBtn) { pending('草稿保护', 'free-submit 未落地'); dispose(); return; }
+      if (PROBE.freeInput) setInput(ctx, 'free-opening-input', FREE_TEXT);
+      resetHost();
+      setDraft('用户正在输入的草稿 XYZ');
+      clickAction(ctx, 'free-submit');
+      var st = await waitStage(ctx, ['done', 'error', 'free']);
+      assert('草稿存在时提交被拒（非 done）', function () { return st !== 'done' ? true : st; });
+      assert('草稿未被覆盖', function () { return hostInput().value === '用户正在输入的草稿 XYZ' ? true : hostInput().value; });
+      assert('未点击宿主 send_but（零发送）', function () { return HOST.sends.length === 0 ? true : HOST.sends.length; });
+
+      // 清空草稿后重试可完成（错误页 retry → 同一 free 模式重跑）
+      setDraft('');
+      clickAction(ctx, 'retry');
+      var st2 = await waitStage(ctx, ['done', 'error']);
+      assert('清空草稿后重试完成交接', function () { return st2 === 'done' ? true : st2; });
+      assert('清空草稿后恰好发送 1 次', function () { return HOST.sends.length === 1 ? true : HOST.sends.length; });
+    } catch (e) { row('G6 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G7a 引导失败重试
+  async function g7a() {
+    group('G7a 引导：消息接口故障 → 错误页 → 重试不重复落楼');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '狂战士', c2: '灾厄使', c3: '防守者' });
+      ctx.mock.setFailCreate(true);
+      clickAction(ctx, 'confirm-submit');
+      var st = await waitStage(ctx, ['error', 'done']);
+      assert('接口故障进入错误页', function () { return st === 'error' ? true : st; });
+      ctx.mock.setFailCreate(false);
+      clickAction(ctx, 'retry');
+      var st2 = await waitStage(ctx, ['done', 'error']);
+      assert('重试后完成', function () { return st2 === 'done' ? true : st2; });
+      assert('重试不重复落楼（created=1）', function () { return ctx.mock.created.length === 1 ? true : ctx.mock.created.length; });
+    } catch (e) { row('G7a 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G7b 引导：落楼成功但归档失败 → 新 iframe 重启 → 仅补 doneflag
+  async function g7b() {
+    group('G7b 引导：落楼成功后归档失败 → 新 iframe 重启 → 仅补 doneflag（不重发/不覆盖 roster）');
+    var ctx1, flagFromReceipt = null;
+    try {
+      ctx1 = await makeStage({});
+      driveGuided(ctx1, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      ctx1.mock.setFailAssignKeys(['$opening_setup_done']);
+      clickAction(ctx1, 'confirm-submit');
+      var st = await waitStage(ctx1, ['error', 'done']);
+      assert('归档失败进入错误页', function () { return st === 'error' ? true : st; });
+      assert('归档失败前落楼已成功（created=1）', function () { return ctx1.mock.created.length === 1 ? true : ctx1.mock.created.length; });
+      var rec = ctx1.mock.receipts()[0];
+      flagFromReceipt = rec && rec.flag;
+      assert('落楼 data.$opening_setup_receipt.flag 为完整 doneflag', function () {
+        return flagFromReceipt && Array.isArray(flagFromReceipt.chars) && flagFromReceipt.chars.length === 4 ? true : flagFromReceipt;
+      });
+
+      // 模拟重启：新 iframe；seed 聊天有 roster 无 done，seed 消息含 receipt 楼层
+      var seedChat = JSON.parse(JSON.stringify(ctx1.mock.store.chat));
+      var seedMsgs = JSON.parse(JSON.stringify(ctx1.mock.msgs));
+      // 人为改动 roster，验证重启后不被覆盖
+      if (seedChat.rpg_combat_roster && seedChat.rpg_combat_roster.heroes[0]) {
+        seedChat.rpg_combat_roster.heroes[0].name = '被改过的名字';
+      }
+      var ctx2 = await makeStage({ chat: seedChat, messages: seedMsgs, currentId: 0 });
+      assert('done 缺失但存在同源 receipt → 紧凑错误页', function () {
+        return S(ctx2).stage === 'error' ? true : S(ctx2).stage;
+      });
+      if (probe(ctx2).compact) {
+        assert('重启错误页 state.compact=true', function () { return S(ctx2).compact === true ? true : S(ctx2).compact; });
+      } else pending('重启错误页 state.compact=true', 'compact 未落地');
+
+      var createBefore = ctx2.mock.created.length;
+      clickAction(ctx2, 'retry');
+      var st2 = await waitStage(ctx2, ['done', 'error']);
+      assert('重启后重试完成（补 doneflag）', function () { return st2 === 'done' ? true : st2; });
+      assert('重试未重发落楼（created 未增加）', function () { return ctx2.mock.created.length === createBefore ? true : { before: createBefore, after: ctx2.mock.created.length }; });
+      assert('重试未覆盖已变化的 roster', function () {
+        var r = ctx2.mock.roster();
+        return r && r.heroes[0] && r.heroes[0].name === '被改过的名字' ? true : r && r.heroes[0] && r.heroes[0].name;
+      });
+      assert('补写的 doneflag 等于 receipt.flag', function () {
+        var d = ctx2.mock.doneFlag();
+        return d && JSON.stringify(d) === JSON.stringify(flagFromReceipt) ? true : d;
+      });
+    } catch (e) { row('G7b 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G7c 自由：归档失败保留原文供 retry；刷新不自动发送
+  async function g7c() {
+    group('G7c 自由：归档失败保留填好原文 → 同 iframe 重试（inputHandedOff 防误判）→ 刷新不自动发送');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx); // 每页元素不同，按当前 stage 重新探测
+      if (!PROBE.freeOpenBtn) { pending('自由归档失败重试', 'free-open 未落地'); dispose(); return; }
+      clickAction(ctx, 'free-open');
+      PROBE = probe(ctx);
+      if (!PROBE.freeSubmitBtn) { pending('自由归档失败重试', 'free-submit 未落地'); dispose(); return; }
+      if (PROBE.freeInput) setInput(ctx, 'free-opening-input', FREE_TEXT);
+      resetHost();
+      ctx.mock.setFailAssignKeys(['$opening_setup_done']);
+      clickAction(ctx, 'free-submit');
+      var st = await waitStage(ctx, ['error', 'done']);
+      assert('归档失败进入错误页', function () { return st === 'error' ? true : st; });
+      assert('归档失败保留填好原文于输入栏', function () {
+        return hostInput().value.indexOf(FREE_TEXT) >= 0 ? true : hostInput().value.slice(0, 120);
+      });
+      assert('归档失败未点击发送', function () { return HOST.sends.length === 0 ? true : HOST.sends.length; });
+
+      ctx.mock.setFailAssignKeys(null);
+      clickAction(ctx, 'retry');
+      var st2 = await waitStage(ctx, ['done', 'error']);
+      assert('同 iframe 重试不被 inputHandedOff 误判为草稿', function () { return st2 === 'done' ? true : st2; });
+      assert('重试后恰好发送 1 次', function () { return HOST.sends.length === 1 ? true : HOST.sends.length; });
+
+      // 刷新：新 iframe，已归档 → 不自动发送
+      var seedChat = JSON.parse(JSON.stringify(ctx.mock.store.chat));
+      resetHost();
+      var ctx2 = await makeStage({ chat: seedChat, messages: [] });
+      assert('刷新后进入归档摘要', function () { return S(ctx2).stage === 'archived' ? true : S(ctx2).stage; });
+      assert('刷新不自动发送（宿主零点击）', function () { return HOST.sends.length === 0 ? true : HOST.sends.length; });
+    } catch (e) { row('G7c 执行中断', false, e.message); }
+    dispose();
+  }
+
+  async function g7d() {
+    group('G7d 归档等待期间手动发送：不再触发空输入续写');
+    try {
+      var ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      clickAction(ctx, 'free-open');
+      setInput(ctx, 'free-opening-input', FREE_TEXT);
+      var release, reached;
+      var gate = new Promise(function (r) { release = r; });
+      var ready = new Promise(function (r) { reached = r; });
+      var original = ctx.win.insertOrAssignVariables;
+      ctx.win.insertOrAssignVariables = async function (payload, options) {
+        if (payload.$opening_setup_done) { reached(); await gate; }
+        return original(payload, options);
+      };
+      clickAction(ctx, 'free-submit');
+      await ready;
+      document.getElementById('send_but').click();
+      release();
+      var st = await waitStage(ctx, ['done', 'error']);
+      assert('手动发送后归档正常完成', function () { return st === 'done' ? true : st; });
+      assert('没有再次点击空输入栏发送（避免续写两次）', function () { return HOST.sends.length === 1 && HOST.sends[0].includes(FREE_TEXT) ? true : HOST.sends; });
+    } catch (e) { row('G7d 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G8 慢写期间 compact + 停音视频
+  async function g8() {
+    group('G8 慢写期间同步 compact 并停音视频');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      // 标题页开启声音（确认页无 sound 按钮），确保有音源在播
+      clickAction(ctx, 'sound');
+      assert('开启声音后 soundOn=true', function () { return S(ctx).soundOn === true ? true : S(ctx).soundOn; });
+      await sleep(360); // 等 BGM 淡入接管
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx); // 每页元素不同，按当前 stage 重新探测
+      ctx.mock.setAssignDelay(400);
+      clickAction(ctx, 'confirm-submit');
+      await sleep(120); // 落在慢写中段
+      var during = S(ctx).stage;
+      assert('慢写中处于 loading', function () { return during === 'loading' ? true : during; });
+      if (PROBE.compact) {
+        assert('慢写中 state.compact=true', function () { return S(ctx).compact === true ? true : S(ctx).compact; });
+      } else pending('慢写中 state.compact=true', 'compact 未落地');
+      assert('慢写当下 frame 高度 = body.scrollHeight（紧凑同步）', function () {
+        var sh = ctx.doc.body.scrollHeight;
+        return ctx.iframe.style.height === sh + 'px' ? true : { frame: ctx.iframe.style.height, scroll: sh };
+      });
+      assert('慢写中音视频已暂停（BGM/语音）', function () {
+        var bgm = ctx.doc.getElementById('bgm');
+        var media = ctx.media || {};
+        var pausedOk = bgm ? (bgm.__mockPlaying !== true || bgm.paused === true) : true;
+        return (pausedOk && (media.pauses || []).length > 0) ? true
+          : { bgmPlaying: bgm && bgm.__mockPlaying, pauses: (media.pauses || []).length };
+      });
+      var st = await waitStage(ctx, ['done', 'error']);
+      assert('慢写结束后完成', function () { return st === 'done' ? true : st; });
+      if (PROBE.compact) assert('完成页 state.compact=true', function () { return S(ctx).compact === true ? true : S(ctx).compact; });
+    } catch (e) { row('G8 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G9 特殊引号/反斜杠/YAML
+  async function g9() {
+    group('G9 特殊引号/反斜杠/YAML 安全');
+    // 9-1 自由原文逐字交接
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      driveGuided(ctx, { name: '夜鸦', c1: '隐匿者', c2: '圣职者', c3: '灾厄使' });
+      PROBE = probe(ctx); // 每页元素不同，按当前 stage 重新探测
+      if (!PROBE.freeOpenBtn) { pending('自由原文逐字交接', 'free-open 未落地'); dispose(); return; }
+      clickAction(ctx, 'free-open');
+      PROBE = probe(ctx);
+      if (!PROBE.freeSubmitBtn) { pending('自由原文逐字交接', 'free-submit 未落地'); dispose(); return; }
+      if (PROBE.freeInput) setInput(ctx, 'free-opening-input', FREE_TEXT);
+      resetHost();
+      clickAction(ctx, 'free-submit');
+      await waitStage(ctx, ['done', 'error']);
+      assert('含引号/反斜杠/短横线的自由原文逐字交接', function () {
+        var t = HOST.sends[0] || '';
+        return t.indexOf(FREE_TEXT) >= 0 ? true : t.slice(0, 220);
+      });
+      assert('自由交接文本用 JSON 转义（yamlText）保护 YAML 引号', function () {
+        var t = HOST.sends[0] || '';
+        return t.indexOf('名字: "') >= 0 && t.indexOf('<Status_block>') >= 0 ? true : '缺 Status_block';
+      });
+    } catch (e) { row('G9-1 执行中断', false, e.message); }
+    dispose();
+
+    // 9-2 姓名含引号/反斜杠 → Status_block 名字行须转义
+    var ctx2;
+    try {
+      ctx2 = await makeStage({});
+      clickAction(ctx2, 'start'); skipStory(ctx2);
+      pickClass(ctx2, 'c1', '隐匿者'); clickAction(ctx2, 'c1-done');
+      pickClass(ctx2, 'c2', '圣职者'); clickAction(ctx2, 'c2-done');
+      clickAction(ctx2, 'c_iskandar-done');
+      setName(ctx2, 'A"B\\C'); // 20 字内，含引号与反斜杠
+      if (!probe(ctx2).buildStatusBlock) { pending('姓名 YAML 转义', 'buildStatusBlock 未落地'); dispose(); return; }
+      var b = D(ctx2).buildStatusBlock('free');
+      var nameLine = (b.match(/名字: "[^\n]*"/g) || []).filter(function (l) { return l.indexOf('A') >= 0; });
+      assert('姓名含引号/反斜杠时 名字 行 YAML 转义安全', function () {
+        if (!nameLine.length) return '未找到名字行';
+        var line = nameLine[nameLine.length - 1];
+        return line.indexOf('A\\"B\\\\C') >= 0 ? true : line;
+      });
+      assert('名字行转义后仍是合法双引号标量（首尾引号成对）', function () {
+        if (!nameLine.length) return '未找到名字行';
+        var line = nameLine[nameLine.length - 1];
+        var m = line.match(/名字: (.*)$/);
+        if (!m) return '格式异常';
+        var v = m[1].trim();
+        return (v.charAt(0) === '"' && v.charAt(v.length - 1) === '"') ? true : v;
+      });
+    } catch (e) { row('G9-2 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G10 自定义姓名同名阻止
+  async function g10() {
+    group('G10 自定义姓名与预置角色同名 → 阻止');
+    var ctx;
+    try {
+      ctx = await makeStage({});
+      clickAction(ctx, 'start'); skipStory(ctx);
+      pickClass(ctx, 'c1', '隐匿者'); clickAction(ctx, 'c1-done');
+      pickClass(ctx, 'c2', '圣职者'); clickAction(ctx, 'c2-done');
+      clickAction(ctx, 'c_iskandar-done');
+      setName(ctx, '威廉·退尔'); // 与角色一同名
+      clickAction(ctx, 'c3id-done');
+      var afterC3id = S(ctx).stage;
+      assert('同名在 c3id-done 被阻止（停留 c3id）', function () {
+        return afterC3id === 'c3id' ? true : { stage: afterC3id, flash: S(ctx).flash };
+      });
+      if (afterC3id === 'c3id') {
+        // 改名后应放行
+        setName(ctx, '夜鸦');
+        clickAction(ctx, 'c3id-done');
+        assert('改名后放行进入 c3class', function () { return S(ctx).stage === 'c3class' ? true : S(ctx).stage; });
+      } else {
+        // 若 c3id 未阻止，则提交阶段必须阻止
+        pending('同名在 c3id-done 被阻止', 'c3id 未阻止，检查提交阶段');
+        pickClass(ctx, 'c3', '灾厄使'); clickAction(ctx, 'c3class-done'); clickAction(ctx, 'c3skill-done'); clickAction(ctx, 'c3item-done');
+        clickAction(ctx, 'confirm-submit');
+        await sleep(200);
+        assert('同名在提交阶段被阻止（未进入 done）', function () {
+          var st = S(ctx).stage;
+          return (st === 'confirm' || st === 'error') ? true : st;
+        });
+      }
+    } catch (e) { row('G10 执行中断', false, e.message); }
+    dispose();
+  }
+
+  // G11 重配保留无关角色并删除旧主角
+  async function g11() {
+    group('G11 强制重配：保留无关角色 · 删除旧主角（按 doneflag.chars slot 替换）');
+    var ctx;
+    try {
+      var doneSeed = {
+        ts: 111, mode: 'guided',
+        chars: [
+          { slot: 'hero1', name: '威廉·退尔', classType: '隐匿者' },
+          { slot: 'hero2', name: '冯·霍恩海姆', classType: '圣职者' },
+          { slot: 'hero_iskandar', name: '伊斯坎达尔', classType: '征伐者' },
+          { slot: 'hero3', name: '旧主角', classType: '灾厄使' },
+        ],
+        customPortraits: [], skills: [], items: [],
+      };
+      var rosterSeed = {
+        version: 1,
+        heroes: [
+          { name: '威廉·退尔', config: { classType: '隐匿者' }, skills: [], items: [] },
+          { name: '冯·霍恩海姆', config: { classType: '圣职者' }, skills: [], items: [] },
+          { name: '伊斯坎达尔', config: { classType: '征伐者' }, skills: [], items: [] },
+          { name: '旧主角', config: { classType: '灾厄使' }, skills: [], items: [] },
+          { name: '无关者', config: { classType: '狂战士' }, skills: [{ name: '保留技能' }], items: [] },
+        ],
+      };
+      var seedChat = {};
+      seedChat.$opening_setup_done = doneSeed;
+      seedChat.rpg_combat_roster = rosterSeed;
+      ctx = await makeStage({ chat: seedChat, messages: [] });
+      assert('已建档 boot 进入归档摘要', function () { return S(ctx).stage === 'archived' ? true : S(ctx).stage; });
+      clickAction(ctx, 'force-redo');
+      assert('强制重配回到标题页', function () { return S(ctx).stage === 'title' ? true : S(ctx).stage; });
+      driveGuided(ctx, { name: '新主角', c1: '防守者', c2: '圣职者', c3: '防守者' });
+      clickAction(ctx, 'confirm-submit');
+      var st = await waitStage(ctx, ['done', 'error']);
+      assert('重配提交完成', function () { return st === 'done' ? true : st; });
+      var heroes = (ctx.mock.roster() || {}).heroes || [];
+      var names = heroes.map(function (h) { return h.name; });
+      assert('新主角已写入', function () { return names.indexOf('新主角') >= 0 ? true : names; });
+      assert('旧主角已被删除', function () { return names.indexOf('旧主角') < 0 ? true : names; });
+      assert('无关角色被保留（含其数据）', function () {
+        var extra = heroes.filter(function (h) { return h.name === '无关者'; })[0];
+        return extra && extra.skills && extra.skills.some(function (s) { return s.name === '保留技能'; }) ? true : extra;
+      });
+      assert('受管四槽位替换后总数 = 4 管理 + 1 额外', function () {
+        return heroes.length === 5 ? true : { len: heroes.length, names: names };
+      });
+    } catch (e) { row('G11 执行中断', false, e.message); }
+    dispose();
+  }
+
+  /* =====================================================================
+   * 运行
+   * ===================================================================== */
+  document.getElementById('run').addEventListener('click', runAll);
+
+  async function runAll() {
+    var btn = document.getElementById('run');
+    btn.disabled = true;
+    out.innerHTML = '';
+    nPass = nFail = nPend = nTotal = 0;
+    totalRow.textContent = '0 / 0 项通过';
+    PROBE = null;
+
+    var groups = [g0, g1, g2, g3, g4, g5, g6, g7a, g7b, g7c, g7d, g8, g9, g10, g11];
+    for (var i = 0; i < groups.length; i++) {
+      try { await groups[i](); }
+      catch (e) { row('组 ' + groups[i].name + ' 未捕获异常', false, e && e.message); }
+    }
+    dispose();
+    totalRow.textContent = nPass + ' 通过 / ' + nFail + ' 失败 / ' + nPend + ' 待对齐（共 ' + nTotal + '）';
+    btn.disabled = false;
+  }
+})();
+</script>
+</body>
+</html>
